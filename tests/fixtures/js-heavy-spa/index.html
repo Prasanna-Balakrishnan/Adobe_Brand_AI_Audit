@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Loading...</title>
+</head>
+<body>
+  <div id="root"></div>
+  <script>
+    // Simulated SPA - content only renders after JS execution
+    window.__REDUX_STORE__ = {};
+    document.addEventListener('DOMContentLoaded', function() {
+      document.getElementById('root').innerHTML = '<h1>AcmeSPA Products</h1><p>Buy our widgets today!</p>';
+    });
+  </script>
+  <script src="https://cdn.example.com/react.production.min.js"></script>
+  <script src="https://cdn.example.com/app.bundle.js"></script>
+</body>
+</html>

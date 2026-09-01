@@ -1,0 +1,407 @@
+#!/usr/bin/env python3
+"""
+audit.py — entity-identity-audit skill
+
+Checks brand name consistency, About/Contact presence, author attribution,
+and entity ambiguity risk from snapshot.json.
+
+Usage:
+    python audit.py --snapshot snapshot.json --output entity_findings.json
+"""
+
+import argparse
+import json
+import re
+import sys
+from collections import Counter
+from urllib.parse import urlparse
+
+SKILL_NAME = "entity-identity-audit"
+
+ABOUT_URL_PATTERNS = ["/about", "/who-we-are", "/our-story", "/company", "/team",
+                      "/mission", "/history", "/overview"]
+ABOUT_TITLE_PATTERNS = ["about", "who we are", "our story", "our team", "company",
+                         "about us"]
+CONTACT_URL_PATTERNS = ["/contact", "/reach-us", "/get-in-touch", "/contact-us",
+                         "/support", "/help", "/connect"]
+CONTACT_TEXT_PATTERNS = [
+    r'\b[\w.+-]+@[\w-]+\.[\w.]+\b',          # email
+    r'\b\+?[\d][\d\s\-().]{7,}\d\b',          # phone number
+    r'\b\d{1,5}\s[\w\s]{3,30},\s[\w]{2,}',   # street address
+]
+BLOG_URL_PATTERNS = ["/blog", "/article", "/news", "/post", "/insight"]
+AMBIGUOUS_SHORT_NAMES_STOPWORDS = {
+    "a", "i", "the", "and", "or", "in", "at", "by", "for", "my", "our", "your",
+    "it", "is", "was", "be", "an", "on", "of", "to", "up", "do"
+}
+NAME_SUFFIX_STRIP = re.compile(
+    r'\s*(inc\.?|llc\.?|ltd\.?|corp\.?|co\.?|gmbh|plc|s\.a\.|s\.a\.s|pvt\.?)$',
+    re.IGNORECASE
+)
+SAME_AS_DOMAINS = ["wikipedia.org", "wikidata.org", "linkedin.com", "crunchbase.com",
+                   "twitter.com", "facebook.com"]
+
+
+def parse_args():
+    p = argparse.ArgumentParser()
+    p.add_argument("--snapshot", default="snapshot.json")
+    p.add_argument("--output", default="entity_findings.json")
+    return p.parse_args()
+
+
+def load_snapshot(path: str) -> dict:
+    with open(path, encoding="utf-8") as f:
+        return json.load(f)
+
+
+def normalise_name(name: str) -> str:
+    """Strip legal suffixes, extra whitespace, and lowercase for comparison."""
+    n = NAME_SUFFIX_STRIP.sub("", name.strip()).strip().lower()
+    n = re.sub(r'[^\w\s]', '', n)
+    return re.sub(r'\s+', ' ', n).strip()
+
+
+def get_org_names_from_jsonld(json_ld_blocks: list) -> list[str]:
+    names = []
+    for block in json_ld_blocks:
+        if not isinstance(block, dict):
+            continue
+        t = block.get("@type", "")
+        types = [t] if isinstance(t, str) else t
+        org_types = {"Organization", "LocalBusiness", "Corporation", "NGO",
+                     "GovernmentOrganization", "WebSite"}
+        if any(ot in org_types for ot in types):
+            name = block.get("name", "")
+            if name:
+                names.append(name)
+        # Check @graph
+        for node in block.get("@graph", []):
+            if isinstance(node, dict):
+                nt = node.get("@type", "")
+                ntypes = [nt] if isinstance(nt, str) else nt
+                if any(ot in org_types for ot in ntypes):
+                    name = node.get("name", "")
+                    if name:
+                        names.append(name)
+    return names
+
+
+def has_same_as(json_ld_blocks: list) -> bool:
+    for block in json_ld_blocks:
+        if not isinstance(block, dict):
+            continue
+        t = block.get("@type", "")
+        types = [t] if isinstance(t, str) else t
+        if any(ot in {"Organization", "LocalBusiness", "Corporation"} for ot in types):
+            if block.get("sameAs"):
+                return True
+        for node in block.get("@graph", []):
+            if isinstance(node, dict) and node.get("sameAs"):
+                return True
+    return False
+
+
+def derive_brand_name(snapshot: dict) -> tuple[str | None, str]:
+    """Return (candidate_name, source) from JSON-LD → H1 → domain."""
+    meta = snapshot.get("crawl_meta", {})
+    pages = snapshot.get("pages", [])
+    start_url = meta.get("start_url", "")
+    homepage = next(
+        (p for p in pages if p["url"] == start_url or p.get("final_url") == start_url),
+        pages[0] if pages else None
+    )
+
+    # 1. JSON-LD Organization.name
+    if homepage:
+        org_names = get_org_names_from_jsonld(homepage.get("json_ld", []))
+        if org_names:
+            return org_names[0], "json-ld"
+
+    # 2. Most common H1 text across all pages
+    all_h1 = []
+    for p in pages:
+        all_h1.extend(p.get("h1", []))
+    if all_h1:
+        counter = Counter(all_h1)
+        return counter.most_common(1)[0][0], "h1"
+
+    # 3. Domain name
+    if start_url:
+        domain = urlparse(start_url).netloc.split(".")[0]
+        if domain:
+            return domain, "domain"
+
+    return None, "none"
+
+
+def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
+    meta = snapshot.get("crawl_meta", {})
+    pages = snapshot.get("pages", [])
+    findings = []
+    strengths = []
+    total = len(pages)
+
+    if total == 0:
+        return findings, strengths
+
+    start_url = meta.get("start_url", "")
+    homepage = next(
+        (p for p in pages if p["url"] == start_url or p.get("final_url") == start_url),
+        pages[0] if pages else None
+    )
+
+    # Derive candidate brand name
+    brand_name, brand_source = derive_brand_name(snapshot)
+
+    # --- ENT-001: Brand name not detectable ---
+    if not brand_name:
+        findings.append({
+            "check_id": "ENT-001",
+            "title": "Brand name cannot be identified from any crawled page",
+            "category": "discoverability",
+            "severity": "high",
+            "confidence": "medium",
+            "affected_urls": [start_url] if start_url else [],
+            "evidence": (
+                "No Organization JSON-LD with a name field, no H1 text, and domain "
+                "name extraction failed. AI assistants cannot identify this brand."
+            ),
+            "tags": ["entity-disambiguation", "entity-name"],
+            "suggested_action": {
+                "summary": "Add Organization JSON-LD with a name field to the homepage; add an H1 with the brand name.",
+                "priority": "high",
+                "effort": "low"
+            }
+        })
+    else:
+        if brand_source == "json-ld":
+            strengths.append({
+                "title": "Brand name declared in Organization JSON-LD",
+                "category": "discoverability"
+            })
+
+    # --- ENT-002: Inconsistent name across pages ---
+    if brand_name:
+        norm_brand = normalise_name(brand_name)
+        inconsistent_pages = []
+        name_variants = set()
+        for p in pages:
+            # Collect all org names from this page's JSON-LD
+            page_org_names = get_org_names_from_jsonld(p.get("json_ld", []))
+            for n in page_org_names:
+                norm_n = normalise_name(n)
+                if norm_n and norm_n != norm_brand and norm_n not in norm_brand and norm_brand not in norm_n:
+                    inconsistent_pages.append(p)
+                    name_variants.add(n)
+                    break
+        if len(inconsistent_pages) > total * 0.5:
+            findings.append({
+                "check_id": "ENT-002",
+                "title": f"Organisation name is inconsistent across {len(inconsistent_pages)}/{total} pages",
+                "category": "discoverability",
+                "severity": "high",
+                "confidence": "medium",
+                "affected_urls": [p["url"] for p in inconsistent_pages[:5]],
+                "evidence": (
+                    f"Canonical name '{brand_name}' (from {brand_source}), but variants found: "
+                    f"{list(name_variants)[:5]}. Inconsistent naming confuses AI entity resolution."
+                ),
+                "tags": ["entity-name", "entity-disambiguation"],
+                "suggested_action": {
+                    "summary": "Standardise the organisation name across all pages and JSON-LD blocks.",
+                    "priority": "high",
+                    "effort": "medium"
+                }
+            })
+
+    # --- ENT-003: No About page ---
+    all_urls = [p["url"].lower() for p in pages]
+    all_titles = [p.get("title", "").lower() for p in pages]
+    has_about = (
+        any(any(pat in u for pat in ABOUT_URL_PATTERNS) for u in all_urls) or
+        any(any(pat in t for pat in ABOUT_TITLE_PATTERNS) for t in all_titles)
+    )
+    if not has_about:
+        findings.append({
+            "check_id": "ENT-003",
+            "title": "No About page detected",
+            "category": "discoverability",
+            "severity": "high",
+            "confidence": "medium",
+            "affected_urls": [start_url],
+            "evidence": (
+                f"None of {total} crawled URLs match about-page patterns "
+                f"({', '.join(ABOUT_URL_PATTERNS[:3])}, ...) and no page title contains 'About'."
+            ),
+            "tags": ["entity-identity", "entity-disambiguation"],
+            "suggested_action": {
+                "summary": "Create an About page with org name, description, founding year, and mission.",
+                "priority": "high",
+                "effort": "medium"
+            }
+        })
+    else:
+        strengths.append({
+            "title": "About page present for entity context",
+            "category": "discoverability"
+        })
+
+    # --- ENT-004: No Contact page or contact info ---
+    has_contact_page = any(
+        any(pat in u for pat in CONTACT_URL_PATTERNS) for u in all_urls
+    )
+    has_contact_info = False
+    for p in pages:
+        sample = p.get("visible_text_sample", "") or ""
+        for pat in CONTACT_TEXT_PATTERNS:
+            if re.search(pat, sample):
+                has_contact_info = True
+                break
+        if has_contact_info:
+            break
+
+    if not has_contact_page and not has_contact_info:
+        findings.append({
+            "check_id": "ENT-004",
+            "title": "No contact page or contact information found",
+            "category": "discoverability",
+            "severity": "high",
+            "confidence": "medium",
+            "affected_urls": [start_url],
+            "evidence": (
+                f"No URL matches contact-page patterns and no email, phone, or address "
+                f"detected in visible text samples across {total} crawled pages."
+            ),
+            "tags": ["entity-identity"],
+            "suggested_action": {
+                "summary": "Add a Contact page with email, phone, and/or address.",
+                "priority": "high",
+                "effort": "low"
+            }
+        })
+    else:
+        strengths.append({
+            "title": "Contact information accessible",
+            "category": "discoverability"
+        })
+
+    # --- ENT-005: No author attribution on blog/article pages ---
+    blog_pages = [p for p in pages if any(pat in p["url"].lower() for pat in BLOG_URL_PATTERNS)]
+    if blog_pages:
+        no_author_pages = []
+        for p in blog_pages:
+            # Check JSON-LD for author
+            has_author_jsonld = False
+            for block in p.get("json_ld", []):
+                if isinstance(block, dict) and block.get("author"):
+                    has_author_jsonld = True
+                    break
+            # Check visible text for "by [Name]" pattern
+            sample = p.get("visible_text_sample", "") or ""
+            has_author_text = bool(re.search(r'\bby\s+[A-Z][a-z]+', sample))
+            if not has_author_jsonld and not has_author_text:
+                no_author_pages.append(p)
+        if no_author_pages:
+            findings.append({
+                "check_id": "ENT-005",
+                "title": f"Author attribution missing on {len(no_author_pages)}/{len(blog_pages)} article pages",
+                "category": "discoverability",
+                "severity": "medium",
+                "confidence": "medium",
+                "affected_urls": [p["url"] for p in no_author_pages[:5]],
+                "evidence": (
+                    f"{len(no_author_pages)} blog/article pages have no author in JSON-LD "
+                    "and no visible byline. AI agents cannot attribute content."
+                ),
+                "tags": ["author-attribution", "entity-identity"],
+                "suggested_action": {
+                    "summary": "Add author to Article JSON-LD and include visible bylines on article pages.",
+                    "priority": "medium",
+                    "effort": "low"
+                }
+            })
+
+    # --- ENT-006: Entity name ambiguity risk ---
+    if brand_name:
+        name_words = normalise_name(brand_name).split()
+        is_ambiguous = (
+            len(brand_name) < 4 or
+            (len(name_words) <= 2 and all(w in AMBIGUOUS_SHORT_NAMES_STOPWORDS for w in name_words))
+        )
+        if is_ambiguous:
+            findings.append({
+                "check_id": "ENT-006",
+                "title": f"Brand name '{brand_name}' may be ambiguous or generic",
+                "category": "discoverability",
+                "severity": "medium",
+                "confidence": "low",
+                "affected_urls": [start_url],
+                "evidence": (
+                    f"Detected brand name '{brand_name}' is short ({len(brand_name)} chars) "
+                    "or uses only common words, creating disambiguation risk for AI agents."
+                ),
+                "tags": ["entity-disambiguation", "entity-name"],
+                "suggested_action": {
+                    "summary": "Add disambiguatingDescription and sameAs to Organisation JSON-LD; use full legal name.",
+                    "priority": "medium",
+                    "effort": "low"
+                }
+            })
+
+    # --- ENT-007: Missing sameAs in Organisation JSON-LD ---
+    if homepage:
+        hp_jsonld = homepage.get("json_ld", [])
+        hp_org_names = get_org_names_from_jsonld(hp_jsonld)
+        if hp_org_names:  # Has org JSON-LD
+            if not has_same_as(hp_jsonld):
+                findings.append({
+                    "check_id": "ENT-007",
+                    "title": "Organisation JSON-LD missing sameAs links",
+                    "category": "discoverability",
+                    "severity": "low",
+                    "confidence": "high",
+                    "affected_urls": [homepage["url"]],
+                    "evidence": (
+                        "Homepage Organization JSON-LD has no sameAs property. "
+                        "sameAs links to authoritative profiles help AI corroborate entity identity."
+                    ),
+                    "tags": ["entity-disambiguation", "schema-org"],
+                    "suggested_action": {
+                        "summary": "Add sameAs URLs (LinkedIn, Wikipedia, Wikidata) to Organization JSON-LD.",
+                        "priority": "low",
+                        "effort": "low"
+                    }
+                })
+            else:
+                strengths.append({
+                    "title": "sameAs links in Organization schema support entity corroboration",
+                    "category": "discoverability"
+                })
+
+    return findings, strengths
+
+
+def main():
+    args = parse_args()
+    try:
+        snapshot = load_snapshot(args.snapshot)
+    except FileNotFoundError:
+        print(f"[ERROR] Snapshot not found: {args.snapshot}", file=sys.stderr)
+        sys.exit(1)
+    except json.JSONDecodeError as e:
+        print(f"[ERROR] Invalid JSON: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    findings, strengths = run_checks(snapshot)
+    output = {"skill": SKILL_NAME, "findings": findings, "strengths": strengths}
+
+    with open(args.output, "w", encoding="utf-8") as f:
+        json.dump(output, f, indent=2, ensure_ascii=False)
+
+    print(f"[OK] {SKILL_NAME}: {len(findings)} finding(s), {len(strengths)} strength(s) → {args.output}",
+          file=sys.stderr)
+    print(args.output)
+
+
+if __name__ == "__main__":
+    main()
