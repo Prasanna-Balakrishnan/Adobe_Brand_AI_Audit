@@ -13,12 +13,26 @@ import json
 import sys
 import re
 
+from urllib.parse import urlparse
+
 SKILL_NAME = "structured-data-content-audit"
 
 PRODUCT_URL_PATTERNS = ["/product", "/item", "/shop", "/store", "/buy", "/pricing", "/plan"]
 BLOG_URL_PATTERNS = ["/blog", "/article", "/news", "/post", "/insight"]
 GENERIC_SCHEMA_TYPES = {"Thing", "CreativeWork", "Intangible"}
-ORG_HOMEPAGE_TYPES = {"Organization", "WebSite", "LocalBusiness", "Corporation"}
+ORG_HOMEPAGE_TYPES = {
+    "Organization", "WebSite", "LocalBusiness", "Corporation",
+    "EducationalOrganization", "CollegeOrUniversity", "School",
+    "HighSchool", "NewsMediaOrganization", "GovernmentOrganization",
+    "NGO", "MedicalOrganization", "Event", "Project"
+}
+
+
+def is_org_homepage_type(t: str) -> bool:
+    """Return True if type is Organization, WebSite, or any standard Organization/Entity subtype."""
+    if not isinstance(t, str):
+        return False
+    return t.endswith("Organization") or t in ORG_HOMEPAGE_TYPES
 
 
 def parse_args():
@@ -34,8 +48,9 @@ def load_snapshot(path: str) -> dict:
 
 
 def url_matches(url: str, patterns: list) -> bool:
-    url_lower = url.lower()
-    return any(p in url_lower for p in patterns)
+    """Match pattern against URL path to avoid false positives on subdomains."""
+    path = urlparse(url).path.lower()
+    return any(p in path for p in patterns)
 
 
 def get_schema_types(json_ld_blocks: list) -> set:
@@ -125,7 +140,7 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
     product_pages = [
         p for p in pages
         if p.get("page_type") in ("Product", "Service", "Pricing") or
-           (url_matches(p["url"], PRODUCT_URL_PATTERNS) and p.get("page_type") not in ("About", "Contact", "Careers", "Documentation", "Blog/article"))
+           (url_matches(p["url"], PRODUCT_URL_PATTERNS) and p.get("page_type") not in ("About", "Contact", "Careers", "Documentation", "Blog/article", "Homepage"))
     ]
     if product_pages:
         product_pages_no_jsonld = [p for p in product_pages if not p.get("json_ld")]
@@ -159,7 +174,8 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
     )
     if homepage:
         hp_types = get_schema_types(homepage.get("json_ld", []))
-        if not hp_types.intersection(ORG_HOMEPAGE_TYPES):
+        matched_org_types = [t for t in hp_types if is_org_homepage_type(t)]
+        if not matched_org_types:
             findings.append({
                 "check_id": "SDC-003",
                 "title": "Missing Organization or WebSite schema on homepage",
@@ -168,8 +184,8 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
                 "confidence": "high",
                 "affected_urls": [homepage["url"]],
                 "evidence": (
-                    f"Homepage ({homepage['url']}) has no JSON-LD with @type Organization, "
-                    f"WebSite, or LocalBusiness. Found types: {hp_types or 'none'}. "
+                    f"Homepage ({homepage['url']}) has no JSON-LD with an Organization, "
+                    f"WebSite, or brand entity type. Found types: {hp_types or 'none'}. "
                     "AI assistants cannot reliably identify and describe this brand."
                 ),
                 "tags": ["json-ld", "schema-org", "entity-identity"],
@@ -184,7 +200,7 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
             })
         else:
             strengths.append({
-                "title": f"Homepage has Organization/WebSite schema ({', '.join(hp_types & ORG_HOMEPAGE_TYPES)})",
+                "title": f"Homepage has Organization/WebSite schema ({', '.join(matched_org_types)})",
                 "category": "discoverability"
             })
 

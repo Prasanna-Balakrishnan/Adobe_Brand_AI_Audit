@@ -236,13 +236,33 @@ def evaluate_agent_answerability(snapshot: dict, findings: list[dict] | None = N
         "evidence": "No physical address or geographic location declared in JSON-LD or contact text.",
         "sources": []
     }
-    if len(locations_found) > 1 and not all(locations_found[0].lower() in loc.lower() for loc in locations_found):
+    def locations_compatible(loc1: str, loc2: str) -> bool:
+        t1 = {w for w in re.findall(r'\b[a-zA-Z]{3,}\b', loc1.lower())}
+        t2 = {w for w in re.findall(r'\b[a-zA-Z]{3,}\b', loc2.lower())}
+        common_words = {"street", "avenue", "road", "drive", "lane", "boulevard", "suite", "floor", "building", "box", "post"}
+        t1 -= common_words
+        t2 -= common_words
+        return bool(t1 & t2)
+
+    has_location_conflict = False
+    if len(locations_found) > 1:
+        for i in range(len(locations_found)):
+            for j in range(i + 1, len(locations_found)):
+                l1, l2 = locations_found[i].lower(), locations_found[j].lower()
+                if l1 in l2 or l2 in l1 or locations_compatible(l1, l2):
+                    continue
+                has_location_conflict = True
+                break
+            if has_location_conflict:
+                break
+
+    if has_location_conflict:
         # Conflicting locations detected across pages
         q3["status"] = "Conflicting"
         q3["confidence"] = "high"
         q3["evidence"] = f"Inconsistent locations declared across pages: {locations_found[:2]}."
         q3["sources"] = location_sources[:2]
-    elif len(locations_found) == 1:
+    elif len(locations_found) >= 1:
         q3["status"] = "Supported"
         q3["confidence"] = "high"
         q3["evidence"] = f"Official address found: '{locations_found[0]}'."
@@ -257,9 +277,23 @@ def evaluate_agent_answerability(snapshot: dict, findings: list[dict] | None = N
         for block in p.get("json_ld", []):
             if isinstance(block, dict):
                 offers = block.get("offers")
-                if isinstance(offers, dict) and "price" in offers:
-                    prices_found.append(str(offers["price"]))
-                    price_sources.append(p["url"])
+                if isinstance(offers, list):
+                    for off in offers:
+                        if isinstance(off, dict):
+                            p_val = off.get("price") or off.get("lowPrice")
+                            if p_val is not None:
+                                curr = off.get("priceCurrency", "$")
+                                prices_found.append(f"{curr}{p_val}")
+                                price_sources.append(p["url"])
+                elif isinstance(offers, dict):
+                    curr = offers.get("priceCurrency", "$")
+                    if "price" in offers:
+                        prices_found.append(f"{curr}{offers['price']}")
+                        price_sources.append(p["url"])
+                    elif "lowPrice" in offers:
+                        high = f"-{offers['highPrice']}" if "highPrice" in offers else "+"
+                        prices_found.append(f"{curr}{offers['lowPrice']}{high}")
+                        price_sources.append(p["url"])
         # Check text sample
         sample = p.get("visible_text_sample", "")
         pm = PRICE_REGEX.findall(sample)
@@ -300,6 +334,22 @@ def evaluate_agent_answerability(snapshot: dict, findings: list[dict] | None = N
     contact_sources = []
     contact_pages = [p for p in pages if p.get("page_type") == "Contact" or "/contact" in p.get("url", "").lower()]
     for p in pages:
+        # Check JSON-LD contactPoint
+        for block in p.get("json_ld", []):
+            if isinstance(block, dict):
+                cps = block.get("contactPoint")
+                if isinstance(cps, dict):
+                    cps = [cps]
+                elif not isinstance(cps, list):
+                    cps = []
+                for cp in cps:
+                    if isinstance(cp, dict):
+                        if cp.get("email"):
+                            emails.append(cp["email"])
+                            contact_sources.append(p["url"])
+                        if cp.get("telephone"):
+                            phones.append(cp["telephone"])
+                            contact_sources.append(p["url"])
         sample = p.get("visible_text_sample", "")
         em = EMAIL_REGEX.findall(sample)
         if em:

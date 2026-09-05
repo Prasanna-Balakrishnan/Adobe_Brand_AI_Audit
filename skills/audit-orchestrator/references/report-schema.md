@@ -10,10 +10,13 @@ schema. No field may be added or removed without updating this document first.
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `site` | string | ✅ | The apex domain audited (e.g. `"example.com"`) |
+| `site` | string | ✅ | The normalized site/host audited (e.g. `"example.com"`) |
 | `audited_at` | string (ISO-8601 UTC) | ✅ | Timestamp when audit completed |
 | `run_info` | object | ✅ | Metadata about this audit run |
 | `summary` | object | ✅ | Aggregated severity counts + score |
+| `agent_journey_scores` | object | ✅ | AI Agent Journey readiness across 6 pillars |
+| `agent_answerability` | array\<AnswerabilityQuestion\> | ✅ | Evaluation of 5 core brand questions |
+| `top_priorities` | array\<PriorityItem\> | ✅ | Impact × Reach × Confidence prioritized actions |
 | `findings` | array\<Finding\> | ✅ | All deduplicated audit findings |
 | `proactive_recommendations` | array\<Recommendation\> | ✅ | Beyond-defect suggestions |
 | `strengths` | array\<Strength\> | ✅ | Detected positive signals |
@@ -25,22 +28,38 @@ schema. No field may be added or removed without updating this document first.
 ```json
 {
   "marketplace_version": "1.0.0",
-  "skills_invoked": ["crawlability-render-audit", "..."],
+  "query_input": "https://example.com",
+  "target_url": "https://example.com",
+  "skills_invoked": ["crawlability-render-audit", "structured-data-content-audit", "..."],
+  "failed_skills": [],
   "pages_crawled": 18,
   "max_pages": 20,
-  "crawl_duration_seconds": 47,
-  "robots_txt_respected": true
+  "crawl_duration_seconds": 47.2,
+  "robots_txt_respected": true,
+  "crawl_coverage": {
+    "pages_discovered": 24,
+    "pages_crawled": 18,
+    "pages_skipped": 6,
+    "failed_pages": [],
+    "crawl_duration_seconds": 47.2,
+    "robots_status": "allowed",
+    "js_rendering_status": "disabled"
+  }
 }
 ```
 
 | Field | Type | Description |
 |-------|------|-------------|
 | `marketplace_version` | string | Semver of this marketplace release |
+| `query_input` | string | Original user query or prompt string |
+| `target_url` | string | Resolved and normalized audit target URL |
 | `skills_invoked` | array\<string\> | Skill names called, in invocation order |
+| `failed_skills` | array\<object\> | Any skills that failed, with error message (empty on success) |
 | `pages_crawled` | integer | Number of pages actually crawled |
 | `max_pages` | integer | The cap configured for this run |
 | `crawl_duration_seconds` | number | Wall-clock seconds for the crawl phase |
 | `robots_txt_respected` | boolean | Always `true`; crawl aborts if false |
+| `crawl_coverage` | object | Detailed crawl coverage metrics and status |
 
 ---
 
@@ -71,6 +90,84 @@ schema. No field may be added or removed without updating this document first.
 | `ai_readiness_score` | integer | 0–100, see `severity-rules.md` for formula |
 | `by_category.discoverability` | integer | Count of discoverability findings |
 | `by_category.engagement` | integer | Count of engagement findings |
+
+---
+
+## `agent_journey_scores` Object
+
+```json
+{
+  "reach": 100,
+  "read": 95,
+  "understand": 80,
+  "trust": 85,
+  "navigate": 90,
+  "act": 80,
+  "overall_journey_score": 88
+}
+```
+
+| Pillar | Description |
+|--------|-------------|
+| `reach` | Can AI crawlers access the site without robots/HTTP/redirect barriers? (0–100) |
+| `read` | Can AI extract clean text and headings without JS rendering traps? (0–100) |
+| `understand` | Can AI parse rich, valid Schema.org structured data? (0–100) |
+| `trust` | Can AI verify fresh dates, provenance, and fact consistency? (0–100) |
+| `navigate` | Can AI traverse internal links without dead ends? (0–100) |
+| `act` | Can users and agents take action via clear CTAs and value propositions? (0–100) |
+| `overall_journey_score` | Unweighted average across all 6 journey pillars (0–100) |
+
+---
+
+## `agent_answerability` Object (agent_answerability[])
+
+```json
+{
+  "question": "What does this company do?",
+  "status": "Supported",
+  "confidence": "high",
+  "evidence": "Declared purpose: 'Cloud monitoring and compliance software...'",
+  "sources": ["https://example.com/"]
+}
+```
+
+| Field | Type | Allowed Values | Description |
+|-------|------|----------------|-------------|
+| `question` | string | Core brand question | One of the 5 canonical brand questions |
+| `status` | string | `"Supported"`, `"Weakly supported"`, `"Conflicting"`, `"Not found"` | Evaluation status |
+| `confidence` | string | `"high"`, `"medium"`, `"low"` | Confidence level |
+| `evidence` | string | — | Direct citation from crawl snapshot |
+| `sources` | array\<string\> | — | Crawled page URLs supporting the finding |
+
+---
+
+## `top_priorities` Array (top_priorities[])
+
+```json
+{
+  "id": "F-001",
+  "title": "No structured data on product pages",
+  "category": "discoverability",
+  "severity": "high",
+  "confidence": "high",
+  "affected_pages_count": 3,
+  "suggested_action": "Add Product/Offer JSON-LD to every product page.",
+  "priority_score": 32.5,
+  "priority_rank": 1
+}
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | string | Corresponding Finding ID |
+| `title` | string | Short finding title |
+| `category` | string | `"discoverability"` or `"engagement"` |
+| `severity` | string | Severity level |
+| `confidence` | string | Confidence level |
+| `affected_pages_count` | integer | Number of affected URLs |
+| `suggested_action` | string | Actionable remediation summary |
+| `priority_score` | number | Calculated Impact × Reach × Confidence score |
+| `priority_rank` | integer | 1-based rank order |
 
 ---
 
@@ -105,7 +202,7 @@ schema. No field may be added or removed without updating this document first.
 | `confidence` | string | `"high"`, `"medium"`, `"low"` | Evidence quality |
 | `source_skill` | string | — | The skill that emitted this finding |
 | `tags` | array\<string\> | — | Freeform lowercase kebab-case tags |
-| `affected_urls` | array\<string\> | — | At least one URL; must be from crawled pages |
+| `affected_urls` | array\<string\> | — | At least one URL; includes relevant discovered, attempted, or crawled pages |
 | `evidence` | string | — | Specific, quantified evidence (counts, URLs, quotes) |
 | `root_cause_group` | string | `"RC-NNN"` or `null` | Groups near-duplicate findings; null if unique |
 | `suggested_action.summary` | string | — | Concrete, actionable fix |
@@ -113,9 +210,9 @@ schema. No field may be added or removed without updating this document first.
 | `suggested_action.effort` | string | `"low"`, `"medium"`, `"high"` | Implementation effort |
 
 ### Confidence Rules
-- `"high"` — deterministic/mechanical check: parsed data absent, HTTP code != 200, regex match
-- `"medium"` — heuristic text-based check: heading quality, navigation structure
-- `"low"` — inference/estimation: freshness signals, entity disambiguation
+- `"high"` — Direct, unambiguous evidence (e.g., deterministic DOM/header checks, exact HTTP error codes, direct parser failure, or explicit schema validation errors).
+- `"medium"` — Corroborated or high-signal heuristic evidence (e.g., text pattern analysis across key sections, navigation structural evaluations, or multiple consistent indicators).
+- `"low"` — Inferred or probabilistic evidence (e.g., cross-page semantic inference, weak date signals, or entity disambiguation based on partial context).
 
 ---
 
@@ -123,7 +220,7 @@ schema. No field may be added or removed without updating this document first.
 
 ```json
 {
-  "id": "P-001",
+  "id": "PRO-001",
   "title": "Add FAQ-style Q&A content to top landing pages",
   "category": "discoverability",
   "rationale": "Accurate product info exists but no explicit Q&A text for assistants to quote.",
@@ -133,7 +230,7 @@ schema. No field may be added or removed without updating this document first.
 
 | Field | Type | Allowed Values | Description |
 |-------|------|----------------|-------------|
-| `id` | string | `"P-NNN"` | Sequential ID |
+| `id` | string | `"PRO-NNN"` | Sequential recommendation ID |
 | `title` | string | — | Short opportunity title |
 | `category` | string | `"discoverability"`, `"engagement"` | Taxonomy enum |
 | `rationale` | string | — | Why this matters; based on findings context |
@@ -159,7 +256,7 @@ schema. No field may be added or removed without updating this document first.
 
 ## Intermediate Skill Output Schema
 
-Each audit skill (skills 3–8) must return this JSON structure before the orchestrator normalizes it:
+Each supporting audit skill that emits findings must return this JSON structure before the orchestrator normalizes it (`site-crawler` produces the shared `snapshot.json` rather than direct findings):
 
 ```json
 {

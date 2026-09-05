@@ -21,7 +21,11 @@ CTA_KEYWORDS = [
     "get started", "try", "sign up", "register", "buy", "shop", "contact us",
     "book", "request a demo", "request demo", "learn more", "start free",
     "free trial", "demo", "download", "subscribe", "join", "explore",
-    "get access", "start now", "order now", "get quote", "schedule"
+    "get access", "start now", "order now", "get quote", "schedule",
+    "apply", "apply now", "admissions", "enroll", "inquire",
+    "quickstart", "installation", "docs", "documentation", "api reference",
+    "shop now", "add to cart", "menu", "view menu", "reserve",
+    "view jobs", "open positions", "get tickets", "rsvp"
 ]
 VALUE_PROP_KEYWORDS = [
     "help", "solution", "platform", "service", "product", "tool",
@@ -220,7 +224,8 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
         any(any(pat in u for pat in ABOUT_URL_PATTERNS) for u in all_urls_lower) or
         any(any(pat in t for pat in ABOUT_TITLE_PATTERNS) for t in all_titles_lower)
     )
-    if not has_about:
+    is_doc_site = any(p.get("page_type") == "Documentation" or "/docs" in p.get("url", "").lower() for p in pages)
+    if not has_about and not is_doc_site:
         findings.append({
             "check_id": "ENG-005",
             "title": "No About or team page detected",
@@ -233,7 +238,7 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
                 "contains 'About' or 'Our Team'. First-time visitors cannot learn who is "
                 "behind the site."
             ),
-            "tags": ["navigation", "value-proposition"],
+            "tags": ["about-page", "navigation", "value-proposition"],
             "suggested_action": {
                 "summary": "Create an About page introducing the team/company and mission.",
                 "priority": "medium",
@@ -314,7 +319,7 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
                 f"No link text across {total} crawled pages matches contact/support patterns "
                 f"({', '.join(CONTACT_LINK_KEYWORDS[:4])}, ...)."
             ),
-            "tags": ["navigation", "cta"],
+            "tags": ["contact-page", "navigation", "cta"],
             "suggested_action": {
                 "summary": "Add a 'Contact' or 'Support' link to the site header or footer.",
                 "priority": "low",

@@ -376,12 +376,15 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
 
     # --- CRA-010: Conflicting canonical ---
     conflicting = []
-    crawled_urls = {p["url"] for p in pages} | {p.get("final_url", "") for p in pages}
+    crawled_urls = {p["url"].rstrip("/") for p in pages} | {p.get("final_url", "").rstrip("/") for p in pages}
     for p in pages:
         c = p.get("canonical")
         fu = p.get("final_url", p["url"])
-        if c and c != fu and c not in crawled_urls:
-            conflicting.append(p)
+        if c:
+            c_norm = c.rstrip("/")
+            fu_norm = fu.rstrip("/")
+            if c_norm != fu_norm and c_norm not in crawled_urls:
+                conflicting.append(p)
     if conflicting:
         findings.append({
             "check_id": "CRA-010",

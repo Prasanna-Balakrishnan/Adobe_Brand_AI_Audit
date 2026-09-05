@@ -50,19 +50,31 @@ def urls_overlap(urls_a: list, urls_b: list) -> bool:
 
 def are_near_duplicates(a: dict, b: dict) -> bool:
     """Return True if two findings should be grouped."""
-    # Must be same category
-    if a["category"] != b["category"]:
-        return False
     # Must be from different skills (same-skill dedup handled in normalize)
     if a["source_skill"] == b["source_skill"]:
         return False
     # Must have overlapping affected_urls
     if not urls_overlap(a["affected_urls"], b["affected_urls"]):
         return False
-    # Must have keyword overlap in title + evidence
+
+    # Check for shared specific root-cause tags across skills (e.g. about-page, contact-page)
+    tags_a = set(a.get("tags", []))
+    tags_b = set(b.get("tags", []))
+    specific_tags = {"about-page", "contact-page"}
+    if tags_a & tags_b & specific_tags:
+        return True
+
+    # Check keyword overlap in title + evidence
     tokens_a = tokenize(a["title"] + " " + a["evidence"])
     tokens_b = tokenize(b["title"] + " " + b["evidence"])
-    return jaccard(tokens_a, tokens_b) >= JACCARD_THRESHOLD
+    jacc = jaccard(tokens_a, tokens_b)
+
+    # Same category: use standard threshold
+    if a["category"] == b["category"]:
+        return jacc >= JACCARD_THRESHOLD
+
+    # Different category: require high lexical overlap (>= 0.35)
+    return jacc >= 0.35
 
 
 def merge_findings(primary: dict, secondary: dict) -> dict:

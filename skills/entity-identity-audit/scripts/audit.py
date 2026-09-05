@@ -61,16 +61,33 @@ def normalise_name(name: str) -> str:
     return re.sub(r'\s+', ' ', n).strip()
 
 
+ORG_SUBSTRINGS = {
+    "organization", "corporation", "business", "company", "university", "college",
+    "school", "ngo", "institution", "agency", "association", "newsmedia"
+}
+
+
+def is_org_type(t: str | list) -> bool:
+    types = [t] if isinstance(t, str) else (t or [])
+    for item in types:
+        if not isinstance(item, str):
+            continue
+        item_lower = item.lower()
+        if item in {"Organization", "LocalBusiness", "Corporation", "NGO",
+                    "GovernmentOrganization", "WebSite"}:
+            return True
+        if any(sub in item_lower for sub in ORG_SUBSTRINGS):
+            return True
+    return False
+
+
 def get_org_names_from_jsonld(json_ld_blocks: list) -> list[str]:
     names = []
     for block in json_ld_blocks:
         if not isinstance(block, dict):
             continue
         t = block.get("@type", "")
-        types = [t] if isinstance(t, str) else t
-        org_types = {"Organization", "LocalBusiness", "Corporation", "NGO",
-                     "GovernmentOrganization", "WebSite"}
-        if any(ot in org_types for ot in types):
+        if is_org_type(t):
             name = block.get("name", "")
             if name:
                 names.append(name)
@@ -78,8 +95,7 @@ def get_org_names_from_jsonld(json_ld_blocks: list) -> list[str]:
         for node in block.get("@graph", []):
             if isinstance(node, dict):
                 nt = node.get("@type", "")
-                ntypes = [nt] if isinstance(nt, str) else nt
-                if any(ot in org_types for ot in ntypes):
+                if is_org_type(nt):
                     name = node.get("name", "")
                     if name:
                         names.append(name)
@@ -91,13 +107,13 @@ def has_same_as(json_ld_blocks: list) -> bool:
         if not isinstance(block, dict):
             continue
         t = block.get("@type", "")
-        types = [t] if isinstance(t, str) else t
-        if any(ot in {"Organization", "LocalBusiness", "Corporation"} for ot in types):
+        if is_org_type(t):
             if block.get("sameAs"):
                 return True
         for node in block.get("@graph", []):
-            if isinstance(node, dict) and node.get("sameAs"):
-                return True
+            if isinstance(node, dict) and is_org_type(node.get("@type", "")):
+                if node.get("sameAs"):
+                    return True
     return False
 
 
@@ -217,32 +233,36 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
             })
 
     # --- ENT-003: No About page ---
+    is_doc_site = any(p.get("page_type") == "Documentation" or "/docs" in p.get("url", "").lower() for p in pages)
     all_urls = [p["url"].lower() for p in pages]
     all_titles = [p.get("title", "").lower() for p in pages]
     has_about = (
+        any(p.get("page_type") == "About" for p in pages) or
         any(any(pat in u for pat in ABOUT_URL_PATTERNS) for u in all_urls) or
         any(any(pat in t for pat in ABOUT_TITLE_PATTERNS) for t in all_titles)
     )
-    if not has_about:
+    if not has_about and not is_doc_site:
+        sev = "medium" if (total <= 3 or (homepage and get_org_names_from_jsonld(homepage.get("json_ld", [])))) else "high"
+        conf = "low" if total <= 2 else "medium"
         findings.append({
             "check_id": "ENT-003",
             "title": "No About page detected",
             "category": "discoverability",
-            "severity": "high",
-            "confidence": "medium",
+            "severity": sev,
+            "confidence": conf,
             "affected_urls": [start_url],
             "evidence": (
                 f"None of {total} crawled URLs match about-page patterns "
                 f"({', '.join(ABOUT_URL_PATTERNS[:3])}, ...) and no page title contains 'About'."
             ),
-            "tags": ["entity-identity", "entity-disambiguation"],
+            "tags": ["about-page", "entity-identity", "entity-disambiguation"],
             "suggested_action": {
                 "summary": "Create an About page with org name, description, founding year, and mission.",
-                "priority": "high",
+                "priority": sev,
                 "effort": "medium"
             }
         })
-    else:
+    elif has_about:
         strengths.append({
             "title": "About page present for entity context",
             "category": "discoverability"
@@ -250,10 +270,18 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
 
     # --- ENT-004: No Contact page or contact info ---
     has_contact_page = any(
-        any(pat in u for pat in CONTACT_URL_PATTERNS) for u in all_urls
+        p.get("page_type") == "Contact" or any(pat in u for pat in CONTACT_URL_PATTERNS) for u in all_urls
     )
     has_contact_info = False
     for p in pages:
+        # Check JSON-LD for contactPoint, telephone, email
+        for block in p.get("json_ld", []):
+            if isinstance(block, dict):
+                if block.get("contactPoint") or block.get("telephone") or block.get("email"):
+                    has_contact_info = True
+                    break
+        if has_contact_info:
+            break
         sample = p.get("visible_text_sample", "") or ""
         for pat in CONTACT_TEXT_PATTERNS:
             if re.search(pat, sample):
@@ -274,7 +302,7 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
                 f"No URL matches contact-page patterns and no email, phone, or address "
                 f"detected in visible text samples across {total} crawled pages."
             ),
-            "tags": ["entity-identity"],
+            "tags": ["contact-page", "entity-identity"],
             "suggested_action": {
                 "summary": "Add a Contact page with email, phone, and/or address.",
                 "priority": "high",
@@ -288,7 +316,16 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
         })
 
     # --- ENT-005: No author attribution on blog/article pages ---
-    blog_pages = [p for p in pages if any(pat in p["url"].lower() for pat in BLOG_URL_PATTERNS)]
+    blog_pages = []
+    for p in pages:
+        if p.get("page_type") == "Homepage":
+            continue
+        p_path = urlparse(p["url"]).path.lower().rstrip("/")
+        if not p_path:
+            continue
+        if p.get("page_type") in ("Blog", "Article", "NewsArticle") or any(pat in p_path for pat in BLOG_URL_PATTERNS):
+            blog_pages.append(p)
+
     if blog_pages:
         no_author_pages = []
         for p in blog_pages:
@@ -381,44 +418,56 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
                 })
 
     # --- ENT-008: Name inconsistency across title, H1, JSON-LD, About & Contact (Req 7) ---
-    element_names = {}
+    declared_names = {}
     if homepage:
-        if homepage.get("title"):
-            element_names["homepage_title"] = homepage["title"].split("|")[0].split("-")[0].strip()
-        if homepage.get("h1"):
-            element_names["homepage_h1"] = homepage["h1"][0].strip()
         hp_orgs = get_org_names_from_jsonld(homepage.get("json_ld", []))
         if hp_orgs:
-            element_names["json_ld"] = hp_orgs[0].strip()
+            declared_names["homepage_jsonld"] = hp_orgs[0].strip()
+        if homepage.get("title"):
+            title_brand = homepage["title"].split("|")[0].split("-")[0].strip()
+            if len(title_brand) > 2:
+                declared_names["homepage_title"] = title_brand
 
     for p in pages:
         if p.get("page_type") == "About":
-            if p.get("h1"):
-                element_names["about_h1"] = p["h1"][0].strip()
             ab_orgs = get_org_names_from_jsonld(p.get("json_ld", []))
             if ab_orgs:
-                element_names["about_jsonld"] = ab_orgs[0].strip()
+                declared_names["about_jsonld"] = ab_orgs[0].strip()
         elif p.get("page_type") == "Contact":
-            if p.get("h1"):
-                element_names["contact_h1"] = p["h1"][0].strip()
+            ct_orgs = get_org_names_from_jsonld(p.get("json_ld", []))
+            if ct_orgs:
+                declared_names["contact_jsonld"] = ct_orgs[0].strip()
 
+    HEAD_STRIP_RE = re.compile(r'^(about(\s+us)?|contact(\s+us)?|welcome\s+to|our\s+story|meet\s+the\s+team|the)\s+', re.IGNORECASE)
+    for p in pages:
+        if p.get("page_type") in ("Homepage", "About", "Contact") and p.get("h1"):
+            raw_h1 = p["h1"][0].strip()
+            stripped_h1 = HEAD_STRIP_RE.sub("", raw_h1).strip()
+            words = stripped_h1.split()
+            if 1 <= len(words) <= 4 and not any(w.lower() in ("home", "overview", "platform", "solutions", "team", "services") for w in words):
+                declared_names[f"{p.get('page_type', 'page').lower()}_h1"] = stripped_h1
+
+    canonical_norm = normalise_name(brand_name) if brand_name else ""
     distinct_norm_names = {}
-    for elem, val in element_names.items():
+    for elem, val in declared_names.items():
         n = normalise_name(val)
-        if n and len(n) > 2 and n not in ("about us", "contact us", "home", "welcome"):
-            distinct_norm_names.setdefault(n, []).append((elem, val))
+        if not n or len(n) <= 2 or n in ("about us", "contact us", "home", "welcome"):
+            continue
+        if canonical_norm and (n in canonical_norm or canonical_norm in n):
+            continue
+        distinct_norm_names.setdefault(n, []).append((elem, val))
 
-    if len(distinct_norm_names) > 1 and not any(f.get("check_id") == "ENT-002" for f in findings):
+    if len(distinct_norm_names) > 0 and canonical_norm and not any(f.get("check_id") == "ENT-002" for f in findings):
         names_summary = [f"{v[0][0]} ('{v[0][1]}')" for v in distinct_norm_names.values()]
         findings.append({
             "check_id": "ENT-008",
-            "title": f"Inconsistent organization identity across key page elements ({len(distinct_norm_names)} variations)",
+            "title": f"Inconsistent organization identity across key page elements ({len(distinct_norm_names) + 1} variations)",
             "category": "discoverability",
             "severity": "medium",
             "confidence": "high",
             "affected_urls": [homepage["url"]] if homepage else [start_url],
             "evidence": (
-                f"Disparate identity signals detected: {', '.join(names_summary[:3])}. "
+                f"Disparate identity signals detected vs canonical '{brand_name}': {', '.join(names_summary[:3])}. "
                 "AI search agents cross-reference title, H1, and JSON-LD to ground entity identity."
             ),
             "tags": ["entity-name", "entity-identity", "identity-drift"],
@@ -433,7 +482,7 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
     # --- ENT-009: Fact consistency - conflicting founding years or locations (Req 7, 12) ---
     founding_years = set()
     locations = set()
-    founding_re = re.compile(r'\b(?:founded|established|since|est\.?)\s+(?:in\s+)?((?:19|20)\d{2})\b', re.IGNORECASE)
+    founding_re = re.compile(r'\b(?:founded|established|est\.?)\s+(?:in\s+)?((?:19|20)\d{2})\b', re.IGNORECASE)
 
     for p in pages:
         # Check text sample for founding years

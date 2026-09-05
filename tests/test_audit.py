@@ -1182,7 +1182,168 @@ class TestFullReportSchema(unittest.TestCase):
             self.assertIn(cov_key, cov, f"Crawl coverage missing key: {cov_key}")
 
 
+class TestRealWorldGeneralization(unittest.TestCase):
+    """
+    Regression tests for real-world generalization, false-positive resistance,
+    and diverse website patterns.
+    """
+
+    def test_schema_org_organization_subtypes(self):
+        """Schema.org Organization subtypes (CollegeOrUniversity, EducationalOrganization) are recognized."""
+        uni_page = make_page(
+            url="https://state.edu/",
+            title="State University - Excellence in Education",
+            meta_description="Official site of State University",
+            h1=["State University"],
+            json_ld=[{
+                "@context": "https://schema.org",
+                "@type": "CollegeOrUniversity",
+                "name": "State University",
+                "sameAs": ["https://en.wikipedia.org/wiki/State_University"]
+            }],
+            visible_text_sample="Welcome to State University. Founded in 1890. Apply now for admissions."
+        )
+        snap = make_snapshot([uni_page], start_url="https://state.edu/")
+        sdc_findings, sdc_strengths = sdc_mod.run_checks(snap)
+        sdc_ids = [f["check_id"] for f in sdc_findings]
+        self.assertNotIn("SDC-001", sdc_ids, "CollegeOrUniversity should be recognized as valid Org schema on homepage")
+        self.assertNotIn("SDC-008", sdc_ids)
+
+        ent_findings, ent_strengths = ent_mod.run_checks(snap)
+        ent_ids = [f["check_id"] for f in ent_findings]
+        self.assertNotIn("ENT-001", ent_ids, "Brand name should be recognized from CollegeOrUniversity JSON-LD")
+        self.assertNotIn("ENT-007", ent_ids, "sameAs in CollegeOrUniversity should be recognized")
+
+    def test_subdomain_news_not_flagged_as_blog_post(self):
+        """Subdomain news homepage should not be flagged for missing author attribution."""
+        news_page = make_page(
+            url="https://news.example.com/",
+            title="Example News - Breaking World News",
+            meta_description="Global journalism and investigative reports",
+            h1=["Latest News Headlines"],
+            page_type="Homepage",
+            json_ld=[{
+                "@context": "https://schema.org",
+                "@type": "NewsMediaOrganization",
+                "name": "Example News"
+            }]
+        )
+        snap = make_snapshot([news_page], start_url="https://news.example.com/")
+        ent_findings, _ = ent_mod.run_checks(snap)
+        ent_ids = [f["check_id"] for f in ent_findings]
+        self.assertNotIn("ENT-005", ent_ids, "News homepage should not be flagged as an individual article missing author")
+
+    def test_h1_marketing_headline_not_flagged_as_inconsistent_brand(self):
+        """Marketing headlines in H1 should not cause false positive ENT-008 identity drift."""
+        hp = make_page(
+            url="https://apexcorp.com/",
+            title="Apex Corp | Enterprise Solutions",
+            h1=["Accelerate Enterprise Growth with AI"],
+            page_type="Homepage",
+            json_ld=[{"@type": "Organization", "name": "Apex Corp"}]
+        )
+        about = make_page(
+            url="https://apexcorp.com/about",
+            title="About Apex Corp",
+            h1=["About Apex Corp"],
+            page_type="About",
+            json_ld=[{"@type": "Organization", "name": "Apex Corp"}]
+        )
+        snap = make_snapshot([hp, about], start_url="https://apexcorp.com/")
+        ent_findings, _ = ent_mod.run_checks(snap)
+        ent_ids = [f["check_id"] for f in ent_findings]
+        self.assertNotIn("ENT-008", ent_ids, "Marketing H1 should not trigger inconsistent brand name finding")
+
+    def test_answerability_compatible_location_matching(self):
+        """Locality in JSON-LD and street address in text should corroborate, not conflict."""
+        p1 = make_page(
+            url="https://corp.example.com/",
+            json_ld=[{
+                "@type": "Organization",
+                "address": {"addressLocality": "Austin", "addressCountry": "US"}
+            }]
+        )
+        p2 = make_page(
+            url="https://corp.example.com/contact",
+            page_type="Contact",
+            visible_text_sample="Visit us at 500 Congress Ave, Austin, TX 78701. Email: contact@corp.example.com"
+        )
+        snap = make_snapshot([p1, p2], start_url="https://corp.example.com/")
+        ans = score_mod.evaluate_agent_answerability(snap)
+        loc_q = next(q for q in ans if q["question"] == "Where is it located?")
+        self.assertEqual(loc_q["status"], "Supported", "Compatible Austin locations should be Supported, not Conflicting")
+
+    def test_answerability_aggregate_offers(self):
+        """AggregateOffer with lowPrice should satisfy pricing answerability."""
+        p = make_page(
+            url="https://saas.example.com/pricing",
+            page_type="Pricing",
+            json_ld=[{
+                "@type": "Product",
+                "name": "Cloud Subscription",
+                "offers": {
+                    "@type": "AggregateOffer",
+                    "priceCurrency": "USD",
+                    "lowPrice": 29,
+                    "highPrice": 99
+                }
+            }]
+        )
+        snap = make_snapshot([p], start_url="https://saas.example.com/")
+        ans = score_mod.evaluate_agent_answerability(snap)
+        cost_q = next(q for q in ans if q["question"] == "What does the product cost?")
+        self.assertEqual(cost_q["status"], "Supported")
+        self.assertIn("29", cost_q["evidence"])
+
+    def test_documentation_site_about_page_suppressed(self):
+        """Documentation pages should not be penalized for lacking an About page."""
+        doc_page = make_page(
+            url="https://docs.framework.io/",
+            title="Developer Documentation",
+            page_type="Documentation",
+            links=[{"href": "https://docs.framework.io/quickstart", "text": "Quickstart", "is_internal": True}]
+        )
+        snap = make_snapshot([doc_page], start_url="https://docs.framework.io/")
+        ent_findings, _ = ent_mod.run_checks(snap)
+        eng_findings, _ = eng_mod.run_checks(snap)
+        self.assertNotIn("ENT-003", [f["check_id"] for f in ent_findings])
+        self.assertNotIn("ENG-005", [f["check_id"] for f in eng_findings])
+
+    def test_cross_skill_deduplication_about_and_contact(self):
+        """Near-duplicate about and contact findings across skills should group cleanly."""
+        findings = [
+            {
+                "check_id": "ENT-003",
+                "title": "No About page detected",
+                "category": "discoverability",
+                "severity": "medium",
+                "confidence": "medium",
+                "affected_urls": ["https://example.com/"],
+                "evidence": "No URL matches about page",
+                "tags": ["about-page", "entity-identity"],
+                "source_skill": "entity-identity-audit",
+                "suggested_action": {"summary": "Create About page", "priority": "medium", "effort": "medium"}
+            },
+            {
+                "check_id": "ENG-005",
+                "title": "No About or team page detected",
+                "category": "engagement",
+                "severity": "medium",
+                "confidence": "medium",
+                "affected_urls": ["https://example.com/"],
+                "evidence": "No about or team page for orientation",
+                "tags": ["about-page", "navigation"],
+                "source_skill": "engagement-audit",
+                "suggested_action": {"summary": "Create About page", "priority": "medium", "effort": "medium"}
+            }
+        ]
+        deduped = dedup_mod.deduplicate(findings)
+        self.assertEqual(len(deduped), 1, "Cross-skill about-page findings should merge into 1 representative finding")
+        self.assertIsNotNone(deduped[0]["root_cause_group"])
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+
 
 
