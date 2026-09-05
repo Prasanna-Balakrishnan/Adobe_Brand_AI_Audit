@@ -17,6 +17,7 @@ Usage:
 import argparse
 import json
 import os
+import re
 import subprocess
 import sys
 import time
@@ -29,9 +30,49 @@ THIS_DIR = Path(__file__).parent
 sys.path.insert(0, str(THIS_DIR))
 from normalize_findings import normalize_all
 from deduplicate_findings import deduplicate
-from score import compute_summary
+from score import (
+    compute_summary,
+    compute_agent_journey_scores,
+    evaluate_agent_answerability,
+    compute_top_priorities
+)
 
 MARKETPLACE_VERSION = "1.0.0"
+
+
+def extract_target_url(query: str) -> str:
+    """
+    Accept direct URLs or natural-language audit requests (Req 1).
+    Examples:
+      - 'https://example.com' -> 'https://example.com'
+      - 'example.com' -> 'https://example.com'
+      - 'Check the Microsoft website and generate a report' -> 'https://www.microsoft.com'
+      - 'Audit https://store.nike.com/us' -> 'https://store.nike.com/us'
+    """
+    q = query.strip()
+    # 1. Check for explicit http(s) URL in string
+    url_match = re.search(r'https?://[^\s\'"<>]+', q)
+    if url_match:
+        return url_match.group(0).rstrip(".,;")
+
+    # 2. Check for domain pattern like example.com or sub.example.co.uk
+    domain_match = re.search(r'\b([a-zA-Z0-9][-a-zA-Z0-9]*\.)+[a-zA-Z]{2,}\b', q)
+    if domain_match:
+        domain = domain_match.group(0).rstrip(".,;")
+        return f"https://{domain}"
+
+    # 3. Check for 'the <Brand> website' or 'check <Brand>'
+    brand_match = re.search(r'(?:check|audit|analyze|inspect|test|report on)?\s*(?:the\s+)?([a-zA-Z0-9-]+)\s+(?:website|site|portal|web page)', q, re.IGNORECASE)
+    if brand_match:
+        brand = brand_match.group(1).lower().strip()
+        if brand and brand not in ("a", "the", "this", "our"):
+            return f"https://www.{brand}.com"
+
+    # Fallback
+    if not q.startswith("http://") and not q.startswith("https://"):
+        return f"https://{q}"
+    return q
+
 
 AUDIT_SKILLS = [
     {
@@ -136,8 +177,9 @@ def main():
     work_dir.mkdir(parents=True, exist_ok=True)
 
     marketplace_root = find_marketplace_root()
+    target_url = extract_target_url(args.url)
     print(f"[INFO] Marketplace root: {marketplace_root}", file=sys.stderr)
-    print(f"[INFO] Auditing: {args.url}", file=sys.stderr)
+    print(f"[INFO] Auditing: {target_url} (input query: '{args.url}')", file=sys.stderr)
     print(f"[INFO] Work dir: {work_dir.resolve()}", file=sys.stderr)
 
     start_time = time.time()
@@ -152,7 +194,7 @@ def main():
 
     crawler_cmd = [
         sys.executable, crawler_script,
-        "--url", args.url,
+        "--url", target_url,
         "--max-pages", str(args.max_pages),
         "--output", snapshot_path,
     ]
@@ -168,7 +210,8 @@ def main():
         error_report = {
             "error": "crawl_failed",
             "reason": "site-crawler did not produce a snapshot.json",
-            "url": args.url,
+            "url": target_url,
+            "query_input": args.url,
             "audited_at": audited_at
         }
         with open(args.output, "w", encoding="utf-8") as f:
@@ -189,6 +232,7 @@ def main():
 
     skill_outputs = []
     skills_invoked = []
+    failed_skills = []
 
     for skill in AUDIT_SKILLS:
         skill_name = skill["name"]
@@ -203,21 +247,26 @@ def main():
             "--snapshot", snapshot_path,
             "--output", skill_output_path,
         ]
-        # Add stale threshold for freshness skill
         if skill_name == "freshness-corroboration-audit":
             cmd += ["--stale-threshold-days", str(args.stale_threshold_days)]
 
-        ok, _ = run_subprocess(cmd, skill_name)
-
-        if ok:
-            output = load_json_safe(skill_output_path, skill_name)
-            if output:
-                skill_outputs.append(output)
-                skills_invoked.append(skill_name)
+        # Fault-tolerant execution (Req 25)
+        try:
+            ok, stderr_output = run_subprocess(cmd, skill_name)
+            if ok:
+                output = load_json_safe(skill_output_path, skill_name)
+                if output:
+                    skill_outputs.append(output)
+                    skills_invoked.append(skill_name)
+                else:
+                    skills_invoked.append(f"{skill_name}_SKIPPED")
+                    failed_skills.append({"skill": skill_name, "error": "Output file missing or invalid"})
             else:
-                skills_invoked.append(f"{skill_name}_SKIPPED")
-        else:
-            skills_invoked.append(f"{skill_name}_SKIPPED")
+                skills_invoked.append(f"{skill_name}_FAILED")
+                failed_skills.append({"skill": skill_name, "error": stderr_output or "Non-zero exit code"})
+        except Exception as exc:
+            skills_invoked.append(f"{skill_name}_ERROR")
+            failed_skills.append({"skill": skill_name, "error": str(exc)})
 
     # ── Step 3: Normalize ──────────────────────────────────────────────────
     print(f"\n[STEP 3] Normalizing findings...", file=sys.stderr)
@@ -234,10 +283,14 @@ def main():
     with open(dedup_path, "w", encoding="utf-8") as f:
         json.dump({"findings": deduped_findings}, f, indent=2, ensure_ascii=False)
 
-    # ── Step 5: Score ──────────────────────────────────────────────────────
-    print(f"\n[STEP 5] Computing score...", file=sys.stderr)
-    summary = compute_summary(deduped_findings)
+    # ── Step 5: Score, Journey & Answerability ─────────────────────────────
+    print(f"\n[STEP 5] Computing score, AI Agent Journey & Answerability...", file=sys.stderr)
+    summary = compute_summary(deduped_findings, snapshot)
+    journey_scores = compute_agent_journey_scores(deduped_findings)
+    answerability = evaluate_agent_answerability(snapshot, deduped_findings)
+    top_priorities = compute_top_priorities(deduped_findings, limit=5)
     print(f"  AI Readiness Score: {summary['ai_readiness_score']}/100", file=sys.stderr)
+    print(f"  Agent Journey Overall: {journey_scores['overall_journey_score']}/100", file=sys.stderr)
 
     # ── Step 6: Proactive opportunities ───────────────────────────────────
     print(f"\n[STEP 6] Running proactive-opportunities-audit...", file=sys.stderr)
@@ -268,7 +321,7 @@ def main():
     # ── Step 7: Build final report ─────────────────────────────────────────
     print(f"\n[STEP 7] Building final report...", file=sys.stderr)
 
-    site = urlparse(args.url).netloc or args.url
+    site = urlparse(target_url).netloc or target_url
 
     # Build clean findings (remove internal fields)
     clean_findings = []
@@ -291,18 +344,36 @@ def main():
             clean_f["merged_from_skills"] = f["merged_from_skills"]
         clean_findings.append(clean_f)
 
+    # Crawl coverage info (Req 20)
+    crawl_coverage = {
+        "pages_discovered": crawl_meta.get("pages_discovered", pages_crawled),
+        "pages_crawled": pages_crawled,
+        "pages_skipped": crawl_meta.get("pages_skipped", 0),
+        "failed_pages": crawl_meta.get("failed_pages", []),
+        "crawl_duration_seconds": round(crawl_duration, 1),
+        "robots_status": crawl_meta.get("robots_txt_status", "allowed"),
+        "js_rendering_status": crawl_meta.get("js_rendering_status", "disabled")
+    }
+
     report = {
         "site": site,
         "audited_at": audited_at,
         "run_info": {
             "marketplace_version": MARKETPLACE_VERSION,
+            "query_input": args.url,
+            "target_url": target_url,
             "skills_invoked": skills_invoked,
+            "failed_skills": failed_skills,
             "pages_crawled": pages_crawled,
             "max_pages": args.max_pages,
             "crawl_duration_seconds": round(crawl_duration, 1),
-            "robots_txt_respected": crawl_meta.get("robots_txt_respected", True)
+            "robots_txt_respected": crawl_meta.get("robots_txt_respected", True),
+            "crawl_coverage": crawl_coverage
         },
         "summary": summary,
+        "agent_journey_scores": journey_scores,
+        "agent_answerability": answerability,
+        "top_priorities": top_priorities,
         "findings": clean_findings,
         "proactive_recommendations": proactive_recommendations,
         "strengths": all_strengths

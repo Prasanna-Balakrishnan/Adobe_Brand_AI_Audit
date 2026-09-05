@@ -47,15 +47,24 @@ def parse_date_str(date_str: str | None) -> datetime | None:
         return parsedate_to_datetime(date_str).replace(tzinfo=timezone.utc)
     except Exception:
         pass
-    # Try ISO 8601
-    for fmt in ["%Y-%m-%dT%H:%M:%SZ", "%Y-%m-%dT%H:%M:%S%z",
-                "%Y-%m-%d", "%Y/%m/%d", "%d/%m/%Y", "%B %d, %Y"]:
+    s = str(date_str).strip()
+    for fmt in [
+        "%Y-%m-%dT%H:%M:%SZ", "%Y-%m-%dT%H:%M:%S%z", "%Y-%m-%dT%H:%M:%S",
+        "%Y-%m-%d", "%Y/%m/%d", "%d/%m/%Y", "%B %d, %Y", "%b %d, %Y"
+    ]:
         try:
-            dt = datetime.strptime(date_str[:len(fmt)], fmt)
+            dt = datetime.strptime(s, fmt)
             return dt.replace(tzinfo=timezone.utc)
         except ValueError:
-            continue
+            pass
+        if len(s) >= 10:
+            try:
+                dt = datetime.strptime(s[:10], fmt)
+                return dt.replace(tzinfo=timezone.utc)
+            except ValueError:
+                pass
     return None
+
 
 
 def get_jsonld_date(json_ld_blocks: list, field: str) -> str | None:
@@ -131,33 +140,72 @@ def run_checks(snapshot: dict, stale_threshold_days: int = 365) -> tuple[list[di
             }
         })
     else:
-        # --- FRS-002: Stale content ---
-        stale_pages = [(p, dt, src) for p, dt, src in pages_with_dates if dt < stale_cutoff]
+        # --- FRS-002: Stale content (Req 8, 23) ---
+        # Differentiate time-sensitive pages (Pricing, Product, Service) from evergreen (Docs, About)
+        time_sensitive_types = {"Pricing", "Product", "Service", "Event"}
+        evergreen_types = {"About", "Documentation", "Careers"}
+
+        stale_time_sensitive = []
+        stale_evergreen = []
+
+        for p, dt, src in pages_with_dates:
+            ptype = p.get("page_type", "Other/unknown")
+            if dt < stale_cutoff:
+                if ptype in time_sensitive_types or any(k in p["url"].lower() for k in ("/pricing", "/product", "/shop")):
+                    stale_time_sensitive.append((p, dt, src))
+                elif ptype in evergreen_types or "/docs" in p["url"].lower() or "/about" in p["url"].lower():
+                    # Only flag evergreen if older than 3 years
+                    if dt < (now - timedelta(days=1095)):
+                        stale_evergreen.append((p, dt, src))
+                else:
+                    stale_time_sensitive.append((p, dt, src))
+
+        stale_pages = stale_time_sensitive + stale_evergreen
         stale_ratio = len(stale_pages) / len(pages_with_dates)
-        if stale_ratio > 0.30:
+
+        if len(stale_time_sensitive) > 0 and stale_ratio > 0.30:
             oldest = min(pages_with_dates, key=lambda x: x[1])
             findings.append({
                 "check_id": "FRS-002",
-                "title": f"Stale content on {len(stale_pages)}/{len(pages_with_dates)} pages with dates (>{stale_threshold_days} days old)",
+                "title": f"Stale time-sensitive content on {len(stale_time_sensitive)}/{len(pages_with_dates)} pages (>{stale_threshold_days} days old)",
                 "category": "discoverability",
                 "severity": "high",
-                "confidence": "medium",
-                "affected_urls": [p["url"] for p, _, _ in stale_pages[:5]],
+                "confidence": "high",
+                "affected_urls": [p["url"] for p, _, _ in stale_time_sensitive[:5]],
                 "evidence": (
-                    f"{len(stale_pages)} of {len(pages_with_dates)} pages with date signals "
-                    f"({stale_ratio*100:.0f}%) are older than {stale_threshold_days} days. "
+                    f"{len(stale_time_sensitive)} of {len(pages_with_dates)} pages with date signals "
+                    f"contain stale time-sensitive content (older than {stale_threshold_days} days). "
                     f"Oldest page: {oldest[0]['url']} ({oldest[1].date()})."
                 ),
-                "tags": ["stale-content"],
+                "tags": ["stale-content", "freshness"],
                 "suggested_action": {
-                    "summary": "Update high-priority pages; establish a content review cycle.",
+                    "summary": "Review and update time-sensitive pricing, product, and policy pages.",
                     "priority": "high",
-                    "effort": "high"
+                    "effort": "medium"
+                }
+            })
+        elif len(stale_evergreen) > 0:
+            findings.append({
+                "check_id": "FRS-002",
+                "title": f"Archived or aged evergreen documentation ({len(stale_evergreen)} pages >3 years old)",
+                "category": "discoverability",
+                "severity": "low",
+                "confidence": "medium",
+                "affected_urls": [p["url"] for p, _, _ in stale_evergreen[:5]],
+                "evidence": (
+                    f"{len(stale_evergreen)} evergreen/doc page(s) have not been refreshed in >3 years. "
+                    "Confirm if technical details remain accurate for AI agents."
+                ),
+                "tags": ["stale-content", "evergreen"],
+                "suggested_action": {
+                    "summary": "Review long-standing documentation for technical accuracy.",
+                    "priority": "low",
+                    "effort": "low"
                 }
             })
         else:
             strengths.append({
-                "title": "Content appears fresh (recent modification dates)",
+                "title": "Content appears fresh (recent modification dates on time-sensitive pages)",
                 "category": "discoverability"
             })
 

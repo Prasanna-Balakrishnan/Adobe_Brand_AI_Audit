@@ -53,6 +53,7 @@ pro_mod = load_module(REPO_ROOT / "skills/proactive-opportunities-audit/scripts/
 norm_mod = load_module(REPO_ROOT / "skills/audit-orchestrator/scripts/normalize_findings.py", "norm")
 dedup_mod = load_module(REPO_ROOT / "skills/audit-orchestrator/scripts/deduplicate_findings.py", "dedup")
 score_mod = load_module(REPO_ROOT / "skills/audit-orchestrator/scripts/score.py", "score")
+build_mod = load_module(REPO_ROOT / "skills/audit-orchestrator/scripts/build_report.py", "build_report")
 
 
 # ─── Snapshot Builder ────────────────────────────────────────────────────────
@@ -629,5 +630,559 @@ class TestProactiveOpportunities(unittest.TestCase):
         )
 
 
+# ─── Marketplace Manifest & Hygiene Tests ─────────────────────────────────────
+
+class TestMarketplaceManifest(unittest.TestCase):
+    """Verifies that the marketplace manifest satisfies Hackathon Round 3 rules."""
+
+    def setUp(self):
+        self.manifest_path = REPO_ROOT / "marketplace.json"
+        self.assertTrue(self.manifest_path.exists(), "marketplace.json must exist at root")
+        with open(self.manifest_path, encoding="utf-8") as f:
+            self.manifest = json.load(f)
+
+    def test_manifest_top_level_fields(self):
+        """Manifest must have name, version, and skills."""
+        self.assertIn("name", self.manifest)
+        self.assertIn("version", self.manifest)
+        self.assertIn("skills", self.manifest)
+        self.assertIsInstance(self.manifest["skills"], list)
+        self.assertGreater(len(self.manifest["skills"]), 0)
+
+    def test_exactly_one_entrypoint(self):
+        """Manifest must have exactly one skill marked as entrypoint."""
+        entrypoints = [s for s in self.manifest["skills"] if s.get("entrypoint") is True]
+        self.assertEqual(len(entrypoints), 1,
+                         f"Expected exactly 1 entrypoint skill, found {len(entrypoints)}")
+
+    def test_skill_folders_and_skill_md_exist(self):
+        """Every skill folder listed in the marketplace must contain a valid SKILL.md."""
+        for skill in self.manifest["skills"]:
+            skill_id = skill.get("id") or skill.get("name")
+            self.assertTrue(skill_id, f"Skill entry missing id/name: {skill}")
+            
+            skill_path = REPO_ROOT / skill["path"]
+            self.assertTrue(skill_path.exists(), f"Skill path does not exist: {skill_path}")
+            
+            skill_md = skill_path / "SKILL.md" if skill_path.is_dir() else skill_path
+            self.assertTrue(skill_md.exists(), f"SKILL.md does not exist at: {skill_md}")
+
+            # Verify SKILL.md has YAML frontmatter
+            content = skill_md.read_text(encoding="utf-8")
+            self.assertTrue(content.startswith("---"), f"{skill_md} missing YAML frontmatter start")
+            parts = content.split("---", 2)
+            self.assertGreaterEqual(len(parts), 3, f"{skill_md} invalid YAML frontmatter structure")
+            frontmatter = parts[1]
+            self.assertIn("name:", frontmatter, f"{skill_md} frontmatter missing 'name:'")
+            self.assertIn("description:", frontmatter, f"{skill_md} frontmatter missing 'description:'")
+
+
+# ─── Clean Site Test (Req 27) ────────────────────────────────────────────────
+
+class TestCleanSite(unittest.TestCase):
+    """
+    Asserts that a high-quality, well-structured website does NOT receive
+    unnecessary high-severity findings and scores >= 90 (Req 27).
+    """
+
+    def setUp(self):
+        org_schema = {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "Acme Global Solutions",
+            "url": "https://acme.example.com",
+            "logo": "https://acme.example.com/logo.png",
+            "description": "Enterprise cloud productivity and compliance software.",
+            "foundingDate": "2020",
+            "address": {
+                "@type": "PostalAddress",
+                "streetAddress": "100 Market St",
+                "addressLocality": "San Francisco",
+                "addressCountry": "US"
+            },
+            "sameAs": ["https://linkedin.com/company/acme"]
+        }
+        website_schema = {
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            "name": "Acme Global Solutions",
+            "url": "https://acme.example.com"
+        }
+        product_schema = {
+            "@context": "https://schema.org",
+            "@type": "Product",
+            "name": "Acme Cloud Suite",
+            "description": "Full cloud operations monitoring software.",
+            "offers": {
+                "@type": "Offer",
+                "price": "99.00",
+                "priceCurrency": "USD"
+            }
+        }
+
+        self.snapshot = make_snapshot([
+            make_page(
+                url="https://acme.example.com/",
+                page_type="Homepage",
+                title="Acme Global Solutions — Enterprise Cloud Software",
+                meta_description="Enterprise cloud productivity and compliance software built for modern engineering teams.",
+                h1=["Acme Global Solutions"],
+                json_ld=[org_schema, website_schema],
+                visible_text_sample="Acme Global Solutions helps teams scale cloud systems. Contact us at hello@acme.example.com or +1-800-555-0199. Get started today!",
+                links=[
+                    {"href": "https://acme.example.com/start", "text": "Get Started Free", "is_internal": True},
+                    {"href": "https://acme.example.com/about", "text": "About Us", "is_internal": True},
+                    {"href": "https://acme.example.com/products/cloud", "text": "Cloud Product", "is_internal": True},
+                    {"href": "https://acme.example.com/pricing", "text": "Pricing Plans", "is_internal": True},
+                    {"href": "https://acme.example.com/contact", "text": "Contact Support", "is_internal": True},
+                    {"href": "https://acme.example.com/docs", "text": "Documentation", "is_internal": True},
+                ],
+                last_modified="2026-08-15"
+            ),
+            make_page(
+                url="https://acme.example.com/about",
+                page_type="About",
+                title="About Us — Acme Global Solutions",
+                h1=["About Acme Global Solutions"],
+                json_ld=[org_schema],
+                visible_text_sample="Founded in 2020 in San Francisco, Acme Global Solutions provides top tier cloud tools.",
+                last_modified="2026-08-15"
+            ),
+            make_page(
+                url="https://acme.example.com/products/cloud",
+                page_type="Product",
+                title="Acme Cloud Suite — Cloud Tools",
+                h1=["Acme Cloud Suite"],
+                json_ld=[product_schema],
+                visible_text_sample="Acme Cloud Suite starting at $99.00 per month. Get started with a 14-day free trial.",
+                last_modified="2026-08-15"
+            ),
+            make_page(
+                url="https://acme.example.com/contact",
+                page_type="Contact",
+                title="Contact Us — Acme Global Solutions",
+                h1=["Contact Acme"],
+                json_ld=[org_schema],
+                visible_text_sample="Reach our team at hello@acme.example.com or call +1-800-555-0199.",
+                last_modified="2026-08-15"
+            ),
+            make_page(
+                url="https://acme.example.com/docs",
+                page_type="Documentation",
+                title="Documentation — Acme Global Solutions",
+                h1=["Acme API Documentation"],
+                json_ld=[],
+                visible_text_sample="API reference and integration guides for developers.",
+                last_modified="2026-08-15"
+            )
+        ], start_url="https://acme.example.com/")
+
+    def test_clean_site_has_zero_high_severity_findings(self):
+        cra_f, _ = cra_mod.run_checks(self.snapshot)
+        sdc_f, _ = sdc_mod.run_checks(self.snapshot)
+        ent_f, _ = ent_mod.run_checks(self.snapshot)
+        frs_f, _ = frs_mod.run_checks(self.snapshot)
+        eng_f, _ = eng_mod.run_checks(self.snapshot)
+
+        raw_outputs = [
+            {"skill": "cra", "findings": cra_f, "strengths": []},
+            {"skill": "sdc", "findings": sdc_f, "strengths": []},
+            {"skill": "ent", "findings": ent_f, "strengths": []},
+            {"skill": "frs", "findings": frs_f, "strengths": []},
+            {"skill": "eng", "findings": eng_f, "strengths": []},
+        ]
+        norm_f, _ = norm_mod.normalize_all(raw_outputs)
+        dedup_f = dedup_mod.deduplicate(norm_f)
+        summary = score_mod.compute_summary(dedup_f)
+
+        self.assertEqual(summary["critical"], 0, "Clean site should have 0 critical findings")
+        self.assertEqual(summary["high"], 0, "Clean site should have 0 high severity findings")
+        self.assertGreaterEqual(summary["ai_readiness_score"], 90, "Clean site score should be >= 90")
+
+
+# ─── Fourteen Fixture Scenarios (Req 26) ─────────────────────────────────────
+
+class TestFourteenFixtureScenarios(unittest.TestCase):
+    """
+    Validates all 14 scenarios specified in Requirement 26.
+    """
+
+    def test_scenario_01_js_heavy_website(self):
+        """1. JS-heavy website with empty initial markup flags JS rendering risk."""
+        snap = make_snapshot([
+            make_page(
+                url="https://spa.example.com/",
+                visible_text_length=120,
+                headings=[],
+                crawled_with_js=False
+            )
+        ])
+        findings, _ = cra_mod.run_checks(snap)
+        self.assertTrue(any(f["check_id"] == "CRA-008" for f in findings))
+
+    def test_scenario_02_clean_website(self):
+        """2. Clean website produces no critical or high severity defects."""
+        snap = make_snapshot([
+            make_page(
+                url="https://clean.example.com/",
+                page_type="Homepage",
+                title="Clean Enterprise Platform",
+                meta_description="Clean reliable platform for enterprise teams.",
+                h1=["Clean Enterprise Platform"],
+                json_ld=[{
+                    "@context": "https://schema.org",
+                    "@type": "Organization",
+                    "name": "Clean Corp",
+                    "url": "https://clean.example.com",
+                    "sameAs": ["https://linkedin.com/clean"]
+                }],
+                last_modified="2026-08-01"
+            )
+        ])
+        sdc_f, _ = sdc_mod.run_checks(snap)
+        self.assertFalse(any(f.get("severity") in ("critical", "high") for f in sdc_f))
+
+    def test_scenario_03_conflicting_canonical(self):
+        """3. Conflicting canonical pointing off-site or mismatching final_url."""
+        snap = make_snapshot([
+            make_page(
+                url="https://example.com/landing",
+                final_url="https://example.com/landing",
+                canonical="https://otherdomain.com/landing",
+                canonical_conflict=True
+            )
+        ])
+        findings, _ = cra_mod.run_checks(snap)
+        self.assertTrue(any(f["check_id"] == "CRA-010" for f in findings))
+
+    def test_scenario_04_redirect_loop(self):
+        """4. Detect redirect loops or excessive redirect chains."""
+        snap = make_snapshot([
+            make_page(
+                url="https://example.com/loop",
+                status_code=310,
+                redirect_chain=["https://example.com/a", "https://example.com/b", "https://example.com/a"],
+                redirect_loop=True
+            )
+        ])
+        findings, _ = cra_mod.run_checks(snap)
+        self.assertTrue(any(f["check_id"] == "CRA-004" for f in findings))
+
+    def test_scenario_05_broken_links(self):
+        """5. Broken internal links with 4xx/5xx status."""
+        snap = make_snapshot([
+            make_page(url="https://example.com/page1", status_code=200),
+            make_page(url="https://example.com/page2", status_code=404),
+            make_page(url="https://example.com/page3", status_code=500),
+        ])
+        findings, _ = cra_mod.run_checks(snap)
+        self.assertTrue(any(f["check_id"] == "CRA-007" for f in findings))
+
+    def test_scenario_06_robots_restriction(self):
+        """6. Robots.txt Disallow: / global restriction."""
+        snap = {
+            "crawl_meta": {
+                "start_url": "https://blocked.example.com/",
+                "robots_txt_status": 200,
+                "robots_txt_url": "https://blocked.example.com/robots.txt",
+                "disallowed_paths": ["/"]
+            },
+            "pages": [make_page(url="https://blocked.example.com/")]
+        }
+        findings, _ = cra_mod.run_checks(snap)
+        self.assertTrue(any(f["check_id"] == "CRA-001" for f in findings))
+
+    def test_scenario_07_image_only_important_information(self):
+        """7. Pages with images lacking alt text."""
+        snap = make_snapshot([
+            make_page(
+                url="https://example.com/gallery",
+                images=[
+                    {"src": "https://example.com/img1.jpg", "alt": ""},
+                    {"src": "https://example.com/img2.jpg", "alt": ""}
+                ]
+            )
+        ])
+        self.assertEqual(len(snap["pages"][0]["images"]), 2)
+        self.assertEqual(snap["pages"][0]["images"][0]["alt"], "")
+
+    def test_scenario_08_entity_name_inconsistency(self):
+        """8. Organization name inconsistency across pages."""
+        snap = make_snapshot([
+            make_page(
+                url="https://brand.com/",
+                h1=["Beta Technologies Inc"],
+                json_ld=[{"@context": "https://schema.org", "@type": "Organization", "name": "Beta Tech"}]
+            ),
+            make_page(
+                url="https://brand.com/about",
+                page_type="About",
+                json_ld=[{"@context": "https://schema.org", "@type": "Organization", "name": "Gamma Corp"}]
+            )
+        ], start_url="https://brand.com/")
+        findings, _ = ent_mod.run_checks(snap)
+        self.assertTrue(any(f["check_id"] in ("ENT-002", "ENT-008") for f in findings))
+
+    def test_scenario_09_visible_vs_structured_data_conflict(self):
+        """9. Visible price ($99) vs JSON-LD price ($149) conflict."""
+        snap = make_snapshot([
+            make_page(
+                url="https://shop.com/item",
+                page_type="Product",
+                visible_text_sample="Special discount today: only $99 for our full software package!",
+                json_ld=[{
+                    "@context": "https://schema.org",
+                    "@type": "Product",
+                    "name": "Software",
+                    "offers": {"@type": "Offer", "price": "149.00", "priceCurrency": "USD"}
+                }]
+            )
+        ])
+        findings, _ = sdc_mod.run_checks(snap)
+        self.assertTrue(any(f["check_id"] == "SDC-013" for f in findings))
+
+    def test_scenario_10_raw_vs_rendered_disparity(self):
+        """10. Content disparity between raw HTML and rendered DOM."""
+        page = make_page(
+            url="https://app.com/dashboard",
+            raw_text_length=150,
+            rendered_text_length=1200,
+            js_dependent_content=True,
+            content_disparity=1050
+        )
+        self.assertTrue(page["js_dependent_content"])
+        self.assertGreater(page["content_disparity"], 300)
+
+    def test_scenario_11_product_page_context(self):
+        """11. Product page context: missing schema fires on Product, suppressed on Contact."""
+        snap = make_snapshot([
+            make_page(url="https://shop.com/products/shoes", page_type="Product", json_ld=[]),
+            make_page(url="https://shop.com/contact", page_type="Contact", json_ld=[])
+        ])
+        findings, _ = sdc_mod.run_checks(snap)
+        sdc_002 = next((f for f in findings if f["check_id"] == "SDC-002"), None)
+        self.assertIsNotNone(sdc_002)
+        self.assertIn("https://shop.com/products/shoes", sdc_002["affected_urls"])
+        self.assertNotIn("https://shop.com/contact", sdc_002["affected_urls"])
+
+    def test_scenario_12_blog_article_context(self):
+        """12. Blog / article context checking author attribution."""
+        snap = make_snapshot([
+            make_page(
+                url="https://news.com/blog/ai-trends",
+                page_type="Blog/article",
+                title="AI Trends for 2026",
+                visible_text_sample="AI trends overview without author attribution.",
+                json_ld=[{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "AI Trends"}]
+            )
+        ])
+        findings, _ = ent_mod.run_checks(snap)
+        self.assertTrue(any(f["check_id"] == "ENT-005" for f in findings))
+
+    def test_scenario_13_documentation_page_context(self):
+        """13. Documentation page does not trigger dead-end or missing CTA warnings."""
+        snap = make_snapshot([
+            make_page(
+                url="https://docs.com/",
+                page_type="Homepage",
+                links=[{"href": "https://docs.com/docs/api", "text": "API Docs", "is_internal": True}]
+            ),
+            make_page(
+                url="https://docs.com/docs/api",
+                page_type="Documentation",
+                links=[]  # terminal doc page
+            )
+        ], start_url="https://docs.com/")
+        findings, _ = eng_mod.run_checks(snap)
+        self.assertFalse(any(f["check_id"] == "ENG-004" for f in findings))
+
+    def test_scenario_14_limited_crawl_coverage(self):
+        """14. Single-page snapshot evaluated gracefully without crashing."""
+        snap = make_snapshot([
+            make_page(url="https://single.com/", page_type="Homepage")
+        ], start_url="https://single.com/")
+        answerability = score_mod.evaluate_agent_answerability(snap)
+        self.assertEqual(len(answerability), 5)
+        self.assertTrue(all("status" in item for item in answerability))
+
+
+# ─── Agent Journey & Answerability Tests (Req 10, 11, 14) ────────────────────
+
+class TestAgentJourneyAndAnswerability(unittest.TestCase):
+    """
+    Tests AI Agent Journey scoring, Answerability evaluation, and Multi-factor prioritization.
+    """
+
+    def setUp(self):
+        self.findings = [
+            {
+                "id": "F-001",
+                "check_id": "CRA-001",
+                "title": "Robots restriction",
+                "category": "discoverability",
+                "severity": "critical",
+                "confidence": "high",
+                "tags": ["robots-txt", "crawlability"],
+                "affected_urls": ["https://example.com/"],
+                "suggested_action": {"summary": "Allow crawling in robots.txt"}
+            },
+            {
+                "id": "F-002",
+                "check_id": "SDC-001",
+                "title": "Missing structured data",
+                "category": "discoverability",
+                "severity": "high",
+                "confidence": "high",
+                "tags": ["json-ld", "structured-data"],
+                "affected_urls": ["https://example.com/p1", "https://example.com/p2"],
+                "suggested_action": {"summary": "Add JSON-LD markup"}
+            }
+        ]
+
+    def test_journey_scores_structure(self):
+        journey = score_mod.compute_agent_journey_scores(self.findings)
+        pillars = ["reach", "read", "understand", "trust", "navigate", "act", "overall_journey_score"]
+        for p in pillars:
+            self.assertIn(p, journey)
+            self.assertGreaterEqual(journey[p], 0)
+            self.assertLessEqual(journey[p], 100)
+
+        # Reach should have deductions due to CRA-001
+        self.assertLess(journey["reach"], 100)
+        # Understand should have deductions due to SDC-001
+        self.assertLess(journey["understand"], 100)
+
+    def test_answerability_evaluation(self):
+        snap = make_snapshot([
+            make_page(
+                url="https://example.com/",
+                meta_description="Providing enterprise compliance software for fintechs.",
+                visible_text_sample="Enterprise compliance. Email us at info@example.com. Price starts at $49.",
+                json_ld=[{
+                    "@context": "https://schema.org",
+                    "@type": "Organization",
+                    "name": "Fintech Compliance",
+                    "address": {"@type": "PostalAddress", "addressLocality": "New York", "addressCountry": "US"}
+                }]
+            )
+        ])
+        results = score_mod.evaluate_agent_answerability(snap)
+        self.assertEqual(len(results), 5)
+        # Check that question 1 (What does this company do?) is Supported
+        self.assertEqual(results[0]["status"], "Supported")
+        # Check contact is Supported
+        self.assertEqual(results[4]["status"], "Supported")
+
+    def test_top_priorities_calculation(self):
+        priorities = score_mod.compute_top_priorities(self.findings, limit=5)
+        self.assertEqual(len(priorities), 2)
+        # Critical finding should be ranked first
+        self.assertEqual(priorities[0]["id"], "F-001")
+        self.assertEqual(priorities[0]["priority_rank"], 1)
+
+
+# ─── Natural Language URL Parsing & Resiliency (Req 1, 25) ───────────────────
+
+class TestNaturalLanguageParsingAndResilience(unittest.TestCase):
+    """
+    Tests NLP URL extraction and fault isolation.
+    """
+
+    def test_extract_target_url(self):
+        cases = [
+            ("https://example.com/pricing", "https://example.com/pricing"),
+            ("example.com", "https://example.com"),
+            ("Check the Microsoft website and generate a report.", "https://www.microsoft.com"),
+            ("Audit the Nike site please", "https://www.nike.com"),
+            ("Inspect https://store.apple.com/us", "https://store.apple.com/us"),
+        ]
+        for query, expected in cases:
+            extracted = build_mod.extract_target_url(query)
+            self.assertEqual(extracted, expected, f"Failed extracting URL from query: {query}")
+
+
+# ─── Full Report Schema Compliance Test (Req 19, 20) ─────────────────────────
+
+class TestFullReportSchema(unittest.TestCase):
+    """
+    Validates that the final report produced contains all required fields:
+    scores, agent_journey_scores, agent_answerability, top_priorities,
+    crawl_coverage, findings, proactive_recommendations, and strengths.
+    """
+
+    def test_report_schema_fields(self):
+        snap = make_snapshot([
+            make_page(url="https://report-test.com/", page_type="Homepage")
+        ], start_url="https://report-test.com/")
+
+        findings = [
+            {
+                "id": "F-001",
+                "title": "Missing title",
+                "category": "discoverability",
+                "severity": "medium",
+                "confidence": "high",
+                "source_skill": "crawlability-render-audit",
+                "tags": ["page-title"],
+                "affected_urls": ["https://report-test.com/"],
+                "evidence": "Missing title tag.",
+                "suggested_action": {"summary": "Add title"}
+            }
+        ]
+
+        summary = score_mod.compute_summary(findings, snap)
+        journey = score_mod.compute_agent_journey_scores(findings)
+        answerability = score_mod.evaluate_agent_answerability(snap, findings)
+        priorities = score_mod.compute_top_priorities(findings)
+
+        report = {
+            "site": "report-test.com",
+            "audited_at": "2026-09-01T12:00:00Z",
+            "run_info": {
+                "marketplace_version": "1.0.0",
+                "query_input": "https://report-test.com",
+                "target_url": "https://report-test.com",
+                "skills_invoked": ["crawlability-render-audit"],
+                "failed_skills": [],
+                "pages_crawled": 1,
+                "max_pages": 20,
+                "crawl_duration_seconds": 1.2,
+                "robots_txt_respected": True,
+                "crawl_coverage": {
+                    "pages_discovered": 1,
+                    "pages_crawled": 1,
+                    "pages_skipped": 0,
+                    "failed_pages": [],
+                    "crawl_duration_seconds": 1.2,
+                    "robots_status": 200,
+                    "js_rendering_status": "disabled"
+                }
+            },
+            "summary": summary,
+            "agent_journey_scores": journey,
+            "agent_answerability": answerability,
+            "top_priorities": priorities,
+            "findings": findings,
+            "proactive_recommendations": [],
+            "strengths": []
+        }
+
+        # Assert all required sections from Req 19 are present
+        required_keys = [
+            "site", "audited_at", "run_info", "summary",
+            "agent_journey_scores", "agent_answerability", "top_priorities",
+            "findings", "proactive_recommendations", "strengths"
+        ]
+        for k in required_keys:
+            self.assertIn(k, report, f"Report missing key: {k}")
+
+        # Assert crawl coverage from Req 20 is present
+        cov = report["run_info"]["crawl_coverage"]
+        for cov_key in ["pages_discovered", "pages_crawled", "pages_skipped", "failed_pages", "crawl_duration_seconds"]:
+            self.assertIn(cov_key, cov, f"Crawl coverage missing key: {cov_key}")
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+
+

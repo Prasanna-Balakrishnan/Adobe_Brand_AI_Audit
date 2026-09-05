@@ -180,7 +180,7 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
                 "category": "discoverability"
             })
 
-    # --- ENT-002: Inconsistent name across pages ---
+    # --- ENT-002: Inconsistent name across pages (Req 7, 12, 15) ---
     if brand_name:
         norm_brand = normalise_name(brand_name)
         inconsistent_pages = []
@@ -194,19 +194,21 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
                     inconsistent_pages.append(p)
                     name_variants.add(n)
                     break
-        if len(inconsistent_pages) > total * 0.5:
+        if inconsistent_pages:
             findings.append({
                 "check_id": "ENT-002",
                 "title": f"Organisation name is inconsistent across {len(inconsistent_pages)}/{total} pages",
                 "category": "discoverability",
                 "severity": "high",
-                "confidence": "medium",
+                "confidence": "high",
                 "affected_urls": [p["url"] for p in inconsistent_pages[:5]],
                 "evidence": (
-                    f"Canonical name '{brand_name}' (from {brand_source}), but variants found: "
-                    f"{list(name_variants)[:5]}. Inconsistent naming confuses AI entity resolution."
+                    f"Canonical name '{brand_name}' (from {brand_source}), but {len(name_variants)} variant(s) found: "
+                    f"{list(name_variants)[:5]} across {len(inconsistent_pages)}/{total} pages. "
+                    "Inconsistent naming confuses AI entity resolution."
                 ),
-                "tags": ["entity-name", "entity-disambiguation"],
+                "tags": ["entity-name", "entity-disambiguation", "identity-drift"],
+                "root_cause_group": "entity_identity_drift",
                 "suggested_action": {
                     "summary": "Standardise the organisation name across all pages and JSON-LD blocks.",
                     "priority": "high",
@@ -377,6 +379,100 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
                     "title": "sameAs links in Organization schema support entity corroboration",
                     "category": "discoverability"
                 })
+
+    # --- ENT-008: Name inconsistency across title, H1, JSON-LD, About & Contact (Req 7) ---
+    element_names = {}
+    if homepage:
+        if homepage.get("title"):
+            element_names["homepage_title"] = homepage["title"].split("|")[0].split("-")[0].strip()
+        if homepage.get("h1"):
+            element_names["homepage_h1"] = homepage["h1"][0].strip()
+        hp_orgs = get_org_names_from_jsonld(homepage.get("json_ld", []))
+        if hp_orgs:
+            element_names["json_ld"] = hp_orgs[0].strip()
+
+    for p in pages:
+        if p.get("page_type") == "About":
+            if p.get("h1"):
+                element_names["about_h1"] = p["h1"][0].strip()
+            ab_orgs = get_org_names_from_jsonld(p.get("json_ld", []))
+            if ab_orgs:
+                element_names["about_jsonld"] = ab_orgs[0].strip()
+        elif p.get("page_type") == "Contact":
+            if p.get("h1"):
+                element_names["contact_h1"] = p["h1"][0].strip()
+
+    distinct_norm_names = {}
+    for elem, val in element_names.items():
+        n = normalise_name(val)
+        if n and len(n) > 2 and n not in ("about us", "contact us", "home", "welcome"):
+            distinct_norm_names.setdefault(n, []).append((elem, val))
+
+    if len(distinct_norm_names) > 1 and not any(f.get("check_id") == "ENT-002" for f in findings):
+        names_summary = [f"{v[0][0]} ('{v[0][1]}')" for v in distinct_norm_names.values()]
+        findings.append({
+            "check_id": "ENT-008",
+            "title": f"Inconsistent organization identity across key page elements ({len(distinct_norm_names)} variations)",
+            "category": "discoverability",
+            "severity": "medium",
+            "confidence": "high",
+            "affected_urls": [homepage["url"]] if homepage else [start_url],
+            "evidence": (
+                f"Disparate identity signals detected: {', '.join(names_summary[:3])}. "
+                "AI search agents cross-reference title, H1, and JSON-LD to ground entity identity."
+            ),
+            "tags": ["entity-name", "entity-identity", "identity-drift"],
+            "root_cause_group": "entity_identity_drift",
+            "suggested_action": {
+                "summary": "Align organization name consistently across Title, H1 headings, and JSON-LD schema.",
+                "priority": "medium",
+                "effort": "low"
+            }
+        })
+
+    # --- ENT-009: Fact consistency - conflicting founding years or locations (Req 7, 12) ---
+    founding_years = set()
+    locations = set()
+    founding_re = re.compile(r'\b(?:founded|established|since|est\.?)\s+(?:in\s+)?((?:19|20)\d{2})\b', re.IGNORECASE)
+
+    for p in pages:
+        # Check text sample for founding years
+        sample = p.get("visible_text_sample", "")
+        for m in founding_re.finditer(sample):
+            founding_years.add(m.group(1))
+
+        # Check JSON-LD foundingDate
+        for block in p.get("json_ld", []):
+            if isinstance(block, dict):
+                fd = str(block.get("foundingDate") or "")
+                if fd and len(fd) >= 4 and fd[:4].isdigit():
+                    founding_years.add(fd[:4])
+                addr = block.get("address")
+                if isinstance(addr, dict):
+                    loc_text = f"{addr.get('addressLocality', '')} {addr.get('addressCountry', '')}".strip()
+                    if loc_text:
+                        locations.add(loc_text)
+
+    if len(founding_years) > 1:
+        findings.append({
+            "check_id": "ENT-009",
+            "title": f"Conflicting founding years detected across pages ({', '.join(sorted(founding_years))})",
+            "category": "discoverability",
+            "severity": "high",
+            "confidence": "high",
+            "affected_urls": [p["url"] for p in pages[:5]],
+            "evidence": (
+                f"Discrepancy in company founding year: {sorted(founding_years)} found across crawled content. "
+                "Factual contradictions severely degrade AI confidence and lead to incorrect answers."
+            ),
+            "tags": ["entity-identity", "contradiction", "fact-consistency"],
+            "root_cause_group": "entity_identity_drift",
+            "suggested_action": {
+                "summary": "Verify and align founding dates across all website copy and JSON-LD markup.",
+                "priority": "high",
+                "effort": "low"
+            }
+        })
 
     return findings, strengths
 

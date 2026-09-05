@@ -1,61 +1,71 @@
 {
+  "name": "brand-ai-readiness-audit",
+  "version": "1.0.0",
   "marketplace_name": "Brand AI-Readiness Audit",
   "marketplace_version": "1.0.0",
   "description": "Audit any website for AI discoverability and on-site engagement barriers. Returns a structured JSON report with findings, recommendations, and an AI readiness score.",
   "license": "Apache-2.0",
   "skills": [
     {
+      "id": "audit-orchestrator",
       "name": "audit-orchestrator",
-      "path": "skills/audit-orchestrator/SKILL.md",
+      "path": "skills/audit-orchestrator",
       "entrypoint": true,
       "description": "Master entrypoint. Accepts a URL, orchestrates all skills, and returns the final audit report.",
       "version": "1.0.0"
     },
     {
+      "id": "site-crawler",
       "name": "site-crawler",
-      "path": "skills/site-crawler/SKILL.md",
+      "path": "skills/site-crawler",
       "entrypoint": false,
       "description": "Shared crawl engine. Produces snapshot.json consumed by all audit skills. Not an audit skill itself.",
       "version": "1.0.0"
     },
     {
+      "id": "crawlability-render-audit",
       "name": "crawlability-render-audit",
-      "path": "skills/crawlability-render-audit/SKILL.md",
+      "path": "skills/crawlability-render-audit",
       "entrypoint": false,
       "description": "Audits whether crawlers can access and read the site: robots.txt, noindex, redirects, JS-only content, broken links.",
       "version": "1.0.0"
     },
     {
+      "id": "structured-data-content-audit",
       "name": "structured-data-content-audit",
-      "path": "skills/structured-data-content-audit/SKILL.md",
+      "path": "skills/structured-data-content-audit",
       "entrypoint": false,
       "description": "Audits JSON-LD structured data quality and content extractability for AI agents.",
       "version": "1.0.0"
     },
     {
+      "id": "entity-identity-audit",
       "name": "entity-identity-audit",
-      "path": "skills/entity-identity-audit/SKILL.md",
+      "path": "skills/entity-identity-audit",
       "entrypoint": false,
       "description": "Audits brand name consistency, About/Contact presence, author attribution, and entity disambiguation.",
       "version": "1.0.0"
     },
     {
+      "id": "freshness-corroboration-audit",
       "name": "freshness-corroboration-audit",
-      "path": "skills/freshness-corroboration-audit/SKILL.md",
+      "path": "skills/freshness-corroboration-audit",
       "entrypoint": false,
       "description": "Audits content currency via date signals and detects internally contradicting facts.",
       "version": "1.0.0"
     },
     {
+      "id": "engagement-audit",
       "name": "engagement-audit",
-      "path": "skills/engagement-audit/SKILL.md",
+      "path": "skills/engagement-audit",
       "entrypoint": false,
       "description": "Audits visitor orientation, navigation clarity, CTA presence, and dead-end pages.",
       "version": "1.0.0"
     },
     {
+      "id": "proactive-opportunities-audit",
       "name": "proactive-opportunities-audit",
-      "path": "skills/proactive-opportunities-audit/SKILL.md",
+      "path": "skills/proactive-opportunities-audit",
       "entrypoint": false,
       "description": "Runs last. Suggests improvements beyond defects: FAQ content, BreadcrumbList, Event schema, etc.",
       "version": "1.0.0"

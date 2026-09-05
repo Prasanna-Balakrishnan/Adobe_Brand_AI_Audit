@@ -121,8 +121,12 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
                 "category": "discoverability"
             })
 
-    # --- SDC-002: No JSON-LD on product pages ---
-    product_pages = [p for p in pages if url_matches(p["url"], PRODUCT_URL_PATTERNS)]
+    # --- SDC-002: No JSON-LD on product pages (Req 6, 23) ---
+    product_pages = [
+        p for p in pages
+        if p.get("page_type") in ("Product", "Service", "Pricing") or
+           (url_matches(p["url"], PRODUCT_URL_PATTERNS) and p.get("page_type") not in ("About", "Contact", "Careers", "Documentation", "Blog/article"))
+    ]
     if product_pages:
         product_pages_no_jsonld = [p for p in product_pages if not p.get("json_ld")]
         if product_pages_no_jsonld:
@@ -477,6 +481,66 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
                 "summary": "Write unique, descriptive titles (40–60 characters) for every page.",
                 "priority": "medium",
                 "effort": "medium"
+            }
+        })
+
+    # --- SDC-013: Conflict between visible price and structured data price (Req 6, 12) ---
+    price_conflict_pages = []
+    price_pattern = re.compile(r'[\$€£]\s*(\d+(?:\.\d{2})?)|\b(\d+(?:\.\d{2})?)\s*(?:USD|EUR|GBP)\b', re.IGNORECASE)
+    for p in pages:
+        # Extract structured data price
+        ld_prices = []
+        for block in p.get("json_ld", []):
+            if isinstance(block, dict):
+                offers = block.get("offers")
+                if isinstance(offers, dict) and "price" in offers:
+                    try:
+                        ld_prices.append(float(str(offers["price"]).replace(",", "")))
+                    except ValueError:
+                        pass
+                elif isinstance(offers, list):
+                    for off in offers:
+                        if isinstance(off, dict) and "price" in off:
+                            try:
+                                ld_prices.append(float(str(off["price"]).replace(",", "")))
+                            except ValueError:
+                                pass
+        if not ld_prices:
+            continue
+
+        # Extract visible prices
+        visible_text = p.get("visible_text_sample", "")
+        matches = price_pattern.findall(visible_text)
+        visible_prices = []
+        for m in matches:
+            val_str = m[0] or m[1]
+            try:
+                visible_prices.append(float(val_str))
+            except ValueError:
+                pass
+
+        if visible_prices and ld_prices:
+            if not any(abs(vp - lp) < 0.01 for vp in visible_prices for lp in ld_prices):
+                price_conflict_pages.append((p, visible_prices[0], ld_prices[0]))
+
+    if price_conflict_pages:
+        findings.append({
+            "check_id": "SDC-013",
+            "title": f"Visible price conflicts with structured data price on {len(price_conflict_pages)} page(s)",
+            "category": "discoverability",
+            "severity": "high",
+            "confidence": "high",
+            "affected_urls": [p[0]["url"] for p in price_conflict_pages[:5]],
+            "evidence": (
+                f"Page {price_conflict_pages[0][0]['url']} displays visible price ${price_conflict_pages[0][1]} "
+                f"but JSON-LD schema declares ${price_conflict_pages[0][2]}. "
+                "Conflicting facts cause AI agents to hallucinate or distrust pricing data."
+            ),
+            "tags": ["json-ld", "price-conflict", "contradiction", "structured-data"],
+            "suggested_action": {
+                "summary": "Synchronize visible pricing numbers with JSON-LD schema offers.",
+                "priority": "high",
+                "effort": "low"
             }
         })
 

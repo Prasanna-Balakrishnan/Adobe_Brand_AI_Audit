@@ -288,7 +288,8 @@ def run_opportunities(snapshot: dict, findings: list) -> list[dict]:
     # --- PRO-009: Event schema ---
     event_pages = [
         p for p in pages
-        if (text_contains_any(p.get("visible_text_sample", ""), EVENT_KEYWORDS) or
+        if (p.get("page_type") == "Event" or
+            text_contains_any(p.get("visible_text_sample", ""), EVENT_KEYWORDS) or
             url_matches_any(p["url"], ["/event", "/conference", "/webinar", "/summit"]))
     ]
     has_event_schema = "Event" in all_types

@@ -175,11 +175,15 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
                 "category": "engagement"
             })
 
-    # --- ENG-004: Dead-end pages ---
+    # --- ENG-004: Dead-end pages (Req 9, 23) ---
+    # Terminal pages (docs, careers, policies) or pages with breadcrumbs should not be flagged blindly as dead ends.
+    terminal_types = {"Documentation", "Careers", "Contact"}
     ok_pages = [p for p in pages if p.get("status_code", 200) == 200]
     dead_end_pages = [
         p for p in ok_pages
         if not any(lnk.get("is_internal") for lnk in p.get("links", []))
+        and p.get("page_type") not in terminal_types
+        and not any(term in p.get("url", "").lower() for term in ("/docs", "/careers", "/privacy", "/terms", "/support"))
     ]
     dead_end_ratio = len(dead_end_pages) / max(len(ok_pages), 1)
     if dead_end_ratio > 0.15:
@@ -191,7 +195,7 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
             "confidence": "high",
             "affected_urls": [p["url"] for p in dead_end_pages[:5]],
             "evidence": (
-                f"{len(dead_end_pages)} of {len(ok_pages)} pages ({dead_end_ratio*100:.0f}%) "
+                f"{len(dead_end_pages)} of {len(ok_pages)} non-terminal pages ({dead_end_ratio*100:.0f}%) "
                 "have no outbound internal links. Visitors arriving at these pages have no "
                 "clear next step."
             ),
@@ -212,6 +216,7 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
     all_urls_lower = [p["url"].lower() for p in pages]
     all_titles_lower = [p.get("title", "").lower() for p in pages]
     has_about = (
+        any(p.get("page_type") == "About" for p in pages) or
         any(any(pat in u for pat in ABOUT_URL_PATTERNS) for u in all_urls_lower) or
         any(any(pat in t for pat in ABOUT_TITLE_PATTERNS) for t in all_titles_lower)
     )
