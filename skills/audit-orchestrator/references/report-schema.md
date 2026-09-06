@@ -20,6 +20,7 @@ schema. No field may be added or removed without updating this document first.
 | `findings` | array\<Finding\> | ✅ | All deduplicated audit findings |
 | `proactive_recommendations` | array\<Recommendation\> | ✅ | Beyond-defect suggestions |
 | `strengths` | array\<Strength\> | ✅ | Detected positive signals |
+| `methodology_and_limitations` | object | ✅ | Audit scope, deterministic scoring principles, read-only guarantee, and limitations |
 
 ---
 
@@ -251,6 +252,30 @@ schema. No field may be added or removed without updating this document first.
 |-------|------|-------------|
 | `title` | string | Description of the detected positive signal |
 | `category` | string | `"discoverability"` or `"engagement"` |
+
+---
+
+## `methodology_and_limitations` Object
+
+```json
+{
+  "audit_scope": "Evaluates technical AI discoverability, content extractability, structured data completeness, and citation readiness based on an observable crawl snapshot.",
+  "deterministic_scoring": "All scoring formulas and journey deductions are 100% deterministic and rule-grounded, measuring concrete technical readiness rather than subjective or volatile LLM search rankings.",
+  "read_only_guarantee": "This audit operates purely in read-only analysis mode without modifying site infrastructure, publishing changes, or executing non-idempotent operations.",
+  "limitations": [
+    "Crawl depth is capped at 20 pages per run under standard execution parameters.",
+    "Dynamic Single-Page Application (SPA) content requires headless rendering with Playwright fallback when JavaScript rendering is enabled.",
+    "Content behind authentication, paywalls, or strict CAPTCHA barriers is outside audit scope."
+  ]
+}
+```
+
+| Field | Type | Required | Description |
+|-------|------|:--------:|-------------|
+| `audit_scope` | string | ✅ | Definition of technical AI discoverability scope |
+| `deterministic_scoring` | string | ✅ | Explanation of rule-grounded readiness scoring |
+| `read_only_guarantee` | string | ✅ | Confirmation of non-destructive execution |
+| `limitations` | array\<string\> | ✅ | Technical boundaries and crawler constraints |
 
 ---
 

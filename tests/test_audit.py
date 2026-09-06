@@ -34,6 +34,7 @@ sys.path.insert(0, str(REPO_ROOT / "skills" / "entity-identity-audit" / "scripts
 sys.path.insert(0, str(REPO_ROOT / "skills" / "freshness-corroboration-audit" / "scripts"))
 sys.path.insert(0, str(REPO_ROOT / "skills" / "engagement-audit" / "scripts"))
 sys.path.insert(0, str(REPO_ROOT / "skills" / "proactive-opportunities-audit" / "scripts"))
+sys.path.insert(0, str(REPO_ROOT / "skills" / "site-crawler" / "scripts"))
 
 # Import audit functions
 import importlib.util
@@ -50,6 +51,7 @@ ent_mod = load_module(REPO_ROOT / "skills/entity-identity-audit/scripts/audit.py
 frs_mod = load_module(REPO_ROOT / "skills/freshness-corroboration-audit/scripts/audit.py", "frs")
 eng_mod = load_module(REPO_ROOT / "skills/engagement-audit/scripts/audit.py", "eng")
 pro_mod = load_module(REPO_ROOT / "skills/proactive-opportunities-audit/scripts/audit.py", "pro")
+crawl_mod = load_module(REPO_ROOT / "skills/site-crawler/scripts/crawl.py", "crawl")
 norm_mod = load_module(REPO_ROOT / "skills/audit-orchestrator/scripts/normalize_findings.py", "norm")
 dedup_mod = load_module(REPO_ROOT / "skills/audit-orchestrator/scripts/deduplicate_findings.py", "dedup")
 score_mod = load_module(REPO_ROOT / "skills/audit-orchestrator/scripts/score.py", "score")
@@ -1164,14 +1166,16 @@ class TestFullReportSchema(unittest.TestCase):
             "top_priorities": priorities,
             "findings": findings,
             "proactive_recommendations": [],
-            "strengths": []
+            "strengths": [],
+            "methodology_and_limitations": build_mod.METHODOLOGY_AND_LIMITATIONS
         }
 
         # Assert all required sections from Req 19 are present
         required_keys = [
             "site", "audited_at", "run_info", "summary",
             "agent_journey_scores", "agent_answerability", "top_priorities",
-            "findings", "proactive_recommendations", "strengths"
+            "findings", "proactive_recommendations", "strengths",
+            "methodology_and_limitations"
         ]
         for k in required_keys:
             self.assertIn(k, report, f"Report missing key: {k}")
@@ -1342,8 +1346,715 @@ class TestRealWorldGeneralization(unittest.TestCase):
         self.assertIsNotNone(deduped[0]["root_cause_group"])
 
 
+class TestAdaptiveCrawlPrioritization(unittest.TestCase):
+    """
+    Unit and regression tests for Adaptive Crawl Page Limit & Prioritization:
+    - Verifies priority scoring hierarchy (Homepage > About > Contact > Products > Pricing > Docs > Careers > Events > Hubs > Leaves > Deep).
+    - Verifies repetitive leaf vs category hub distinction.
+    - Verifies repetitive leaf capping at max 3 without skipping category hubs.
+    - Verifies strict enforcement of max-pages limit.
+    - Verifies deterministic queue ordering.
+    """
+
+    def test_priority_scoring_hierarchy(self):
+        """Priority scoring strictly adheres to the requested hierarchy."""
+        score_home, _ = crawl_mod.score_url_priority("https://example.com/", depth=0)
+        score_about, _ = crawl_mod.score_url_priority("https://example.com/about", link_text="About Us", depth=1)
+        score_contact, _ = crawl_mod.score_url_priority("https://example.com/contact", link_text="Contact Us", depth=1)
+        score_prod, _ = crawl_mod.score_url_priority("https://example.com/products", link_text="Our Products", depth=1)
+        score_pricing, _ = crawl_mod.score_url_priority("https://example.com/pricing", link_text="Pricing Plans", depth=1)
+        score_docs, _ = crawl_mod.score_url_priority("https://example.com/docs", link_text="Documentation", depth=1)
+        score_careers, _ = crawl_mod.score_url_priority("https://example.com/careers", link_text="Join our team", depth=1)
+        score_events, _ = crawl_mod.score_url_priority("https://example.com/events", link_text="Upcoming Conferences", depth=1)
+        score_hub, _ = crawl_mod.score_url_priority("https://example.com/blog", link_text="Blog", depth=1)
+        score_rep, _ = crawl_mod.score_url_priority("https://example.com/community", link_text="Community", depth=1)
+        score_leaf, _ = crawl_mod.score_url_priority("https://example.com/blog/2026/01/post-one", link_text="Post One", depth=2)
+        score_deep, _ = crawl_mod.score_url_priority("https://example.com/tag/ai/page/2", link_text="Page 2", depth=3)
+
+        self.assertGreater(score_home, score_about)
+        self.assertGreater(score_about, score_contact)
+        self.assertGreater(score_contact, score_prod)
+        self.assertGreater(score_prod, score_pricing)
+        self.assertGreater(score_pricing, score_docs)
+        self.assertGreater(score_docs, score_careers)
+        self.assertGreater(score_careers, score_events)
+        self.assertGreater(score_events, score_hub)
+        self.assertGreater(score_hub, score_rep)
+        self.assertGreater(score_rep, score_leaf)
+        self.assertGreater(score_leaf, score_deep)
+
+    def test_category_hubs_not_classified_as_leaves(self):
+        """Category hub pages must not be misclassified as repetitive leaves."""
+        hubs = [
+            "https://example.com/blog",
+            "https://example.com/blog/",
+            "https://example.com/products",
+            "https://example.com/products/",
+            "https://example.com/news",
+            "https://example.com/shop",
+            "https://example.com/catalog"
+        ]
+        for h in hubs:
+            is_leaf, leaf_type = crawl_mod.is_repetitive_leaf(h)
+            self.assertFalse(is_leaf, f"{h} is a category hub and should not be identified as a repetitive leaf")
+            self.assertIsNone(leaf_type)
+
+    def test_repetitive_leaf_detection(self):
+        """Individual deep articles and products are correctly detected as repetitive leaves."""
+        leaves = [
+            ("https://example.com/blog/2026/01/my-post", "blog_leaf"),
+            ("https://example.com/articles/deep-dive-ai", "blog_leaf"),
+            ("https://example.com/news/latest-update", "blog_leaf"),
+            ("https://example.com/product/widget-123", "product_leaf"),
+            ("https://example.com/products/item-999", "product_leaf"),
+            ("https://example.com/shop/shoe-blue", "product_leaf")
+        ]
+        for url, expected_type in leaves:
+            is_leaf, leaf_type = crawl_mod.is_repetitive_leaf(url)
+            self.assertTrue(is_leaf, f"{url} should be identified as a repetitive leaf")
+            self.assertEqual(leaf_type, expected_type)
+
+    def test_repetitive_leaf_capping_and_prioritization(self):
+        """Crawler prioritizes high-value pages and caps repetitive leaves at max 3."""
+        # Simulate discovered links from homepage
+        raw_links = []
+        # Add 20 blog leaf links first (e.g. at top of homepage)
+        for i in range(1, 21):
+            raw_links.append({"href": f"https://example.com/blog/post-{i}", "text": f"Post {i}"})
+        # Add high-value pages at bottom of homepage
+        raw_links.append({"href": "https://example.com/about", "text": "About Us"})
+        raw_links.append({"href": "https://example.com/contact", "text": "Contact Us"})
+        raw_links.append({"href": "https://example.com/pricing", "text": "Pricing"})
+        raw_links.append({"href": "https://example.com/blog", "text": "Blog"})  # Hub!
+
+        queue = []
+        queued_urls = set()
+        repetitive_counts = {"blog_leaf": 0, "product_leaf": 0}
+        skipped_count = 0
+        order = 0
+
+        for link in raw_links:
+            href = link["href"]
+            is_leaf, leaf_type = crawl_mod.is_repetitive_leaf(href)
+            if is_leaf and leaf_type:
+                if repetitive_counts.get(leaf_type, 0) >= 3:
+                    skipped_count += 1
+                    continue
+                repetitive_counts[leaf_type] = repetitive_counts.get(leaf_type, 0) + 1
+
+            order += 1
+            priority, _ = crawl_mod.score_url_priority(href, link_text=link["text"], depth=1)
+            queue.append({"url": href, "priority": priority, "depth": 1, "order": order})
+            queued_urls.add(href)
+
+        # 17 blog leaf links were skipped due to the 3-page cap
+        self.assertEqual(skipped_count, 17)
+        self.assertEqual(repetitive_counts["blog_leaf"], 3)
+        self.assertIn("https://example.com/blog", queued_urls, "Category hub /blog must NOT be skipped")
+
+        # Sort queue by priority
+        queue.sort(key=lambda item: (-item["priority"], item["depth"], item["order"]))
+        popped_urls = [item["url"] for item in queue]
+
+        # Verify high-value pages are popped BEFORE any blog leaf pages
+        about_idx = popped_urls.index("https://example.com/about")
+        contact_idx = popped_urls.index("https://example.com/contact")
+        pricing_idx = popped_urls.index("https://example.com/pricing")
+        blog_hub_idx = popped_urls.index("https://example.com/blog")
+        first_leaf_idx = popped_urls.index("https://example.com/blog/post-1")
+
+        self.assertLess(about_idx, first_leaf_idx)
+        self.assertLess(contact_idx, first_leaf_idx)
+        self.assertLess(pricing_idx, first_leaf_idx)
+        self.assertLess(blog_hub_idx, first_leaf_idx)
+
+    def test_max_pages_strict_enforcement(self):
+        """Queue popping strictly respects max_pages limit regardless of queue size."""
+        queue = [
+            {"url": f"https://example.com/page-{i}", "priority": 50, "depth": 1, "order": i}
+            for i in range(50)
+        ]
+        max_pages = 5
+        visited = []
+        while queue and len(visited) < max_pages:
+            queue.sort(key=lambda item: (-item["priority"], item["depth"], item["order"]))
+            visited.append(queue.pop(0)["url"])
+
+        self.assertEqual(len(visited), 5)
+
+    def test_crawl_queue_determinism(self):
+        """Queue sorting is strictly deterministic across multiple runs."""
+        items_run1 = [
+            {"url": "https://example.com/docs", "priority": 70, "depth": 1, "order": 2},
+            {"url": "https://example.com/pricing", "priority": 75, "depth": 1, "order": 3},
+            {"url": "https://example.com/about", "priority": 90, "depth": 1, "order": 1},
+            {"url": "https://example.com/blog/p1", "priority": 30, "depth": 2, "order": 4},
+            {"url": "https://example.com/blog/p2", "priority": 30, "depth": 2, "order": 5},
+        ]
+        items_run2 = list(items_run1)
+
+        items_run1.sort(key=lambda item: (-item["priority"], item["depth"], item["order"]))
+        items_run2.sort(key=lambda item: (-item["priority"], item["depth"], item["order"]))
+
+        self.assertEqual(items_run1, items_run2)
+        expected_urls = [
+            "https://example.com/about",
+            "https://example.com/pricing",
+            "https://example.com/docs",
+            "https://example.com/blog/p1",
+            "https://example.com/blog/p2"
+        ]
+        self.assertEqual([item["url"] for item in items_run1], expected_urls)
+
+
+class TestSEOHygieneAndAIDiscoverability(unittest.TestCase):
+    """Regression test suite for Phase 5 SEO Hygiene and AI Discoverability checks."""
+
+    def test_clean_site_zero_false_positives(self):
+        """A well-configured site generates 0 SEO defect findings across all skills."""
+        clean_pages = [
+            make_page(
+                url="https://example.com/",
+                title="Acme Analytics — Enterprise Observability",
+                meta_description="Comprehensive cloud observability for enterprise platforms.",
+                h1=["Acme Enterprise Observability"],
+                json_ld=[{
+                    "@context": "https://schema.org",
+                    "@type": "Organization",
+                    "name": "Acme Analytics",
+                    "url": "https://example.com/"
+                }],
+                links=[
+                    {"href": "https://example.com/about", "text": "About Acme", "is_internal": True},
+                    {"href": "https://example.com/contact", "text": "Contact Sales", "is_internal": True},
+                    {"href": "https://example.com/products", "text": "Our Products", "is_internal": True}
+                ],
+                page_type="Homepage"
+            ),
+            make_page(
+                url="https://example.com/about",
+                title="About Acme Analytics",
+                meta_description="Learn about the Acme leadership and history.",
+                h1=["About Our Mission"],
+                links=[{"href": "https://example.com/", "text": "Home", "is_internal": True}],
+                page_type="About"
+            ),
+            make_page(
+                url="https://example.com/contact",
+                title="Contact Acme Support",
+                meta_description="Get in touch with Acme customer support.",
+                h1=["Contact Us"],
+                links=[{"href": "https://example.com/", "text": "Home", "is_internal": True}],
+                page_type="Contact"
+            )
+        ]
+        snap = make_snapshot(clean_pages)
+        snap["crawl_meta"]["sitemaps"] = ["https://example.com/sitemap.xml"]
+
+        cra_f, _ = cra_mod.run_checks(snap)
+        sdc_f, _ = sdc_mod.run_checks(snap)
+        eng_f, _ = eng_mod.run_checks(snap)
+
+        seo_check_ids = {"CRA-013", "CRA-014", "CRA-015", "CRA-016", "CRA-018", "CRA-019", "CRA-020",
+                         "SDC-206", "SDC-207", "SDC-208", "SDC-209", "ENG-009", "ENG-010"}
+        all_fired = {f["check_id"] for f in cra_f + sdc_f + eng_f}
+        self.assertEqual(all_fired & seo_check_ids, set())
+
+    def test_cra_013_page_type_disallow_detection(self):
+        """CRA-013 dynamically identifies disallowed high-value pages without hardcoded paths."""
+        pages = [
+            make_page(url="https://example.com/", page_type="Homepage"),
+            make_page(url="https://example.com/knowledge-hub/guide", page_type="Documentation"),
+            make_page(url="https://example.com/corp/team", page_type="About")
+        ]
+        snap = make_snapshot(pages)
+        snap["crawl_meta"]["disallowed_paths"] = ["/knowledge-hub/"]
+
+        findings, _ = cra_mod.run_checks(snap)
+        cra013 = [f for f in findings if f.get("check_id") == "CRA-013"]
+        self.assertEqual(len(cra013), 1)
+        self.assertIn("knowledge-hub", cra013[0]["evidence"])
+        self.assertEqual(cra013[0]["severity"], "high")
+
+    def test_cra_015_brand_page_noindex(self):
+        """CRA-015 fires when primary brand homepage has noindex, even if <50% of the site has noindex."""
+        pages = [
+            make_page(url="https://example.com/", meta_robots="noindex, follow", page_type="Homepage"),
+            make_page(url="https://example.com/p1", meta_robots="index, follow"),
+            make_page(url="https://example.com/p2", meta_robots="index, follow"),
+            make_page(url="https://example.com/p3", meta_robots="index, follow"),
+        ]
+        snap = make_snapshot(pages)
+        findings, _ = cra_mod.run_checks(snap)
+        cra015 = [f for f in findings if f.get("check_id") == "CRA-015"]
+        self.assertEqual(len(cra015), 1)
+        self.assertEqual(cra015[0]["severity"], "critical")
+        self.assertIn("Homepage", cra015[0]["evidence"])
+
+    def test_cra_016_canonical_pointing_to_error(self):
+        """CRA-016 detects canonical tag pointing to a broken (404/500) target URL."""
+        pages = [
+            make_page(url="https://example.com/article", canonical="https://example.com/missing-canonical"),
+            make_page(url="https://example.com/missing-canonical", status_code=404)
+        ]
+        snap = make_snapshot(pages)
+        findings, _ = cra_mod.run_checks(snap)
+        cra016 = [f for f in findings if f.get("check_id") == "CRA-016"]
+        self.assertEqual(len(cra016), 1)
+        self.assertEqual(cra016[0]["severity"], "high")
+        self.assertIn("HTTP 404", cra016[0]["evidence"])
+
+    def test_cra_019_material_content_disparity(self):
+        """CRA-019 flags only when JS rendering reveals material content absent in raw HTML."""
+        clean_js_page = make_page(
+            url="https://example.com/app",
+            crawled_with_js=True,
+            raw_text_length=1500,
+            rendered_text_length=1520,
+            content_disparity=20,
+            js_dependent_content=False
+        )
+        snap1 = make_snapshot([clean_js_page])
+        findings1, _ = cra_mod.run_checks(snap1)
+        self.assertFalse(any(f.get("check_id") == "CRA-019" for f in findings1))
+
+        disparate_page = make_page(
+            url="https://example.com/spa",
+            crawled_with_js=True,
+            raw_text_length=120,
+            rendered_text_length=2400,
+            content_disparity=2280,
+            js_dependent_content=True
+        )
+        snap2 = make_snapshot([disparate_page])
+        findings2, _ = cra_mod.run_checks(snap2)
+        cra019 = [f for f in findings2 if f.get("check_id") == "CRA-019"]
+        self.assertEqual(len(cra019), 1)
+        self.assertEqual(cra019[0]["severity"], "high")
+
+    def test_sdc_206_boilerplate_titles(self):
+        """SDC-206 identifies boilerplate and placeholder titles."""
+        pages = [
+            make_page(url="https://example.com/", title="Home"),
+            make_page(url="https://example.com/page2", title="Untitled Document")
+        ]
+        snap = make_snapshot(pages)
+        findings, _ = sdc_mod.run_checks(snap)
+        sdc206 = [f for f in findings if f.get("check_id") == "SDC-206"]
+        self.assertEqual(len(sdc206), 1)
+        self.assertEqual(sdc206[0]["severity"], "medium")
+
+    def test_sdc_207_missing_h1_on_content_pages(self):
+        """SDC-207 detects missing H1 on inferred Product/Documentation content pages."""
+        pages = [
+            make_page(url="https://example.com/", h1=["Home"]),
+            make_page(url="https://example.com/product/crm", h1=[], page_type="Product", visible_text_length=800)
+        ]
+        snap = make_snapshot(pages)
+        findings, _ = sdc_mod.run_checks(snap)
+        sdc207 = [f for f in findings if f.get("check_id") == "SDC-207"]
+        self.assertEqual(len(sdc207), 1)
+        self.assertIn("crm", sdc207[0]["affected_urls"][0])
+
+    def test_sdc_208_incomplete_schema(self):
+        """SDC-208 flags Schema.org objects missing required identity/content properties."""
+        pages = [
+            make_page(
+                url="https://example.com/",
+                json_ld=[{
+                    "@context": "https://schema.org",
+                    "@type": "Organization"
+                }]
+            )
+        ]
+        snap = make_snapshot(pages)
+        findings, _ = sdc_mod.run_checks(snap)
+        sdc208 = [f for f in findings if f.get("check_id") == "SDC-208"]
+        self.assertEqual(len(sdc208), 1)
+        self.assertIn("missing 'name'", sdc208[0]["evidence"])
+
+    def test_sdc_209_semantic_heading_contradiction(self):
+        """SDC-209 flags when Schema.org declared entity directly contradicts visible heading."""
+        pages = [
+            make_page(
+                url="https://example.com/service",
+                title="Gourmet Artisan Bakery",
+                h1=["Fresh Artisan Bread and Pastries"],
+                visible_text_sample="We bake sourdough bread and French pastries daily in downtown.",
+                json_ld=[{
+                    "@context": "https://schema.org",
+                    "@type": "Product",
+                    "name": "Acme Cyber Cloud Enterprise Monitoring"
+                }]
+            )
+        ]
+        snap = make_snapshot(pages)
+        findings, _ = sdc_mod.run_checks(snap)
+        sdc209 = [f for f in findings if f.get("check_id") == "SDC-209"]
+        self.assertEqual(len(sdc209), 1)
+        self.assertIn("Acme Cyber Cloud", sdc209[0]["evidence"])
+
+    def test_eng_009_contextual_anchor_text(self):
+        """ENG-009 detects non-descriptive links when they materially hinder navigation."""
+        pages = [
+            make_page(
+                url="https://example.com/",
+                links=[
+                    {"href": "https://example.com/p1", "text": "click here", "is_internal": True},
+                    {"href": "https://example.com/p2", "text": "read more", "is_internal": True},
+                    {"href": "https://example.com/p3", "text": "click here", "is_internal": True},
+                    {"href": "https://example.com/p4", "text": "learn more", "is_internal": True},
+                    {"href": "https://example.com/p5", "text": "Normal Link", "is_internal": True}
+                ]
+            )
+        ]
+        snap = make_snapshot(pages)
+        findings, _ = eng_mod.run_checks(snap)
+        eng009 = [f for f in findings if f.get("check_id") == "ENG-009"]
+        self.assertEqual(len(eng009), 1)
+        self.assertEqual(eng009[0]["severity"], "medium")
+
+    def test_eng_010_orientation_page_discoverability(self):
+        """ENG-010 detects when an inferred core orientation page exists in crawl but is isolated from homepage navigation."""
+        linked_pages = [
+            make_page(
+                url="https://example.com/",
+                links=[
+                    {"href": "https://example.com/about", "text": "About Us", "is_internal": True},
+                    {"href": "https://example.com/contact", "text": "Contact", "is_internal": True}
+                ]
+            ),
+            make_page(url="https://example.com/about", page_type="About"),
+            make_page(url="https://example.com/contact", page_type="Contact")
+        ]
+        snap_linked = make_snapshot(linked_pages)
+        findings_linked, _ = eng_mod.run_checks(snap_linked)
+        self.assertFalse(any(f.get("check_id") == "ENG-010" for f in findings_linked))
+
+        isolated_pages = [
+            make_page(
+                url="https://example.com/",
+                links=[
+                    {"href": "https://example.com/features", "text": "Features", "is_internal": True},
+                    {"href": "https://example.com/blog", "text": "Blog", "is_internal": True}
+                ]
+            ),
+            make_page(url="https://example.com/pricing", page_type="Pricing")
+        ]
+        snap_isolated = make_snapshot(isolated_pages)
+        findings_isolated, _ = eng_mod.run_checks(snap_isolated)
+        eng010 = [f for f in findings_isolated if f.get("check_id") == "ENG-010"]
+        self.assertEqual(len(eng010), 1)
+        self.assertIn("https://example.com/pricing", eng010[0]["affected_urls"])
+
+    def test_cra_020_sitemap_absence_requires_discoverability_impact(self):
+        """CRA-020 produces NO finding for missing sitemap alone; requires material discoverability limitation."""
+        pages = [
+            make_page(url="https://example.com/"),
+            make_page(url="https://example.com/about"),
+            make_page(url="https://example.com/contact"),
+            make_page(url="https://example.com/docs")
+        ]
+        snap_normal = make_snapshot(pages)
+        snap_normal["crawl_meta"]["robots_txt_status"] = 200
+        snap_normal["crawl_meta"]["sitemaps"] = []
+        findings1, _ = cra_mod.run_checks(snap_normal)
+        self.assertFalse(any(f.get("check_id") == "CRA-020" for f in findings1))
+
+        snap_limited = make_snapshot(pages)
+        snap_limited["crawl_meta"]["robots_txt_status"] = 200
+        snap_limited["crawl_meta"]["sitemaps"] = []
+        snap_limited["crawl_meta"]["crawl_coverage"] = {"discovery_limited": True}
+        findings2, _ = cra_mod.run_checks(snap_limited)
+        cra020 = [f for f in findings2 if f.get("check_id") == "CRA-020"]
+        self.assertEqual(len(cra020), 1)
+        self.assertEqual(cra020[0]["severity"], "low")
+
+
+# ─── Phase 6: Final Report & Evaluator Optimization Tests ────────────────────
+
+class TestFinalReportAndEvaluatorOptimization(unittest.TestCase):
+    """
+    Validates Phase 6 deterministic prioritization tie-breaking, report schema conformity,
+    companion markdown report generation, journey explainability, answerability evidence calibration,
+    and resilience on shallow/empty crawls.
+    """
+
+    def test_top_priorities_deterministic_tie_breaking(self):
+        """Top priorities enforce strict multi-tier deterministic sorting: (-priority_score, severity_rank, -affected_pages_count, id)."""
+        findings = [
+            {
+                "id": "F-100",
+                "title": "Critical issue B",
+                "severity": "critical",
+                "confidence": "high",
+                "affected_urls": ["https://example.com/p1"],
+                "suggested_action": {"summary": "Fix B"}
+            },
+            {
+                "id": "F-050",
+                "title": "Critical issue A",
+                "severity": "critical",
+                "confidence": "high",
+                "affected_urls": ["https://example.com/p1"],
+                "suggested_action": {"summary": "Fix A"}
+            },
+            {
+                "id": "F-020",
+                "title": "Critical with more reach",
+                "severity": "critical",
+                "confidence": "high",
+                "affected_urls": ["https://example.com/p1", "https://example.com/p2"],
+                "suggested_action": {"summary": "Fix Reach"}
+            }
+        ]
+        # F-020: score = 40 * 1.0 * 1.2 = 48.0
+        # F-100: score = 40 * 1.0 * 1.1 = 44.0, id="F-100"
+        # F-050: score = 40 * 1.0 * 1.1 = 44.0, id="F-050"
+        # Ordered: F-020 (rank 1), F-050 (rank 2), F-100 (rank 3)
+        priorities = score_mod.compute_top_priorities(findings, limit=5)
+        self.assertEqual(len(priorities), 3)
+        self.assertEqual(priorities[0]["id"], "F-020")
+        self.assertEqual(priorities[1]["id"], "F-050")
+        self.assertEqual(priorities[2]["id"], "F-100")
+        self.assertEqual(priorities[0]["priority_rank"], 1)
+        self.assertEqual(priorities[1]["priority_rank"], 2)
+        self.assertEqual(priorities[2]["priority_rank"], 3)
+
+    def test_report_structure_and_required_keys(self):
+        """Final report contains all 10 required top-level keys plus methodology_and_limitations with exact fields."""
+        snap = make_snapshot([make_page(url="https://example.com/")])
+        findings = [
+            {
+                "id": "F-001",
+                "title": "Robots block",
+                "category": "discoverability",
+                "severity": "critical",
+                "confidence": "high",
+                "source_skill": "crawlability-render-audit",
+                "tags": ["robots-txt", "crawlability"],
+                "affected_urls": ["https://example.com/"],
+                "evidence": "Robots.txt blocks /",
+                "suggested_action": {"summary": "Allow in robots.txt"}
+            }
+        ]
+        summary = score_mod.compute_summary(findings, snap)
+        journey = score_mod.compute_agent_journey_scores(findings)
+        answerability = score_mod.evaluate_agent_answerability(snap, findings)
+        priorities = score_mod.compute_top_priorities(findings)
+
+        report = {
+            "site": "example.com",
+            "audited_at": "2026-09-06T15:00:00Z",
+            "run_info": {
+                "marketplace_version": "1.0.0",
+                "query_input": "https://example.com",
+                "target_url": "https://example.com",
+                "skills_invoked": ["crawlability-render-audit"],
+                "failed_skills": [],
+                "pages_crawled": 1,
+                "max_pages": 20,
+                "crawl_duration_seconds": 2.5,
+                "robots_txt_respected": True,
+                "crawl_coverage": {
+                    "pages_discovered": 1,
+                    "pages_crawled": 1,
+                    "pages_skipped": 0,
+                    "failed_pages": [],
+                    "crawl_duration_seconds": 2.5,
+                    "robots_status": 200,
+                    "js_rendering_status": "disabled"
+                }
+            },
+            "summary": summary,
+            "agent_journey_scores": journey,
+            "agent_answerability": answerability,
+            "top_priorities": priorities,
+            "findings": findings,
+            "proactive_recommendations": [],
+            "strengths": [],
+            "methodology_and_limitations": build_mod.METHODOLOGY_AND_LIMITATIONS
+        }
+
+        required_keys = [
+            "site", "audited_at", "run_info", "summary",
+            "agent_journey_scores", "agent_answerability", "top_priorities",
+            "findings", "proactive_recommendations", "strengths",
+            "methodology_and_limitations"
+        ]
+        for k in required_keys:
+            self.assertIn(k, report)
+
+        meth = report["methodology_and_limitations"]
+        for meth_field in ["audit_scope", "deterministic_scoring", "read_only_guarantee", "limitations"]:
+            self.assertIn(meth_field, meth)
+        self.assertIsInstance(meth["limitations"], list)
+        self.assertGreater(len(meth["limitations"]), 0)
+
+    def test_companion_markdown_report_generation(self):
+        """build_report.py generates a complete, scan-friendly companion Markdown report."""
+        snap = make_snapshot([make_page(url="https://example.com/")])
+        findings = [
+            {
+                "id": "F-001",
+                "title": "Missing meta description",
+                "category": "discoverability",
+                "severity": "medium",
+                "confidence": "high",
+                "source_skill": "crawlability-render-audit",
+                "tags": ["meta-description"],
+                "affected_urls": ["https://example.com/"],
+                "evidence": "Homepage has empty meta description.",
+                "suggested_action": {"summary": "Add meta description", "priority": "medium", "effort": "low"}
+            }
+        ]
+        report = {
+            "site": "example.com",
+            "audited_at": "2026-09-06T15:00:00Z",
+            "run_info": {
+                "marketplace_version": "1.0.0",
+                "target_url": "https://example.com",
+                "max_pages": 20,
+                "crawl_coverage": {
+                    "pages_discovered": 1,
+                    "pages_crawled": 1,
+                    "pages_skipped": 0,
+                    "crawl_duration_seconds": 1.2,
+                    "robots_status": "allowed",
+                    "js_rendering_status": "disabled"
+                }
+            },
+            "summary": score_mod.compute_summary(findings, snap),
+            "agent_journey_scores": score_mod.compute_agent_journey_scores(findings),
+            "agent_answerability": score_mod.evaluate_agent_answerability(snap, findings),
+            "top_priorities": score_mod.compute_top_priorities(findings),
+            "findings": findings,
+            "proactive_recommendations": [{"id": "PRO-001", "title": "Add FAQ schema", "category": "discoverability", "priority": "medium", "rationale": "Improves AI Q&A"}],
+            "strengths": [{"title": "Fast response time", "category": "discoverability"}],
+            "methodology_and_limitations": build_mod.METHODOLOGY_AND_LIMITATIONS
+        }
+        md_text = build_mod.generate_markdown_report(report)
+        self.assertIsInstance(md_text, str)
+        self.assertIn("# Brand AI-Readiness Audit Report: example.com", md_text)
+        self.assertIn("## Executive Summary", md_text)
+        self.assertIn("## Agent Journey Scorecard", md_text)
+        self.assertIn("## Crawl Coverage Summary", md_text)
+        self.assertIn("## Top Priorities", md_text)
+        self.assertIn("## Agent Answerability", md_text)
+        self.assertIn("## Strengths", md_text)
+        self.assertIn("## Proactive Opportunities", md_text)
+        self.assertIn("## Detailed Audit Findings", md_text)
+        self.assertIn("## Methodology & Limitations", md_text)
+
+    def test_agent_journey_scores_evidence_grounded(self):
+        """Journey pillar deductions are strictly grounded in findings and match check tags and severities."""
+        findings = [
+            {
+                "id": "F-001",
+                "title": "Robots block",
+                "severity": "critical",
+                "tags": ["crawlability", "robots-txt"],
+                "evidence": "Disallow in robots.txt"
+            },
+            {
+                "id": "F-002",
+                "title": "Missing schema",
+                "severity": "high",
+                "tags": ["json-ld", "structured-data"],
+                "evidence": "0 schema found"
+            }
+        ]
+        explanations = score_mod.get_journey_pillar_explanations(findings)
+        self.assertEqual(len(explanations), 6)
+        for pillar in ["reach", "read", "understand", "trust", "navigate", "act"]:
+            self.assertIn(pillar, explanations)
+            self.assertIn("score", explanations[pillar])
+            self.assertIn("deduction_total", explanations[pillar])
+            self.assertIn("contributing_findings", explanations[pillar])
+
+        # Reach should have 25 deduction from critical crawlability finding
+        self.assertEqual(explanations["reach"]["deduction_total"], 25)
+        self.assertEqual(explanations["reach"]["score"], 75)
+        self.assertEqual(len(explanations["reach"]["contributing_findings"]), 1)
+        self.assertEqual(explanations["reach"]["contributing_findings"][0]["id"], "F-001")
+
+        # Understand should have 15 deduction from high structured data finding
+        self.assertEqual(explanations["understand"]["deduction_total"], 15)
+        self.assertEqual(explanations["understand"]["score"], 85)
+
+    def test_answerability_evidence_and_sources(self):
+        """Answerability questions require observable evidence; absence/conflict produces low confidence without whole-crawl inflation."""
+        # Supported scenario
+        snap_supported = make_snapshot([
+            make_page(
+                url="https://example.com/",
+                meta_description="Enterprise CRM software for global sales teams.",
+                page_type="Homepage",
+                json_ld=[{
+                    "@type": "Product",
+                    "name": "Sales CRM",
+                    "offers": {"@type": "Offer", "price": "99", "priceCurrency": "USD"}
+                }, {
+                    "@type": "Organization",
+                    "address": {"streetAddress": "100 Market St", "addressLocality": "San Francisco", "addressCountry": "US"},
+                    "contactPoint": {"telephone": "+1-800-555-0199", "email": "support@example.com"}
+                }]
+            )
+        ])
+        results = score_mod.evaluate_agent_answerability(snap_supported)
+        self.assertEqual(len(results), 5)
+        for q in results:
+            self.assertEqual(q["status"], "Supported")
+            self.assertEqual(q["confidence"], "high")
+            self.assertTrue(len(q["evidence"]) > 10)
+            self.assertGreater(len(q["sources"]), 0)
+
+        # Empty/unsupported scenario with large crawl metadata (whole-site crawl)
+        snap_unsupported = make_snapshot([
+            make_page(url="https://empty-brand.com/", title="Blank", visible_text_sample="")
+        ])
+        snap_unsupported["crawl_meta"]["pages_crawled"] = 20
+        snap_unsupported["crawl_meta"]["pages_discovered"] = 20
+        snap_unsupported["crawl_meta"]["crawl_coverage"] = {"whole_site_crawled": True}
+
+        unsupported_results = score_mod.evaluate_agent_answerability(snap_unsupported)
+        # Verify that questions with no observable evidence use 'low' confidence and are not inflated by crawl coverage
+        q_loc = next(q for q in unsupported_results if q["question"] == "Where is it located?")
+        self.assertEqual(q_loc["status"], "Not found")
+        self.assertEqual(q_loc["confidence"], "low", "Absence of evidence must produce low confidence, not high")
+
+        q_cost = next(q for q in unsupported_results if q["question"] == "What does the product cost?")
+        self.assertEqual(q_cost["status"], "Not found")
+        self.assertEqual(q_cost["confidence"], "low", "Missing pricing must produce low confidence regardless of whole site crawl")
+
+        q_contact = next(q for q in unsupported_results if q["question"] == "How can users contact it?")
+        self.assertEqual(q_contact["status"], "Not found")
+        self.assertEqual(q_contact["confidence"], "low", "Missing contact must produce low confidence")
+
+    def test_graceful_handling_empty_or_limited_crawl(self):
+        """Zero-page or completely empty snapshots are handled gracefully across answerability, summary, and priorities."""
+        empty_snap = {"pages": [], "crawl_meta": {"pages_crawled": 0, "start_url": "https://empty.com"}}
+        ans = score_mod.evaluate_agent_answerability(empty_snap, [])
+        self.assertEqual(len(ans), 5)
+        for item in ans:
+            self.assertIn("question", item)
+            self.assertIn("status", item)
+            self.assertIn("confidence", item)
+            self.assertIn("evidence", item)
+            self.assertIn("sources", item)
+            self.assertEqual(item["confidence"], "low")
+
+        summary = score_mod.compute_summary([], empty_snap)
+        self.assertEqual(summary["total_findings"], 0)
+        self.assertEqual(summary["ai_readiness_score"], 100)
+
+        priorities = score_mod.compute_top_priorities([], limit=5)
+        self.assertEqual(priorities, [])
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+
 
 
 

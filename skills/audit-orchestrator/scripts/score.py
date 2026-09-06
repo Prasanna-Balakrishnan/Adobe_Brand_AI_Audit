@@ -4,7 +4,13 @@ score.py — Computes AI readiness score, AI Agent Journey scores, Agent Answera
 and multi-factor prioritized recommendations.
 
 Usage:
-    from score import compute_summary, compute_agent_journey_scores, evaluate_agent_answerability, compute_top_priorities
+    from score import (
+        compute_summary,
+        compute_agent_journey_scores,
+        evaluate_agent_answerability,
+        compute_top_priorities,
+        get_journey_pillar_explanations
+    )
 """
 
 import json
@@ -29,11 +35,11 @@ JOURNEY_DEDUCTIONS = {
 }
 
 PILLAR_TAGS = {
-    "reach": {"crawlability", "robots-txt", "noindex", "redirect", "canonical", "broken-link", "http-error"},
-    "read": {"js-render", "thin-content", "heading-structure", "page-title", "meta-description"},
-    "understand": {"json-ld", "schema-org", "structured-data", "entity-identity", "entity-disambiguation", "entity-name"},
-    "trust": {"freshness", "stale-date", "contradiction", "author-attribution", "canonical-conflict", "identity-drift"},
-    "navigate": {"internal-linking", "dead-end", "navigation", "broken-link", "depth"},
+    "reach": {"crawlability", "robots-txt", "noindex", "redirect", "canonical", "broken-link", "http-error", "indexability", "discoverability", "url-hygiene"},
+    "read": {"js-render", "thin-content", "machine-readable", "content-disparity", "extractability", "alt-text", "text-content"},
+    "understand": {"json-ld", "schema-org", "structured-data", "entity-identity", "entity-disambiguation", "entity-name", "page-title", "heading-structure", "h1-tag", "meta-description"},
+    "trust": {"freshness", "stale-date", "contradiction", "author-attribution", "canonical-conflict", "identity-drift", "price-conflict", "schema-conflict", "consistency"},
+    "navigate": {"internal-linking", "dead-end", "navigation", "broken-link", "depth", "anchor-text"},
     "act": {"cta", "value-proposition", "contact-page", "social-links"}
 }
 
@@ -156,7 +162,7 @@ def evaluate_agent_answerability(snapshot: dict, findings: list[dict] | None = N
     q1 = {
         "question": "What does this company do?",
         "status": "Not found",
-        "confidence": "medium",
+        "confidence": "low",
         "evidence": "No clear company summary or description found across crawled pages.",
         "sources": []
     }
@@ -180,10 +186,20 @@ def evaluate_agent_answerability(snapshot: dict, findings: list[dict] | None = N
 
     # 2. What products/services does it offer?
     prod_serv_pages = [p for p in pages if p.get("page_type") in ("Product", "Service", "Pricing")]
+    structured_products = []
+    for p in pages:
+        for b in p.get("json_ld", []):
+            if isinstance(b, dict):
+                b_type = b.get("@type", "")
+                types = b_type if isinstance(b_type, list) else [b_type]
+                if any(t in ("Product", "Service", "SoftwareApplication", "Course", "IndividualProduct") for t in types):
+                    p_name = b.get("name") or p.get("title") or "Product"
+                    structured_products.append((p_name, p["url"]))
+
     q2 = {
         "question": "What products/services does it offer?",
         "status": "Not found",
-        "confidence": "medium",
+        "confidence": "low",
         "evidence": "No dedicated Product or Service pages discovered in snapshot.",
         "sources": []
     }
@@ -193,6 +209,12 @@ def evaluate_agent_answerability(snapshot: dict, findings: list[dict] | None = N
         q2["confidence"] = "high"
         q2["evidence"] = f"Found {len(prod_serv_pages)} product/service page(s): {', '.join(names[:2])}."
         q2["sources"] = [p["url"] for p in prod_serv_pages[:3]]
+    elif structured_products:
+        names = [sp[0] for sp in structured_products[:3]]
+        q2["status"] = "Supported"
+        q2["confidence"] = "high"
+        q2["evidence"] = f"Found {len(structured_products)} structured product/service offering(s): {', '.join(names[:2])}."
+        q2["sources"] = list(dict.fromkeys(sp[1] for sp in structured_products[:3]))
     else:
         # Check headings on homepage
         prod_keywords = ["feature", "service", "solution", "product", "platform", "offering"]
@@ -232,7 +254,7 @@ def evaluate_agent_answerability(snapshot: dict, findings: list[dict] | None = N
     q3 = {
         "question": "Where is it located?",
         "status": "Not found",
-        "confidence": "medium",
+        "confidence": "low",
         "evidence": "No physical address or geographic location declared in JSON-LD or contact text.",
         "sources": []
     }
@@ -259,7 +281,7 @@ def evaluate_agent_answerability(snapshot: dict, findings: list[dict] | None = N
     if has_location_conflict:
         # Conflicting locations detected across pages
         q3["status"] = "Conflicting"
-        q3["confidence"] = "high"
+        q3["confidence"] = "low"
         q3["evidence"] = f"Inconsistent locations declared across pages: {locations_found[:2]}."
         q3["sources"] = location_sources[:2]
     elif len(locations_found) >= 1:
@@ -306,7 +328,7 @@ def evaluate_agent_answerability(snapshot: dict, findings: list[dict] | None = N
     q4 = {
         "question": "What does the product cost?",
         "status": "Not found",
-        "confidence": "medium",
+        "confidence": "low",
         "evidence": "No clear pricing, price tiers, or pricing model mentioned in crawled pages.",
         "sources": []
     }
@@ -314,7 +336,7 @@ def evaluate_agent_answerability(snapshot: dict, findings: list[dict] | None = N
     price_conflict = any("price" in f.get("evidence", "").lower() and "conflict" in f.get("title", "").lower() for f in findings)
     if price_conflict:
         q4["status"] = "Conflicting"
-        q4["confidence"] = "high"
+        q4["confidence"] = "low"
         q4["evidence"] = "Conflicting pricing found between visible content and structured data."
         q4["sources"] = price_sources[:2]
     elif prices_found:
@@ -363,7 +385,7 @@ def evaluate_agent_answerability(snapshot: dict, findings: list[dict] | None = N
     q5 = {
         "question": "How can users contact it?",
         "status": "Not found",
-        "confidence": "high",
+        "confidence": "low",
         "evidence": "No email, telephone number, or dedicated contact page discovered.",
         "sources": []
     }
@@ -382,13 +404,59 @@ def evaluate_agent_answerability(snapshot: dict, findings: list[dict] | None = N
     return [q1, q2, q3, q4, q5]
 
 
+def get_journey_pillar_explanations(findings: list[dict]) -> dict:
+    """
+    Provide evaluator-readable deduction breakdowns for each of the 6 Agent Journey pillars.
+    Grounded in concrete snapshot findings.
+    """
+    scores = compute_agent_journey_scores(findings)
+    explanations = {}
+
+    for pillar, pillar_tag_set in PILLAR_TAGS.items():
+        contributing = []
+        pillar_deduction = 0
+        for f in findings:
+            sev = f.get("severity", "low")
+            cost = JOURNEY_DEDUCTIONS.get(sev, 3)
+            tags = set(f.get("tags", []))
+            cat = f.get("category", "")
+
+            matched = bool(tags & pillar_tag_set)
+            if not matched:
+                if not any(tags & pset for pset in PILLAR_TAGS.values()):
+                    if cat == "discoverability" and pillar == "reach":
+                        matched = True
+                    elif cat == "engagement" and pillar == "act":
+                        matched = True
+
+            if matched:
+                pillar_deduction += cost
+                contributing.append({
+                    "id": f.get("id", ""),
+                    "title": f.get("title", ""),
+                    "severity": sev,
+                    "deduction": cost,
+                    "tags": sorted(list(tags))
+                })
+
+        explanations[pillar] = {
+            "score": scores.get(pillar, 100),
+            "deduction_total": pillar_deduction,
+            "contributing_findings": contributing
+        }
+
+    return explanations
+
+
 def compute_top_priorities(findings: list[dict], limit: int = 5) -> list[dict]:
     """
     Multi-factor prioritization using Impact x Reach x Confidence (Req 14).
-    Avoids arbitrary high severity for minor SEO issues and highlights high-ROI actions.
+    Enforces deterministic multi-tier tie-breaking:
+    (-priority_score, severity_rank, -affected_pages_count, id).
     """
     impact_weights = {"critical": 40, "high": 25, "medium": 10, "low": 4}
     confidence_weights = {"high": 1.0, "medium": 0.8, "low": 0.6}
+    severity_order = {"critical": 0, "high": 1, "medium": 2, "low": 3}
 
     scored_findings = []
     for f in findings:
@@ -402,19 +470,37 @@ def compute_top_priorities(findings: list[dict], limit: int = 5) -> list[dict]:
 
         priority_score = round(base_impact * conf_factor * reach_factor, 1)
 
+        action_summary = ""
+        action_val = f.get("suggested_action")
+        if isinstance(action_val, dict):
+            action_summary = action_val.get("summary", "")
+        elif isinstance(action_val, str):
+            action_summary = action_val
+
         scored_findings.append({
-            "id": f.get("id"),
-            "title": f.get("title"),
-            "category": f.get("category"),
+            "id": f.get("id") or "",
+            "title": f.get("title") or "",
+            "category": f.get("category") or "discoverability",
             "severity": sev,
             "confidence": conf,
             "affected_pages_count": reach,
-            "suggested_action": f.get("suggested_action", {}).get("summary", ""),
+            "suggested_action": action_summary,
             "priority_score": priority_score
         })
 
-    # Sort descending by priority_score
-    scored_findings.sort(key=lambda x: x["priority_score"], reverse=True)
+    # Deterministic multi-tier sort:
+    # 1. -priority_score (descending)
+    # 2. severity_rank (critical=0, high=1, medium=2, low=3)
+    # 3. -affected_pages_count (descending)
+    # 4. id (lexicographical ascending)
+    scored_findings.sort(
+        key=lambda x: (
+            -x["priority_score"],
+            severity_order.get(x["severity"], 3),
+            -x["affected_pages_count"],
+            str(x["id"])
+        )
+    )
 
     top = []
     for idx, item in enumerate(scored_findings[:limit]):

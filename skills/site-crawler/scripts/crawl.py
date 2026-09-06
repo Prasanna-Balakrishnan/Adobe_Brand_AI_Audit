@@ -11,6 +11,7 @@ Usage:
 
 import argparse
 import json
+import re
 import sys
 import time
 from datetime import datetime, timezone
@@ -137,9 +138,10 @@ def parse_args():
 
 
 def normalise_url(url: str) -> str:
-    """Remove fragment; strip trailing slash only from bare roots."""
+    """Remove fragment; normalize bare root path to /."""
     parsed = urlparse(url)
-    clean = parsed._replace(fragment="").geturl()
+    path = parsed.path or "/"
+    clean = parsed._replace(fragment="", path=path).geturl()
     return clean
 
 
@@ -158,6 +160,139 @@ def should_skip_url(url: str) -> bool:
         if path.endswith(ext):
             return True
     return False
+
+
+def is_repetitive_leaf(url: str) -> tuple[bool, str | None]:
+    """
+    Check if URL is an individual repetitive leaf page (e.g. specific blog post, specific product)
+    rather than a main hub/category page.
+    Returns (is_leaf, leaf_type).
+    """
+    parsed = urlparse(url)
+    path = parsed.path.lower().rstrip("/")
+    segments = [s for s in path.split("/") if s]
+    if not segments:
+        return False, None
+
+    # Date-based post path e.g. /2026/01/post-name or /2024/post-name
+    if re.search(r'/(?:19|20)\d{2}(?:/\d{1,2})?/[a-z0-9_-]+', path):
+        return True, "blog_leaf"
+
+    # Blog / News / Article leaf (depth > 1 under the root segment)
+    blog_roots = {"blog", "article", "articles", "posts", "news", "insights"}
+    if segments[0] in blog_roots:
+        if len(segments) > 1:
+            return True, "blog_leaf"
+        return False, None  # /blog itself is the hub
+
+    # Product / Item leaf (depth > 1 under the root segment)
+    product_roots = {"product", "products", "item", "items", "p", "shop", "store", "catalog"}
+    if segments[0] in product_roots:
+        if len(segments) > 1:
+            return True, "product_leaf"
+        return False, None  # /products or /shop itself is the hub
+
+    return False, None
+
+
+def score_url_priority(url: str, link_text: str = "", depth: int = 1) -> tuple[int, str]:
+    """
+    Score discovered URL priority to ensure high-value diverse pages are crawled
+    within the max-pages budget. Higher score = crawled earlier.
+
+    Priority hierarchy:
+      1. Homepage (100)
+      2. About (90)
+      3. Contact (85)
+      4. Products/Services (80)
+      5. Pricing (75)
+      6. Documentation (70)
+      7. Careers (65)
+      8. Events (60)
+      9. Category / Hub Listing Pages (50)
+      10. Representative Internal Pages (40)
+      11. Repetitive Leaf Items (30)
+      12. Deep / Utility Pages (20)
+
+    Returns (priority_score, estimated_category).
+    """
+    parsed = urlparse(url)
+    path = parsed.path.lower().rstrip("/")
+    link_lower = link_text.strip().lower()
+    segments = [s for s in path.split("/") if s]
+
+    # 1. Homepage (Score 100)
+    if not path or depth == 0 or path in ("/index.html", "/index.php", "/home"):
+        return 100, "Homepage"
+
+    # 2. About (Score 90)
+    about_patterns = ("/about", "/who-we-are", "/our-story", "/company", "/team", "/mission", "/overview")
+    if (any(p == path or path.startswith(p + "/") or path.endswith(p) for p in about_patterns) or \
+       any(w in link_lower for w in ("about", "about us", "who we are", "our story", "our team", "company info"))) and \
+       not any(cw in link_lower for cw in ("join", "careers", "jobs", "hiring")):
+        return 90, "About"
+
+    # 3. Contact (Score 85)
+    contact_patterns = ("/contact", "/contact-us", "/reach-us", "/get-in-touch", "/support", "/help-center")
+    if any(p == path or path.startswith(p + "/") or path.endswith(p) for p in contact_patterns) or \
+       any(w in link_lower for w in ("contact", "contact us", "reach us", "get in touch", "support")):
+        return 85, "Contact"
+
+    # 4. Products / Services (Score 80)
+    is_leaf, leaf_type = is_repetitive_leaf(url)
+    if not is_leaf:
+        prod_patterns = ("/products", "/services", "/solutions", "/platform", "/features", "/offerings")
+        if any(p == path or path.startswith(p + "/") for p in prod_patterns) or \
+           any(w in link_lower for w in ("products", "services", "solutions", "platform", "features", "offerings")):
+            return 80, "Products/Services"
+
+    # 5. Pricing (Score 75)
+    pricing_patterns = ("/pricing", "/plans", "/cost", "/subscription", "/pricing-plans")
+    if any(p == path or path.startswith(p + "/") for p in pricing_patterns) or \
+       any(w in link_lower for w in ("pricing", "plans", "pricing & plans", "cost", "subscription")):
+        return 75, "Pricing"
+
+    # 6. Documentation (Score 70)
+    doc_patterns = ("/docs", "/documentation", "/api", "/developers", "/guide", "/reference", "/quickstart")
+    if any(p == path or path.startswith(p + "/") for p in doc_patterns) or \
+       any(w in link_lower for w in ("documentation", "docs", "api reference", "developer docs", "quickstart")):
+        return 70, "Documentation"
+
+    # 7. Careers (Score 65)
+    career_patterns = ("/careers", "/jobs", "/work-with-us", "/join-us", "/openings")
+    if any(p == path or path.startswith(p + "/") for p in career_patterns) or \
+       any(w in link_lower for w in ("careers", "jobs", "join our team", "open positions", "work with us")):
+        return 65, "Careers"
+
+    # 8. Events (Score 60)
+    event_patterns = ("/event", "/events", "/webinar", "/webinars", "/conference", "/summit")
+    if any(p == path or path.startswith(p + "/") for p in event_patterns) or \
+       any(w in link_lower for w in ("events", "conferences", "webinars", "upcoming events")):
+        return 60, "Events"
+
+    # Check repetitive leaf before category hubs so /blog/post-1 gets Score 30, not Score 50
+    if is_leaf:
+        return 30, leaf_type or "Repetitive_Leaf"
+
+    # 9. Important Category / Hub Pages (Score 50)
+    # Shallow depth hub pages like /blog, /news, /shop, /catalog, /resources
+    hub_roots = {"blog", "news", "articles", "shop", "store", "catalog", "categories", "resources", "case-studies"}
+    if segments and segments[0] in hub_roots and len(segments) <= 1:
+        return 50, "Category/Hub"
+    if any(w in link_lower for w in ("blog", "news", "catalog", "shop all", "resources", "case studies")):
+        return 50, "Category/Hub"
+
+    # 10. Representative Internal Pages (Score 40)
+    # Direct links from homepage with short, clean paths (<= 2 segments)
+    if depth <= 1 and len(segments) <= 2:
+        return 40, "Representative"
+
+    # 12. Deep / Utility Pages (Score 20)
+    # Long paths, pagination, tag filters
+    if any(p in path for p in ("/tag/", "/tags/", "/page/", "/archive/", "/author/")) or len(segments) > 3 or parsed.query:
+        return 20, "Utility/Deep"
+
+    return 35, "Internal"
 
 
 def extract_page_data(url: str, html: str, http_status: int,
@@ -422,14 +557,23 @@ def main():
 
     pages = []
     visited = set()
-    queue = []
+    queue: list[dict] = []
+    queued_urls = set()
     discovered_urls = set()
     skipped_urls_count = 0
     failed_pages = []
     page_type_counts = {}
+    repetitive_counts = {"blog_leaf": 0, "product_leaf": 0}
+    discovery_counter = 0
 
     if checker.is_allowed(start_url):
-        queue.append(start_url)
+        queue.append({
+            "url": start_url,
+            "priority": 100,
+            "depth": 0,
+            "order": discovery_counter
+        })
+        queued_urls.add(start_url)
         discovered_urls.add(start_url)
     else:
         print(f"[WARN] start_url {start_url} is disallowed by robots.txt. Aborting.", file=sys.stderr)
@@ -445,7 +589,12 @@ def main():
             print(f"[INFO] Crawl timeout reached after {elapsed:.1f}s", file=sys.stderr)
             break
 
-        url = queue.pop(0)
+        # Deterministic priority ordering: highest priority first (-priority), lowest depth first (depth), earliest discovery order (order)
+        queue.sort(key=lambda item: (-item["priority"], item["depth"], item["order"]))
+        current_item = queue.pop(0)
+        url = current_item["url"]
+        current_depth = current_item["depth"]
+
         if url in visited:
             continue
         if should_skip_url(url):
@@ -520,21 +669,30 @@ def main():
         if status < 400:
             for link in page_data["links"]:
                 href = link["href"]
+                link_text = link.get("text", "")
                 if link["is_internal"]:
                     discovered_urls.add(href)
                     if (href not in visited and
-                            href not in queue and
+                            href not in queued_urls and
                             not should_skip_url(href) and
                             checker.is_allowed(href)):
-                        # Bound crawl: max 3 representative pages per repetitive type (Req 2, 24)
-                        # Estimate type from path:
-                        path_lower = urlparse(href).path.lower()
-                        is_repetitive = any(seg in path_lower for seg in ("/blog", "/article", "/posts", "/news", "/item/", "/product/"))
-                        est_type = "Blog/article" if any(seg in path_lower for seg in ("/blog", "/article", "/posts", "/news")) else ("Product" if any(seg in path_lower for seg in ("/item/", "/product/")) else None)
-                        if est_type and page_type_counts.get(est_type, 0) >= 3:
-                            skipped_urls_count += 1
-                            continue
-                        queue.append(href)
+                        # Bound crawl: safeguard against repetitive leaf explosion (max 3 per leaf type)
+                        is_leaf, leaf_type = is_repetitive_leaf(href)
+                        if is_leaf and leaf_type:
+                            if repetitive_counts.get(leaf_type, 0) >= 3:
+                                skipped_urls_count += 1
+                                continue
+                            repetitive_counts[leaf_type] = repetitive_counts.get(leaf_type, 0) + 1
+
+                        discovery_counter += 1
+                        priority, est_type = score_url_priority(href, link_text=link_text, depth=current_depth + 1)
+                        queue.append({
+                            "url": href,
+                            "priority": priority,
+                            "depth": current_depth + 1,
+                            "order": discovery_counter
+                        })
+                        queued_urls.add(href)
 
     crawl_end = datetime.now(timezone.utc)
     crawl_duration = round((crawl_end - crawl_start).total_seconds(), 2)
@@ -557,6 +715,8 @@ def main():
             "robots_txt_url": checker.robots_url,
             "robots_txt_status": robots_status,
             "disallowed_paths": disallowed_paths,
+            "sitemaps": checker.sitemaps,
+            "ai_agent_rules": checker.ai_agent_rules,
             "js_rendering_status": js_status,
             "page_types_found": page_type_counts,
             "crawl_timeout_hit": timeout_hit

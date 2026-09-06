@@ -458,6 +458,294 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
             }
         })
 
+    # --- CRA-013: Disallowed rules block inferred high-value discoverability pages ---
+    # Zero hardcoding: Uses page-type inference and link targets dynamically.
+    high_value_types = {"About", "Contact", "Product", "Service", "Pricing", "Documentation"}
+    blocked_high_value = []
+    for p in pages:
+        pt = p.get("page_type")
+        if pt in high_value_types:
+            p_path = urlparse(p.get("url", "")).path
+            for dis in disallowed:
+                if dis and dis != "/" and p_path.startswith(dis):
+                    blocked_high_value.append((p.get("url"), pt, dis))
+                    break
+    if not blocked_high_value:
+        high_value_link_keywords = {"about", "contact", "pricing", "product", "docs", "documentation", "support"}
+        for p in pages:
+            for l in p.get("links", []):
+                if l.get("is_internal"):
+                    l_path = urlparse(l.get("href", "")).path
+                    l_text = l.get("text", "").lower()
+                    if any(kw in l_text for kw in high_value_link_keywords):
+                        for dis in disallowed:
+                            if dis and dis != "/" and l_path.startswith(dis):
+                                blocked_high_value.append((l.get("href"), f"Link ({l.get('text')})", dis))
+                                break
+    if blocked_high_value and "/" not in disallowed:
+        distinct_blocked = list({url: (pt, dis) for url, pt, dis in blocked_high_value}.items())
+        findings.append({
+            "check_id": "CRA-013",
+            "title": f"robots.txt disallow rules block {len(distinct_blocked)} inferred high-value discoverability page(s)",
+            "category": "discoverability",
+            "severity": "high",
+            "confidence": "high",
+            "affected_urls": [url for url, _ in distinct_blocked[:5]],
+            "evidence": (
+                f"robots.txt disallows path(s) that match high-importance site pages: "
+                f"{', '.join(f'{url} (type: {info[0]}, rule: Disallow: {info[1]})' for url, info in distinct_blocked[:3])}. "
+                "AI search agents and crawlers cannot access core brand, orientation, or product knowledge."
+            ),
+            "tags": ["robots-txt", "crawlability", "discoverability"],
+            "suggested_action": {
+                "summary": "Revise robots.txt to allow crawling of core brand, product, and orientation pages.",
+                "priority": "high",
+                "effort": "low"
+            }
+        })
+
+    # --- CRA-014: Inefficient or insecure redirect chains ---
+    inefficient_redirects = []
+    for p in pages:
+        chain = p.get("redirect_chain", [])
+        if len(chain) >= 3 and not p.get("redirect_loop", False) and p.get("status_code", 200) != 310:
+            inefficient_redirects.append(p)
+        elif len(chain) >= 2:
+            schemes = [urlparse(u).scheme for u in chain if u]
+            if len(schemes) >= 3 and schemes != sorted(schemes):
+                inefficient_redirects.append(p)
+
+    if inefficient_redirects and not loop_pages:
+        findings.append({
+            "check_id": "CRA-014",
+            "title": f"Excessive redirect hops on {len(inefficient_redirects)} page(s) (>= 3 hops)",
+            "category": "discoverability",
+            "severity": "medium",
+            "confidence": "high",
+            "affected_urls": [p["url"] for p in inefficient_redirects[:5]],
+            "evidence": (
+                f"{len(inefficient_redirects)} page(s) require 3 or more redirect hops to reach their destination. "
+                f"Example: {inefficient_redirects[0]['url']} → {len(inefficient_redirects[0].get('redirect_chain', []))} hops. "
+                "Long chains deplete crawler budget and increase request latency for AI agents."
+            ),
+            "tags": ["redirect", "crawlability"],
+            "suggested_action": {
+                "summary": "Point internal links directly to final destination URLs and collapse intermediate 301 redirects.",
+                "priority": "medium",
+                "effort": "low"
+            }
+        })
+
+    # --- CRA-015: Indexing block on primary brand or orientation pages ---
+    if noindex_ratio < 1.0:
+        blocked_brand_pages = []
+        for p in pages:
+            if has_noindex(p):
+                is_home = (p["url"] == start_url or p.get("final_url") == start_url or p == homepage)
+                is_core = p.get("page_type") in ("About", "Contact", "Product", "Pricing")
+                if is_home:
+                    blocked_brand_pages.append((p, "Homepage", "critical"))
+                elif is_core:
+                    blocked_brand_pages.append((p, p.get("page_type"), "high"))
+
+        if blocked_brand_pages:
+            top_severity = "critical" if any(sev == "critical" for _, _, sev in blocked_brand_pages) else "high"
+            sample_pages = [f"{p.get('url')} ({role})" for p, role, _ in blocked_brand_pages[:3]]
+            findings.append({
+                "check_id": "CRA-015",
+                "title": f"noindex directive on primary brand/orientation page ({blocked_brand_pages[0][1]})",
+                "category": "discoverability",
+                "severity": top_severity,
+                "confidence": "high",
+                "affected_urls": [p["url"] for p, _, _ in blocked_brand_pages[:5]],
+                "evidence": (
+                    f"{len(blocked_brand_pages)} key orientation page(s) specify 'noindex' in meta_robots or X-Robots-Tag: "
+                    f"{', '.join(sample_pages)}. "
+                    "AI search engines will exclude these foundational brand pages from search indexes."
+                ),
+                "tags": ["noindex", "indexability", "crawlability"],
+                "suggested_action": {
+                    "summary": "Remove noindex headers and meta tags from primary brand and orientation pages.",
+                    "priority": top_severity,
+                    "effort": "low"
+                }
+            })
+
+    # --- CRA-016: Canonical URL points to error, redirect, or invalid destination ---
+    status_map = {p["url"].rstrip("/"): p.get("status_code", 200) for p in pages}
+    for p in pages:
+        fu = p.get("final_url")
+        if fu:
+            status_map[fu.rstrip("/")] = p.get("status_code", 200)
+
+    broken_canonicals = []
+    redirect_canonicals = []
+    invalid_canonicals = []
+    for p in pages:
+        c = p.get("canonical")
+        if not c:
+            continue
+        c_clean = c.strip()
+        if "#" in c_clean or c_clean.startswith("javascript:") or c_clean.startswith("mailto:"):
+            invalid_canonicals.append((p, c_clean, "contains fragment or invalid scheme"))
+            continue
+        c_norm = c_clean.rstrip("/")
+        sc = status_map.get(c_norm)
+        if sc is not None:
+            if sc >= 400:
+                broken_canonicals.append((p, c_clean, f"returns HTTP {sc}"))
+            elif sc in (301, 302, 307, 308):
+                redirect_canonicals.append((p, c_clean, f"is a redirect (HTTP {sc})"))
+
+    if broken_canonicals:
+        findings.append({
+            "check_id": "CRA-016",
+            "title": f"Canonical URL points to broken error page on {len(broken_canonicals)} page(s)",
+            "category": "discoverability",
+            "severity": "high",
+            "confidence": "high",
+            "affected_urls": [p["url"] for p, _, _ in broken_canonicals[:5]],
+            "evidence": (
+                f"{len(broken_canonicals)} page(s) have <link rel='canonical'> pointing to 4xx/5xx error URLs. "
+                f"Example: {broken_canonicals[0][0]['url']} → canonical {broken_canonicals[0][1]} ({broken_canonicals[0][2]}). "
+                "AI search engines cannot index the canonical destination."
+            ),
+            "tags": ["canonical", "indexability", "canonical-conflict"],
+            "suggested_action": {
+                "summary": "Fix canonical URLs to reference existing, valid HTTP 200 URLs.",
+                "priority": "high",
+                "effort": "low"
+            }
+        })
+    elif redirect_canonicals or invalid_canonicals:
+        items = redirect_canonicals + invalid_canonicals
+        findings.append({
+            "check_id": "CRA-016",
+            "title": f"Canonical URL points to redirect or invalid target on {len(items)} page(s)",
+            "category": "discoverability",
+            "severity": "medium",
+            "confidence": "high",
+            "affected_urls": [p["url"] for p, _, _ in items[:5]],
+            "evidence": (
+                f"{len(items)} page(s) declare canonical URLs that redirect or contain fragment/syntax issues. "
+                f"Example: {items[0][0]['url']} → canonical {items[0][1]} ({items[0][2]})."
+            ),
+            "tags": ["canonical", "indexability", "canonical-conflict"],
+            "suggested_action": {
+                "summary": "Update canonical tags to point directly to the definitive HTTP 200 URL without redirects or fragments.",
+                "priority": "medium",
+                "effort": "low"
+            }
+        })
+
+    # --- CRA-018: Duplicate URL variants and query parameter pollution ---
+    tracking_params = {"utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content",
+                       "gclid", "fbclid", "msclkid", "sessionid", "phpsessid", "jsessionid"}
+    pages_with_tracking = []
+    for p in pages:
+        parsed_url = urlparse(p.get("url", ""))
+        if parsed_url.query:
+            query_keys = {q.split("=")[0].lower() for q in parsed_url.query.split("&") if q}
+            if query_keys & tracking_params:
+                pages_with_tracking.append(p["url"])
+
+    if not pages_with_tracking:
+        for p in pages:
+            for l in p.get("links", []):
+                if l.get("is_internal"):
+                    parsed_link = urlparse(l.get("href", ""))
+                    if parsed_link.query:
+                        query_keys = {q.split("=")[0].lower() for q in parsed_link.query.split("&") if q}
+                        if query_keys & tracking_params:
+                            pages_with_tracking.append(l["href"])
+                            break
+            if pages_with_tracking:
+                break
+
+    if pages_with_tracking:
+        distinct_tracking = list(dict.fromkeys(pages_with_tracking))
+        findings.append({
+            "check_id": "CRA-018",
+            "title": f"Tracking/session parameters pollute internal URLs on {len(distinct_tracking)} page(s)",
+            "category": "discoverability",
+            "severity": "medium",
+            "confidence": "high",
+            "affected_urls": distinct_tracking[:5],
+            "evidence": (
+                f"Internal links or crawled URLs include tracking/session parameters (e.g. {distinct_tracking[0]}). "
+                "Tracking parameters split crawl budget and create duplicate URL indexing issues for AI agents."
+            ),
+            "tags": ["url-hygiene", "canonical", "crawlability"],
+            "suggested_action": {
+                "summary": "Strip marketing tracking and session tokens from internal site links.",
+                "priority": "medium",
+                "effort": "low"
+            }
+        })
+
+    # --- CRA-019: Material raw-vs-rendered content disparity ---
+    # Guardrail: Never penalize JS usage by itself. Only flag when meaningful disparity exists
+    # and important content is unavailable without rendering.
+    disparity_pages = [
+        p for p in pages
+        if p.get("crawled_with_js", False) and (
+            p.get("js_dependent_content", False) or
+            p.get("content_disparity", 0) > 500 or
+            (p.get("raw_text_length", 9999) < 200 and p.get("rendered_text_length", 0) > 600)
+        )
+    ]
+    if disparity_pages:
+        findings.append({
+            "check_id": "CRA-019",
+            "title": f"Material raw-vs-rendered content disparity on {len(disparity_pages)} page(s)",
+            "category": "discoverability",
+            "severity": "high" if any(p.get("raw_text_length", 9999) < 200 for p in disparity_pages) else "medium",
+            "confidence": "high",
+            "affected_urls": [p["url"] for p in disparity_pages[:5]],
+            "evidence": (
+                f"{len(disparity_pages)} page(s) require JavaScript rendering to expose their primary content. "
+                f"Example: {disparity_pages[0]['url']} has raw HTML text of {disparity_pages[0].get('raw_text_length', 0)} chars "
+                f"vs {disparity_pages[0].get('rendered_text_length', 0)} rendered chars. "
+                "AI agents without client-side JS rendering engines cannot extract this information."
+            ),
+            "tags": ["js-render", "machine-readable", "content-disparity"],
+            "suggested_action": {
+                "summary": "Provide server-side rendered (SSR) or pre-rendered HTML for critical content and headings.",
+                "priority": "high",
+                "effort": "medium"
+            }
+        })
+
+    # --- CRA-020: Discoverability hindered by absence of sitemap reference ---
+    # Guardrail: Missing Sitemap alone produces NO finding. Only report when discoverability is materially limited.
+    sitemaps = meta.get("sitemaps", [])
+    if meta.get("robots_txt_status") == 200 and not sitemaps:
+        coverage = meta.get("crawl_coverage", {})
+        discovery_limited = (
+            coverage.get("discovery_limited") is True or
+            meta.get("discovery_limited") is True or
+            (meta.get("crawl_timeout_hit") and meta.get("pages_discovered", 0) > total)
+        )
+        if discovery_limited:
+            findings.append({
+                "check_id": "CRA-020",
+                "title": "Crawl discoverability limited and no XML sitemap declared in robots.txt",
+                "category": "discoverability",
+                "severity": "low",
+                "confidence": "medium",
+                "affected_urls": [meta.get("robots_txt_url", start_url)],
+                "evidence": (
+                    f"robots.txt does not declare a Sitemap directive and crawl discovery was materially constrained. "
+                    "Declaring an XML sitemap helps AI discovery agents find all authoritative site URLs."
+                ),
+                "tags": ["robots-txt", "discoverability"],
+                "suggested_action": {
+                    "summary": "Add 'Sitemap: <url>' to robots.txt to aid search and AI indexers in discovering all content.",
+                    "priority": "low",
+                    "effort": "low"
+                }
+            })
+
     # robots.txt strength
     if meta.get("robots_txt_status", 0) == 200 and "/" not in disallowed:
         strengths.append({

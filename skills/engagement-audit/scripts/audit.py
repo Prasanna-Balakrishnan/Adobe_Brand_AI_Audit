@@ -327,6 +327,89 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
             }
         })
 
+    # --- ENG-009: Non-descriptive internal link anchors in primary navigation ---
+    # Guardrail: No rigid >40% threshold as sole trigger. Combines proportion and navigational prominence.
+    vague_anchors = {"click here", "read more", "here", "learn more", "more", "details", "link", "view"}
+    vague_links_found = []
+    total_internal_links = 0
+    vague_on_homepage = 0
+
+    for p in pages:
+        is_home = (p["url"] == start_url or p.get("final_url") == start_url or p == homepage)
+        for l in p.get("links", []):
+            if l.get("is_internal"):
+                total_internal_links += 1
+                txt = (l.get("text") or "").strip().lower()
+                if txt in vague_anchors:
+                    vague_links_found.append((p["url"], l.get("href"), txt))
+                    if is_home:
+                        vague_on_homepage += 1
+
+    if total_internal_links >= 5:
+        vague_ratio = len(vague_links_found) / total_internal_links
+        if (vague_ratio > 0.35 and len(vague_links_found) >= 3) or vague_on_homepage >= 3:
+            affected = list(dict.fromkeys(url for url, _, _ in vague_links_found))
+            sample_vague = [f"'{txt}'" for _, _, txt in vague_links_found[:3]]
+            findings.append({
+                "check_id": "ENG-009",
+                "title": f"Non-descriptive link anchor text ({len(vague_links_found)} links on {len(affected)} page(s))",
+                "category": "engagement",
+                "severity": "medium",
+                "confidence": "high",
+                "affected_urls": affected[:5],
+                "evidence": (
+                    f"{len(vague_links_found)} internal links use generic anchor text (e.g. "
+                    f"{', '.join(sample_vague)}). "
+                    "Vague anchors impede autonomous AI agents and assistive tools from predicting destination context."
+                ),
+                "tags": ["internal-linking", "navigation"],
+                "suggested_action": {
+                    "summary": "Replace generic anchor text like 'click here' or 'read more' with descriptive destination labels.",
+                    "priority": "medium",
+                    "effort": "low"
+                }
+            })
+
+    # --- ENG-010: Core orientation page isolated from primary navigation ---
+    if homepage:
+        homepage_hrefs = set()
+        for l in homepage.get("links", []):
+            if l.get("is_internal") and l.get("href"):
+                h_clean = l["href"].rstrip("/").lower()
+                homepage_hrefs.add(h_clean)
+
+        isolated_pages = []
+        for p in pages:
+            if p["url"] == start_url or p.get("final_url") == start_url or p == homepage:
+                continue
+            pt = p.get("page_type")
+            if pt in ("About", "Contact", "Pricing"):
+                p_norm = p["url"].rstrip("/").lower()
+                fu_norm = (p.get("final_url") or "").rstrip("/").lower()
+                if p_norm not in homepage_hrefs and fu_norm not in homepage_hrefs:
+                    isolated_pages.append((p["url"], pt))
+
+        if isolated_pages and len(homepage.get("links", [])) >= 2:
+            findings.append({
+                "check_id": "ENG-010",
+                "title": f"Core orientation page(s) isolated from homepage navigation ({len(isolated_pages)} page(s))",
+                "category": "engagement",
+                "severity": "medium",
+                "confidence": "high",
+                "affected_urls": [url for url, _ in isolated_pages[:5]],
+                "evidence": (
+                    f"{len(isolated_pages)} orientation page(s) exist in the site crawl but are not directly linked "
+                    f"from the homepage: {', '.join(f'{url} ({pt})' for url, pt in isolated_pages[:3])}. "
+                    "Key brand identity and contactability pages should be reachable from top-level site navigation."
+                ),
+                "tags": ["navigation", "internal-linking"],
+                "suggested_action": {
+                    "summary": "Add clear header or footer navigation links on the homepage to all core orientation pages.",
+                    "priority": "medium",
+                    "effort": "low"
+                }
+            })
+
     return findings, strengths
 
 

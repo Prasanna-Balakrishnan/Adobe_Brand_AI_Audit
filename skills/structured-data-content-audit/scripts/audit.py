@@ -560,6 +560,182 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
             }
         })
 
+    # --- SDC-206: Boilerplate or placeholder page titles ---
+    boilerplate_names = {"home", "untitled", "default title", "new page", "website", "index", "page 1", "document", "coming soon"}
+    boilerplate_pages = []
+    for p in pages:
+        t = (p.get("title") or "").strip().lower()
+        if t in boilerplate_names or t.startswith("untitled") or t.startswith("default title"):
+            boilerplate_pages.append(p)
+    if boilerplate_pages:
+        sample_bp = [f"{p['url']} (title: \"{p.get('title')}\")" for p in boilerplate_pages[:3]]
+        findings.append({
+            "check_id": "SDC-206",
+            "title": f"Boilerplate or generic page title on {len(boilerplate_pages)} page(s)",
+            "category": "discoverability",
+            "severity": "medium",
+            "confidence": "high",
+            "affected_urls": [p["url"] for p in boilerplate_pages[:5]],
+            "evidence": (
+                f"{len(boilerplate_pages)} page(s) use placeholder or boilerplate titles: "
+                f"{', '.join(sample_bp)}. "
+                "Generic titles prevent AI assistants from indexing distinct page topics."
+            ),
+            "tags": ["page-title", "heading-structure"],
+            "suggested_action": {
+                "summary": "Replace generic titles with distinct, descriptive titles containing brand and topic keywords.",
+                "priority": "medium",
+                "effort": "low"
+            }
+        })
+
+    # --- SDC-207: Missing H1 on core inferred content pages ---
+    core_content_types = {"Product", "Service", "Documentation", "Article", "About"}
+    content_pages_no_h1 = [
+        p for p in pages
+        if p.get("page_type") in core_content_types and
+        p["url"] != start_url and
+        len(p.get("h1", [])) == 0 and
+        p.get("visible_text_length", 0) >= 200
+    ]
+    if content_pages_no_h1:
+        sample_h1 = [f"{p['url']} (type: {p.get('page_type')})" for p in content_pages_no_h1[:3]]
+        findings.append({
+            "check_id": "SDC-207",
+            "title": f"Missing H1 heading on {len(content_pages_no_h1)} core content page(s)",
+            "category": "discoverability",
+            "severity": "medium",
+            "confidence": "high",
+            "affected_urls": [p["url"] for p in content_pages_no_h1[:5]],
+            "evidence": (
+                f"{len(content_pages_no_h1)} content page(s) lack an <h1> heading: "
+                f"{', '.join(sample_h1)}. "
+                "The H1 heading is the primary topic signal for AI content extraction."
+            ),
+            "tags": ["heading-structure", "h1-tag"],
+            "suggested_action": {
+                "summary": "Add a descriptive <h1> heading identifying the core topic or entity on each content page.",
+                "priority": "medium",
+                "effort": "low"
+            }
+        })
+
+    # --- SDC-208: Incomplete core Schema.org entity declarations ---
+    incomplete_schema_pages = []
+    for p in pages:
+        for block in p.get("json_ld", []):
+            if not isinstance(block, dict):
+                continue
+            nodes = [block] + (block.get("@graph", []) if isinstance(block.get("@graph"), list) else [])
+            for node in nodes:
+                if not isinstance(node, dict):
+                    continue
+                nt = node.get("@type", "")
+                nt_types = [nt] if isinstance(nt, str) else (nt if isinstance(nt, list) else [])
+                # Organization
+                if any(is_org_homepage_type(t) for t in nt_types):
+                    if not node.get("name") and not node.get("legalName"):
+                        incomplete_schema_pages.append((p, "Organization missing 'name'", node))
+                        break
+                # Product
+                elif any("Product" in t for t in nt_types):
+                    if not node.get("name"):
+                        incomplete_schema_pages.append((p, "Product missing 'name'", node))
+                        break
+                    elif not node.get("offers") and not node.get("description"):
+                        incomplete_schema_pages.append((p, "Product missing 'offers' or 'description'", node))
+                        break
+                # Article / BlogPosting
+                elif any(t in ("Article", "BlogPosting", "NewsArticle") for t in nt_types):
+                    if not node.get("headline"):
+                        incomplete_schema_pages.append((p, "Article missing 'headline'", node))
+                        break
+                    elif not node.get("datePublished") and not node.get("dateModified"):
+                        incomplete_schema_pages.append((p, "Article missing 'datePublished'", node))
+                        break
+
+    if incomplete_schema_pages:
+        distinct_incomplete = list({item[0]["url"]: item for item in incomplete_schema_pages}.values())
+        sample_incomplete = [f"{item[0]['url']} ({item[1]})" for item in distinct_incomplete[:3]]
+        findings.append({
+            "check_id": "SDC-208",
+            "title": f"Incomplete Schema.org entity declarations on {len(distinct_incomplete)} page(s)",
+            "category": "discoverability",
+            "severity": "medium",
+            "confidence": "high",
+            "affected_urls": [item[0]["url"] for item in distinct_incomplete[:5]],
+            "evidence": (
+                f"{len(distinct_incomplete)} page(s) define Schema.org objects missing required properties: "
+                f"{', '.join(sample_incomplete)}. "
+                "Incomplete schema blocks prevent AI agents from fully structuring brand entities."
+            ),
+            "tags": ["json-ld", "schema-org", "structured-data"],
+            "suggested_action": {
+                "summary": "Populate essential schema properties (name, headline, offers, datePublished) for all declared types.",
+                "priority": "medium",
+                "effort": "low"
+            }
+        })
+
+    # --- SDC-209: Semantic contradiction between Schema and visible heading ---
+    # Guardrail: No rigid '0 word overlap' rule. Tokenize and normalize semantic entities.
+    def extract_semantic_tokens(text: str) -> set[str]:
+        stopwords = {"the", "and", "for", "with", "this", "that", "from", "our", "all", "your", "page", "home"}
+        words = re.findall(r'[a-zA-Z]{3,}', text.lower())
+        return {w for w in words if w not in stopwords}
+
+    schema_conflicts = []
+    for p in pages:
+        h1_text = " ".join(p.get("h1", []))
+        title_text = p.get("title", "")
+        visible_tokens = extract_semantic_tokens(h1_text + " " + title_text)
+        if not visible_tokens:
+            continue
+
+        for block in p.get("json_ld", []):
+            if not isinstance(block, dict):
+                continue
+            nodes = [block] + (block.get("@graph", []) if isinstance(block.get("@graph"), list) else [])
+            for node in nodes:
+                if not isinstance(node, dict):
+                    continue
+                schema_name = node.get("name") or node.get("headline")
+                if isinstance(schema_name, str) and len(schema_name.strip()) > 5:
+                    schema_tokens = extract_semantic_tokens(schema_name)
+                    # Only flag if schema_tokens has at least 2 distinct semantic tokens
+                    # and none of them appear in visible tokens or visible text sample
+                    if len(schema_tokens) >= 2:
+                        overlap = schema_tokens & visible_tokens
+                        sample_lower = p.get("visible_text_sample", "").lower()
+                        in_sample = any(tok in sample_lower for tok in schema_tokens)
+                        if not overlap and not in_sample:
+                            schema_conflicts.append((p, schema_name, h1_text or title_text))
+                            break
+
+    if schema_conflicts:
+        distinct_conflicts = list({item[0]["url"]: item for item in schema_conflicts}.values())
+        target_item = distinct_conflicts[0]
+        findings.append({
+            "check_id": "SDC-209",
+            "title": f"Semantic contradiction between Schema.org and visible headings on {len(distinct_conflicts)} page(s)",
+            "category": "discoverability",
+            "severity": "medium",
+            "confidence": "high",
+            "affected_urls": [item[0]["url"] for item in distinct_conflicts[:5]],
+            "evidence": (
+                f"Declared Schema.org entity name/headline contradicts visible page headings: "
+                f"Page {target_item[0]['url']} declares schema entity '{target_item[1]}' "
+                f"while visible heading is '{target_item[2]}'. "
+                "Contradictory entity facts cause AI models to discount site reliability."
+            ),
+            "tags": ["schema-org", "trust", "contradiction", "structured-data"],
+            "suggested_action": {
+                "summary": "Ensure Schema.org entity names and headlines correspond to the actual on-page title and headings.",
+                "priority": "medium",
+                "effort": "low"
+            }
+        })
+
     return findings, strengths
 
 

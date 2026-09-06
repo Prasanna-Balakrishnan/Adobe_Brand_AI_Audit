@@ -34,10 +34,22 @@ from score import (
     compute_summary,
     compute_agent_journey_scores,
     evaluate_agent_answerability,
-    compute_top_priorities
+    compute_top_priorities,
+    get_journey_pillar_explanations
 )
 
 MARKETPLACE_VERSION = "1.0.0"
+
+METHODOLOGY_AND_LIMITATIONS = {
+    "audit_scope": "Evaluates technical AI discoverability, content extractability, structured data completeness, and citation readiness based on an observable crawl snapshot.",
+    "deterministic_scoring": "All scoring formulas and journey deductions are 100% deterministic and rule-grounded, measuring concrete technical readiness rather than subjective or volatile LLM search rankings.",
+    "read_only_guarantee": "This audit operates purely in read-only analysis mode without modifying site infrastructure, publishing changes, or executing non-idempotent operations.",
+    "limitations": [
+        "Crawl depth is capped at 20 pages per run under standard execution parameters.",
+        "Dynamic Single-Page Application (SPA) content requires headless rendering with Playwright fallback when JavaScript rendering is enabled.",
+        "Content behind authentication, paywalls, or strict CAPTCHA barriers is outside audit scope."
+    ]
+}
 
 
 def extract_target_url(query: str) -> str:
@@ -376,19 +388,255 @@ def main():
         "top_priorities": top_priorities,
         "findings": clean_findings,
         "proactive_recommendations": proactive_recommendations,
-        "strengths": all_strengths
+        "strengths": all_strengths,
+        "methodology_and_limitations": METHODOLOGY_AND_LIMITATIONS
     }
 
     with open(args.output, "w", encoding="utf-8") as f:
         json.dump(report, f, indent=2, ensure_ascii=False)
 
+    out_p = Path(args.output)
+    md_output_path = out_p.with_suffix(".md") if out_p.suffix == ".json" else out_p.parent / f"{out_p.name}.md"
+    md_content = generate_markdown_report(report)
+    with open(md_output_path, "w", encoding="utf-8") as f:
+        f.write(md_content)
+
+    print_terminal_summary(report)
+
     total_time = time.time() - start_time
-    print(f"\n[DONE] Audit completed in {total_time:.1f}s", file=sys.stderr)
+    print(f"[DONE] Audit completed in {total_time:.1f}s", file=sys.stderr)
     print(f"[DONE] Report written to: {args.output}", file=sys.stderr)
-    print(f"[DONE] Score: {summary['ai_readiness_score']}/100 | "
-          f"Findings: {summary['total_findings']} | "
-          f"Recommendations: {len(proactive_recommendations)}", file=sys.stderr)
+    print(f"[DONE] Companion Markdown written to: {md_output_path}", file=sys.stderr)
     print(args.output)
+
+
+def generate_markdown_report(report: dict) -> str:
+    site = report.get("site", "Unknown Site")
+    audited_at = report.get("audited_at", "")
+    run_info = report.get("run_info", {}) if isinstance(report.get("run_info"), dict) else {}
+    summary = report.get("summary", {})
+    if not isinstance(summary, dict):
+        score_val = summary if isinstance(summary, (int, float)) else 0
+        summary = {"ai_readiness_score": score_val, "total_findings": len(findings), "critical": 0, "high": 0, "medium": 0, "low": 0}
+
+    journey = report.get("agent_journey_scores", {})
+    if not isinstance(journey, dict):
+        ovr_val = journey if isinstance(journey, (int, float)) else 100
+        journey = {
+            "reach": ovr_val, "read": ovr_val, "understand": ovr_val,
+            "trust": ovr_val, "navigate": ovr_val, "act": ovr_val,
+            "overall_journey_score": ovr_val
+        }
+
+    answerability = report.get("agent_answerability", []) if isinstance(report.get("agent_answerability"), list) else []
+    top_priorities = report.get("top_priorities", []) if isinstance(report.get("top_priorities"), list) else []
+    findings = report.get("findings", []) if isinstance(report.get("findings"), list) else []
+    proactive = report.get("proactive_recommendations", []) if isinstance(report.get("proactive_recommendations"), list) else []
+    strengths = report.get("strengths", []) if isinstance(report.get("strengths"), list) else []
+    methodology = report.get("methodology_and_limitations", {}) if isinstance(report.get("methodology_and_limitations"), dict) else {}
+
+    lines = []
+    lines.append(f"# Brand AI-Readiness Audit Report: {site}\n")
+
+    # Executive Summary
+    lines.append("## Executive Summary\n")
+    lines.append(f"- **Target URL**: {run_info.get('target_url', site)}")
+    lines.append(f"- **Audited At**: {audited_at}")
+    lines.append(f"- **AI Readiness Score**: `{summary.get('ai_readiness_score', 0)}/100`")
+    lines.append(f"- **Overall Journey Score**: `{journey.get('overall_journey_score', 0)}/100`")
+    crit = summary.get("critical", 0)
+    high = summary.get("high", 0)
+    med = summary.get("medium", 0)
+    low = summary.get("low", 0)
+    tot = summary.get("total_findings", 0)
+    lines.append(f"- **Findings Summary**: {tot} total ({crit} critical, {high} high, {med} medium, {low} low)\n")
+
+    # 6-Pillar Agent Journey Scorecard
+    lines.append("## Agent Journey Scorecard\n")
+    lines.append("| Pillar | Score | Status | Description |")
+    lines.append("|---|:---:|:---:|---|")
+    pillar_desc = {
+        "reach": "Crawlability, robots compliance, and indexability without barriers",
+        "read": "Clean text and heading extractability without JavaScript traps",
+        "understand": "Rich, valid Schema.org structured data and entity identity",
+        "trust": "Freshness, provenance, and factual consistency across pages",
+        "navigate": "Traversable internal link architecture without dead ends",
+        "act": "Clear calls-to-action and machine-discoverable contact channels"
+    }
+    for p, desc in pillar_desc.items():
+        score = journey.get(p, 100)
+        status = "Optimal" if score >= 90 else ("Attention Needed" if score >= 70 else "At Risk")
+        lines.append(f"| **{p.capitalize()}** | `{score}/100` | {status} | {desc} |")
+    ovr = journey.get("overall_journey_score", 100)
+    lines.append(f"| **Overall Journey** | `{ovr}/100` | - | Unweighted average across all 6 pillars |\n")
+
+    # Crawl Coverage Summary
+    cov = run_info.get("crawl_coverage", {})
+    lines.append("## Crawl Coverage Summary\n")
+    lines.append(f"- **Pages Discovered**: {cov.get('pages_discovered', 0)}")
+    lines.append(f"- **Pages Crawled**: {cov.get('pages_crawled', 0)} / {run_info.get('max_pages', 20)} cap")
+    lines.append(f"- **Pages Skipped**: {cov.get('pages_skipped', 0)}")
+    lines.append(f"- **Crawl Duration**: {cov.get('crawl_duration_seconds', 0)}s")
+    lines.append(f"- **Robots.txt Status**: `{cov.get('robots_status', 'allowed')}`")
+    lines.append(f"- **JS Rendering**: `{cov.get('js_rendering_status', 'disabled')}`\n")
+
+    # Top Priorities
+    lines.append("## Top Priorities\n")
+    if top_priorities:
+        lines.append("| Rank | Finding ID | Title | Severity | Confidence | Affected Pages | Priority Score | Suggested Action |")
+        lines.append("|:---:|:---:|---|:---:|:---:|:---:|:---:|---|")
+        for tp in top_priorities:
+            lines.append(
+                f"| {tp.get('priority_rank', '-')} | `{tp.get('id', '')}` | {tp.get('title', '')} | "
+                f"`{tp.get('severity', '')}` | `{tp.get('confidence', '')}` | {tp.get('affected_pages_count', 0)} | "
+                f"`{tp.get('priority_score', 0)}` | {tp.get('suggested_action', '')} |"
+            )
+        lines.append("")
+    else:
+        lines.append("No priority remediation actions required.\n")
+
+    # Agent Answerability Matrix
+    lines.append("## Agent Answerability\n")
+    if answerability:
+        lines.append("| Question | Status | Confidence | Evidence & Citation |")
+        lines.append("|---|:---:|:---:|---|")
+        for qa in answerability:
+            q = qa.get("question", "")
+            st = qa.get("status", "Not found")
+            conf = qa.get("confidence", "low")
+            ev = qa.get("evidence", "")
+            srcs = qa.get("sources", [])
+            src_str = f"<br>*Sources: {', '.join(srcs)}*" if srcs else ""
+            lines.append(f"| **{q}** | `{st}` | `{conf}` | {ev}{src_str} |")
+        lines.append("")
+    else:
+        lines.append("No answerability data available.\n")
+
+    # Strengths
+    lines.append("## Strengths\n")
+    if strengths:
+        for s in strengths:
+            lines.append(f"- **[{s.get('category', 'general').capitalize()}]** {s.get('title', '')}")
+        lines.append("")
+    else:
+        lines.append("No explicit strength signals detected.\n")
+
+    # Proactive Recommendations
+    lines.append("## Proactive Opportunities\n")
+    if proactive:
+        lines.append("| ID | Title | Category | Priority | Rationale |")
+        lines.append("|:---:|---|:---:|:---:|---|")
+        for pr in proactive:
+            lines.append(
+                f"| `{pr.get('id', '')}` | {pr.get('title', '')} | `{pr.get('category', '')}` | "
+                f"`{pr.get('priority', 'medium')}` | {pr.get('rationale', '')} |"
+            )
+        lines.append("")
+    else:
+        lines.append("No proactive recommendations recorded.\n")
+
+    # Detailed Findings
+    lines.append("## Detailed Audit Findings\n")
+    if findings:
+        for f in findings:
+            fid = f.get("id", "F-???")
+            title = f.get("title", "")
+            sev = f.get("severity", "low")
+            conf = f.get("confidence", "medium")
+            cat = f.get("category", "")
+            tags = ", ".join(f.get("tags", []))
+            urls = f.get("affected_urls", [])
+            ev = f.get("evidence", "")
+            action = f.get("suggested_action", {})
+            action_summary = action.get("summary", "") if isinstance(action, dict) else str(action)
+            action_priority = action.get("priority", sev) if isinstance(action, dict) else sev
+            action_effort = action.get("effort", "medium") if isinstance(action, dict) else "medium"
+
+            lines.append(f"### `{fid}`: {title}\n")
+            lines.append(f"- **Severity**: `{sev.upper()}` | **Confidence**: `{conf}` | **Category**: `{cat}`")
+            if tags:
+                lines.append(f"- **Tags**: `{tags}`")
+            lines.append(f"- **Evidence**: {ev}")
+            if urls:
+                sample_urls = urls[:5]
+                more = f" *(and {len(urls) - 5} more)*" if len(urls) > 5 else ""
+                lines.append(f"- **Affected URLs** ({len(urls)}): {', '.join(sample_urls)}{more}")
+            lines.append(f"- **Suggested Action**: {action_summary} *(Priority: {action_priority}, Effort: {action_effort})*\n")
+    else:
+        lines.append("No defect findings detected.\n")
+
+    # Methodology & Limitations
+    lines.append("## Methodology & Limitations\n")
+    lines.append(f"- **Scope**: {methodology.get('audit_scope', 'Deterministic AI discoverability audit.')}")
+    lines.append(f"- **Scoring Principles**: {methodology.get('deterministic_scoring', 'Rule-based readiness scoring.')}")
+    lines.append(f"- **Execution Guarantee**: {methodology.get('read_only_guarantee', 'Non-destructive read-only audit.')}")
+    limits = methodology.get("limitations", [])
+    if limits:
+        lines.append("- **Known Boundaries & Constraints**:")
+        for lm in limits:
+            lines.append(f"  - {lm}")
+    lines.append("")
+
+    return "\n".join(lines)
+
+
+def print_terminal_summary(report: dict):
+    site = report.get("site", "Site")
+    summary = report.get("summary", {})
+    journey = report.get("agent_journey_scores", {})
+    cov = report.get("run_info", {}).get("crawl_coverage", {}) if isinstance(report.get("run_info"), dict) else {}
+    if not isinstance(cov, dict):
+        cov = {}
+    priorities = report.get("top_priorities", []) if isinstance(report.get("top_priorities"), list) else []
+
+    if isinstance(journey, dict):
+        overall_j = journey.get("overall_journey_score", 0)
+        reach_s = journey.get("reach", 100)
+        read_s = journey.get("read", 100)
+        und_s = journey.get("understand", 100)
+        tru_s = journey.get("trust", 100)
+        nav_s = journey.get("navigate", 100)
+        act_s = journey.get("act", 100)
+    else:
+        overall_j = journey if isinstance(journey, (int, float)) else 0
+        reach_s = read_s = und_s = tru_s = nav_s = act_s = overall_j
+
+    ai_score = summary.get("ai_readiness_score", 0) if isinstance(summary, dict) else (summary if isinstance(summary, (int, float)) else 0)
+
+    print("\n" + "=" * 62, file=sys.stderr)
+    print("           BRAND AI-READINESS AUDIT SUMMARY", file=sys.stderr)
+    print("=" * 62, file=sys.stderr)
+    print(f" Target Site:    {site}", file=sys.stderr)
+    print(f" Audited At:     {report.get('audited_at', '')}", file=sys.stderr)
+    print(f" AI Readiness:   {ai_score}/100", file=sys.stderr)
+    print(f" Journey Score:  {overall_j}/100", file=sys.stderr)
+    c_pages = cov.get("pages_crawled", 0)
+    c_dur = cov.get("crawl_duration_seconds", 0)
+    c_disc = cov.get("pages_discovered", 0)
+    c_skip = cov.get("pages_skipped", 0)
+    print(f" Crawl Coverage: {c_pages} pages crawled in {c_dur}s ({c_disc} discovered, {c_skip} skipped)", file=sys.stderr)
+    print("-" * 62, file=sys.stderr)
+    print(" AGENT JOURNEY PILLARS:", file=sys.stderr)
+    print(f"   Reach:     {reach_s:>3}/100  | Read:    {read_s:>3}/100", file=sys.stderr)
+    print(f"   Understand:{und_s:>3}/100  | Trust:   {tru_s:>3}/100", file=sys.stderr)
+    print(f"   Navigate:  {nav_s:>3}/100  | Act:     {act_s:>3}/100", file=sys.stderr)
+    print("-" * 62, file=sys.stderr)
+    tot_f = summary.get("total_findings", 0) if isinstance(summary, dict) else 0
+    cr_f = summary.get("critical", 0) if isinstance(summary, dict) else 0
+    hi_f = summary.get("high", 0) if isinstance(summary, dict) else 0
+    me_f = summary.get("medium", 0) if isinstance(summary, dict) else 0
+    lo_f = summary.get("low", 0) if isinstance(summary, dict) else 0
+    print(f" FINDINGS: {tot_f} Total (Critical: {cr_f}, High: {hi_f}, Medium: {me_f}, Low: {lo_f})", file=sys.stderr)
+    if priorities:
+        print(" TOP PRIORITIES:", file=sys.stderr)
+        for p in priorities[:3]:
+            pr_rank = p.get("priority_rank", "-")
+            pr_id = p.get("id", "")
+            pr_title = p.get("title", "")
+            pr_sev = p.get("severity", "")
+            pr_score = p.get("priority_score", 0)
+            print(f"   {pr_rank}. [{pr_id}] {pr_title} (Severity: {pr_sev}, Score: {pr_score})", file=sys.stderr)
+    print("=" * 62 + "\n", file=sys.stderr)
 
 
 if __name__ == "__main__":

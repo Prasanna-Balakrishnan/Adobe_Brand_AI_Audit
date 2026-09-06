@@ -57,10 +57,10 @@ def are_near_duplicates(a: dict, b: dict) -> bool:
     if not urls_overlap(a["affected_urls"], b["affected_urls"]):
         return False
 
-    # Check for shared specific root-cause tags across skills (e.g. about-page, contact-page)
+    # Check for shared specific root-cause tags across skills (e.g. about-page, contact-page, canonical, page-title)
     tags_a = set(a.get("tags", []))
     tags_b = set(b.get("tags", []))
-    specific_tags = {"about-page", "contact-page"}
+    specific_tags = {"about-page", "contact-page", "canonical", "page-title", "thin-content"}
     if tags_a & tags_b & specific_tags:
         return True
 

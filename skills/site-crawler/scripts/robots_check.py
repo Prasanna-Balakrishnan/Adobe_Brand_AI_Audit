@@ -29,6 +29,8 @@ class RobotsChecker:
         self.user_agent = user_agent
         self.robots_status = 0
         self.disallowed_paths: list[str] = []
+        self.sitemaps: list[str] = []
+        self.ai_agent_rules: dict[str, list[str]] = {}
         self.crawl_delay: float | None = None
         self._parser = RobotFileParser()
         self._parser.set_url(self.robots_url)
@@ -56,27 +58,42 @@ class RobotsChecker:
                   file=sys.stderr)
 
     def _extract_disallowed(self, content: str):
-        """Extract disallowed paths for * and Googlebot agents."""
+        """Extract disallowed paths for * and Googlebot agents, sitemaps, and AI crawler rules."""
         applicable_agents = {"*", "googlebot"}
+        ai_agents = {"gptbot", "claudebot", "perplexitybot", "ccbot", "anthropic-ai", "google-extended"}
         current_agents: list[str] = []
-        collecting = False
+        collecting_standard = False
+        collecting_ai = False
 
         for line in content.splitlines():
             line = line.strip()
             if not line or line.startswith("#"):
-                if collecting:
+                if collecting_standard or collecting_ai:
                     current_agents = []
-                    collecting = False
+                    collecting_standard = False
+                    collecting_ai = False
+                continue
+
+            if line.lower().startswith("sitemap:"):
+                sm_url = line[len("sitemap:"):].strip()
+                if sm_url and sm_url not in self.sitemaps:
+                    self.sitemaps.append(sm_url)
                 continue
 
             if line.lower().startswith("user-agent:"):
                 agent = line[len("user-agent:"):].strip().lower()
                 current_agents.append(agent)
-                collecting = any(a in applicable_agents for a in current_agents)
-            elif line.lower().startswith("disallow:") and collecting:
+                collecting_standard = any(a in applicable_agents for a in current_agents)
+                collecting_ai = any(a in ai_agents for a in current_agents)
+            elif line.lower().startswith("disallow:"):
                 path = line[len("disallow:"):].strip()
-                if path and path not in self.disallowed_paths:
-                    self.disallowed_paths.append(path)
+                if path:
+                    if collecting_standard and path not in self.disallowed_paths:
+                        self.disallowed_paths.append(path)
+                    if collecting_ai:
+                        for agent in current_agents:
+                            if agent in ai_agents:
+                                self.ai_agent_rules.setdefault(agent, []).append(path)
 
     def is_allowed(self, url: str) -> bool:
         """Return True if the URL is allowed to be crawled."""
