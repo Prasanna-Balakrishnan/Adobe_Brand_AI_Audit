@@ -2,9 +2,10 @@
 name: entity-identity-audit
 description: >
   Audits whether the brand can be clearly identified and distinguished from
-  lookalikes by AI assistants. Checks organisation name consistency across
+  lookalikes by AI assistants. Checks organization name consistency across
   pages, presence of About/Contact/location information, author/org
-  attribution, and ambiguous or colliding entity names.
+  attribution, sameAs social links, and ambiguous or colliding entity names.
+  Returns standardized findings JSON for the orchestrator.
 license: Apache-2.0
 allowed-tools:
   - file_read
@@ -26,10 +27,17 @@ After `site-crawler` has produced `snapshot.json`. Invoke once per audit run.
 ## Procedure
 
 1. Load `snapshot.json`.
-2. Run all checks from `references/checks.md` against snapshot data.
-3. Derive the candidate brand name from JSON-LD `Organization.name`, `<title>` tags,
-   and H1 text — then test consistency across pages.
-4. Write output JSON.
+2. Run all checks from `references/checks.md` against snapshot data:
+   - `ENT-001`: Missing Organization / LocalBusiness JSON-LD on homepage
+   - `ENT-002`: Inconsistent organization identity across key page elements (`<title>`, `<h1>`, JSON-LD)
+   - `ENT-003` & `ENT-004`: Missing dedicated About and Contact pages
+   - `ENT-005`: Missing physical postal address and direct communication channels
+   - `ENT-006`: Missing author attribution on article/blog pages
+   - `ENT-007` & `ENT-008`: Missing sameAs links and colliding entity names
+   - `ENT-009`: Conflicting entity facts (e.g. founding year or headquarters location across pages)
+3. Derive candidate brand name from schema `name`, `<title>`, and `<h1>` elements.
+4. Collect findings as intermediate JSON objects and record detected strengths.
+5. Write output JSON to `output_path`.
 
 ## Output
 

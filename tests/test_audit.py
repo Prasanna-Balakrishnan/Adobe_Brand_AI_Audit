@@ -2052,6 +2052,184 @@ class TestFinalReportAndEvaluatorOptimization(unittest.TestCase):
         self.assertEqual(priorities, [])
 
 
+# ─── Phase 7: Final Accuracy, Stress Testing & Real-World Generalization ─────
+
+class TestPhase7RealWorldGeneralization(unittest.TestCase):
+    """
+    Validates Phase 7 accuracy, stress testing, and real-world generalization across:
+    - Restaurant / FoodEstablishment schema
+    - Healthcare / Hospital schema
+    - Multilingual site structure and hreflang without spurious false positives
+    - 20-page full crawl budget processing
+    - LocalBusiness priceRange in answerability
+    """
+
+    def test_restaurant_and_food_establishment_schema_recognized(self):
+        """Restaurant / FoodEstablishment Schema on homepage triggers no SDC-003 or ENT-001 false positives."""
+        restaurant_page = make_page(
+            url="https://bistro.example.com/",
+            title="Bistro Parisien — Fine French Dining",
+            meta_description="Traditional French restaurant in downtown.",
+            h1=["Bistro Parisien"],
+            page_type="Homepage",
+            json_ld=[{
+                "@context": "https://schema.org",
+                "@type": "Restaurant",
+                "name": "Bistro Parisien",
+                "url": "https://bistro.example.com",
+                "priceRange": "$$$",
+                "telephone": "+1-555-0123",
+                "address": {"streetAddress": "123 Main St", "addressLocality": "Paris", "addressCountry": "FR"}
+            }]
+        )
+        snap = make_snapshot([restaurant_page], start_url="https://bistro.example.com/")
+        sdc_findings, _ = sdc_mod.run_checks(snap)
+        sdc_ids = [f["check_id"] for f in sdc_findings]
+        self.assertNotIn("SDC-003", sdc_ids, "Restaurant should be recognized as valid homepage entity schema")
+
+        ent_findings, _ = ent_mod.run_checks(snap)
+        ent_ids = [f["check_id"] for f in ent_findings]
+        self.assertNotIn("ENT-001", ent_ids, "Brand name should be recognized from Restaurant JSON-LD")
+
+    def test_healthcare_and_hospital_schema_recognized(self):
+        """Hospital / MedicalOrganization Schema is recognized as valid organization entity."""
+        hospital_page = make_page(
+            url="https://hospital.example.org/",
+            title="City General Hospital — Emergency & Specialty Care",
+            meta_description="Providing comprehensive medical care.",
+            h1=["City General Hospital"],
+            page_type="Homepage",
+            json_ld=[{
+                "@context": "https://schema.org",
+                "@type": "Hospital",
+                "name": "City General Hospital",
+                "url": "https://hospital.example.org",
+                "telephone": "+1-555-0199",
+                "address": {"streetAddress": "500 Health Ave", "addressLocality": "New York", "addressCountry": "US"}
+            }]
+        )
+        snap = make_snapshot([hospital_page], start_url="https://hospital.example.org/")
+        sdc_findings, _ = sdc_mod.run_checks(snap)
+        sdc_ids = [f["check_id"] for f in sdc_findings]
+        self.assertNotIn("SDC-003", sdc_ids, "Hospital should be recognized as valid homepage entity schema")
+
+        ent_findings, _ = ent_mod.run_checks(snap)
+        ent_ids = [f["check_id"] for f in ent_findings]
+        self.assertNotIn("ENT-001", ent_ids, "Brand name should be recognized from Hospital JSON-LD")
+
+    def test_multilingual_hreflang_and_paths_no_spurious_findings(self):
+        """Multilingual paths (/en/, /es/) and hreflang do not trigger spurious findings, while genuine issues are reported."""
+        # 1. Clean multilingual site without issues
+        clean_pages = [
+            make_page(
+                url="https://global.example.com/",
+                title="Global Solutions — International Freight",
+                page_type="Homepage",
+                links=[
+                    {"href": "https://global.example.com/en/solutions", "text": "English", "is_internal": True},
+                    {"href": "https://global.example.com/es/soluciones", "text": "Español", "is_internal": True}
+                ],
+                json_ld=[{"@type": "Organization", "name": "Global Solutions"}]
+            ),
+            make_page(
+                url="https://global.example.com/en/solutions",
+                canonical="https://global.example.com/en/solutions",
+                title="Freight Solutions — English",
+                h1=["Enterprise Freight Solutions"],
+                page_type="Product"
+            ),
+            make_page(
+                url="https://global.example.com/es/soluciones",
+                canonical="https://global.example.com/es/soluciones",
+                title="Soluciones de Carga — Español",
+                h1=["Soluciones de Carga Empresarial"],
+                page_type="Product"
+            )
+        ]
+        clean_snap = make_snapshot(clean_pages, start_url="https://global.example.com/")
+        cra_findings, _ = cra_mod.run_checks(clean_snap)
+        cra_ids = [f["check_id"] for f in cra_findings]
+        self.assertNotIn("CRA-018", cra_ids, "Language-prefixed paths must not trigger CRA-018 tracking pollution finding")
+
+        # 2. Multilingual site with genuine canonical defect on Spanish page
+        defect_pages = [
+            make_page(
+                url="https://global.example.com/",
+                title="Global Solutions",
+                page_type="Homepage",
+                links=[{"href": "https://global.example.com/es/soluciones", "text": "Español", "is_internal": True}],
+                json_ld=[{"@type": "Organization", "name": "Global Solutions"}]
+            ),
+            make_page(
+                url="https://global.example.com/es/soluciones",
+                canonical="https://global.example.com/es/error-404",
+                title="Soluciones de Carga",
+                h1=["Soluciones de Carga Empresarial"],
+                page_type="Product"
+            ),
+            make_page(
+                url="https://global.example.com/es/error-404",
+                status_code=404,
+                title="404 No Encontrado"
+            )
+        ]
+        defect_snap = make_snapshot(defect_pages, start_url="https://global.example.com/")
+        cra_defects, _ = cra_mod.run_checks(defect_snap)
+        cra_defect_ids = [f["check_id"] for f in cra_defects]
+        self.assertIn("CRA-016", cra_defect_ids, "Genuine canonical defect on localized page must be detected")
+
+    def test_large_site_20_page_crawl_budget_prioritization(self):
+        """Full 20-page crawl budget snapshot computes priorities and scores deterministically."""
+        pages = [
+            make_page(
+                "https://megastore.example.com/",
+                page_type="Homepage",
+                title="MegaStore",
+                json_ld=[{"@type": "Store", "name": "MegaStore"}]
+            )
+        ]
+        for i in range(1, 20):
+            pages.append(
+                make_page(
+                    f"https://megastore.example.com/item-{i}",
+                    page_type="Product",
+                    title=f"Item {i}",
+                    json_ld=[{"@type": "Product", "name": f"Item {i}", "offers": {"@type": "Offer", "price": str(10 + i)}}]
+                )
+            )
+        snap = make_snapshot(pages, start_url="https://megastore.example.com/")
+        snap["crawl_meta"]["pages_crawled"] = 20
+        snap["crawl_meta"]["pages_discovered"] = 50
+        snap["crawl_meta"]["pages_skipped"] = 30
+
+        summary = score_mod.compute_summary([], snap)
+        self.assertEqual(summary["total_findings"], 0)
+        self.assertEqual(summary["ai_readiness_score"], 100)
+
+        priorities = score_mod.compute_top_priorities([], limit=5)
+        self.assertEqual(priorities, [])
+
+    def test_local_business_price_range_answerability(self):
+        """priceRange in LocalBusiness/Restaurant satisfies Question 4 pricing answerability with observable evidence."""
+        bistro_page = make_page(
+            url="https://dining.example.com/",
+            page_type="Homepage",
+            title="Le Bistro",
+            json_ld=[{
+                "@type": "Restaurant",
+                "name": "Le Bistro",
+                "priceRange": "$$$",
+                "address": {"streetAddress": "100 Rue de Paris", "addressLocality": "Lyon", "addressCountry": "FR"}
+            }]
+        )
+        snap = make_snapshot([bistro_page], start_url="https://dining.example.com/")
+        ans = score_mod.evaluate_agent_answerability(snap)
+        cost_q = next(q for q in ans if q["question"] == "What does the product cost?")
+        self.assertEqual(cost_q["status"], "Supported")
+        self.assertEqual(cost_q["confidence"], "high")
+        self.assertIn("$$$", cost_q["evidence"])
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
 

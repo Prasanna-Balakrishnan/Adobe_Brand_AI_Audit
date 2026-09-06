@@ -1,11 +1,11 @@
 ---
 name: proactive-opportunities-audit
 description: >
-  Runs LAST in the audit pipeline, after all findings are finalised. Given
-  the deduplicated findings and detected strengths, suggests improvements
-  beyond current defects — e.g. missing but valuable schema types, FAQ
-  content opportunities, structured data enhancements. Recommendations are
-  clearly tagged and must not duplicate already-reported findings.
+  Runs last in the audit pipeline, after all defect findings are finalized. Given
+  the deduplicated findings and crawl snapshot, identifies high-ROI enhancement
+  opportunities beyond existing defects (e.g., FAQ schema, BreadcrumbList, Event
+  markup, sameAs social corroboration) without duplicating reported findings.
+  Returns standardized recommendations JSON for the orchestrator.
 license: Apache-2.0
 allowed-tools:
   - file_read
@@ -29,11 +29,16 @@ This skill is the **last** step before `build_report.py`.
 ## Procedure
 
 1. Load `snapshot.json` and `deduplicated_findings.json`.
-2. Build a set of already-reported `(category, topic)` pairs to avoid duplication.
-3. Run all opportunity patterns from `references/opportunity-patterns.md`.
+2. Build a set of already-reported `(category, topic)` pairs to prevent duplicating defects.
+3. Run all opportunity patterns from `references/opportunity-patterns.md`:
+   - `PRO-001`: Add FAQ-style Q&A content and FAQPage schema to key landing pages
+   - `PRO-002`: Add BreadcrumbList markup to multi-level navigation paths
+   - `PRO-003`: Add sameAs social media and authoritative entity reference links
+   - `PRO-004`: Add Event schema for upcoming brand gatherings, webinars, or launches
+   - `PRO-005`: Add SearchAction potentialAction schema on homepage WebSite entities
 4. Emit only recommendations that do NOT duplicate an existing finding.
-5. Detect strengths that the proactive audit uniquely identifies.
-6. Write output JSON.
+5. Record proactive strengths detected during analysis.
+6. Write output JSON to `output_path`.
 
 ## Output
 
@@ -43,9 +48,9 @@ This skill is the **last** step before `build_report.py`.
   "recommendations": [
     {
       "id": "PRO-001",
-      "title": "...",
+      "title": "Add FAQ-style Q&A content to top landing pages",
       "category": "discoverability",
-      "rationale": "...",
+      "rationale": "Accurate product info exists but no explicit Q&A text for assistants to quote.",
       "priority": "medium"
     }
   ]

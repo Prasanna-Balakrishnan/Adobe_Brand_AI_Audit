@@ -125,13 +125,17 @@ def parse_args():
     p = argparse.ArgumentParser(
         description="Brand AI-Readiness Audit — Master Orchestrator"
     )
-    p.add_argument("--url", required=True, help="Site URL to audit")
+    p.add_argument("--url", default=None, help="Site URL to audit")
+    p.add_argument("--snapshot", default=None, help="Path to pre-existing snapshot.json (replaces crawler/network step for offline execution)")
     p.add_argument("--max-pages", type=int, default=20)
     p.add_argument("--output", default="report.json")
     p.add_argument("--work-dir", default="./audit_work")
     p.add_argument("--use-js-render", action="store_true")
     p.add_argument("--stale-threshold-days", type=int, default=365)
-    return p.parse_args()
+    args = p.parse_args()
+    if not args.url and not args.snapshot:
+        p.error("Either --url or --snapshot must be provided.")
+    return args
 
 
 def find_marketplace_root() -> Path:
@@ -189,55 +193,77 @@ def main():
     work_dir.mkdir(parents=True, exist_ok=True)
 
     marketplace_root = find_marketplace_root()
-    target_url = extract_target_url(args.url)
-    print(f"[INFO] Marketplace root: {marketplace_root}", file=sys.stderr)
-    print(f"[INFO] Auditing: {target_url} (input query: '{args.url}')", file=sys.stderr)
-    print(f"[INFO] Work dir: {work_dir.resolve()}", file=sys.stderr)
+    snapshot_path = str(work_dir / "snapshot.json")
 
     start_time = time.time()
     audited_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
-    # ── Step 1: site-crawler ────────────────────────────────────────────────
-    snapshot_path = str(work_dir / "snapshot.json")
-    crawler_script = str(marketplace_root / "skills" / "site-crawler" / "scripts" / "crawl.py")
+    if args.snapshot:
+        # ── Snapshot Mode: replace ONLY the crawler/network step ───────────────
+        snap_in = Path(args.snapshot)
+        if not snap_in.exists():
+            print(f"[ERROR] Specified snapshot not found: {snap_in}", file=sys.stderr)
+            sys.exit(1)
+        snapshot = load_json_safe(str(snap_in), "snapshot-input")
+        if not snapshot:
+            print(f"[ERROR] Cannot read snapshot from: {snap_in}", file=sys.stderr)
+            sys.exit(1)
+        with open(snapshot_path, "w", encoding="utf-8") as f:
+            json.dump(snapshot, f, indent=2)
+        crawl_meta = snapshot.get("crawl_meta", {})
+        target_url = crawl_meta.get("start_url") or "https://example.com"
+        query_input = args.url or target_url
+        crawl_duration = 0.0
+        pages_crawled = crawl_meta.get("pages_crawled", len(snapshot.get("pages", [])))
+        print(f"[INFO] Marketplace root: {marketplace_root}", file=sys.stderr)
+        print(f"[INFO] Auditing via snapshot: {snap_in} for {target_url}", file=sys.stderr)
+        print(f"[INFO] Work dir: {work_dir.resolve()}", file=sys.stderr)
+        print(f"\n[STEP 1] Reusing provided snapshot ({pages_crawled} pages) — skipping live crawl.", file=sys.stderr)
+    else:
+        # ── Standard Mode: invoke site-crawler ─────────────────────────────────
+        target_url = extract_target_url(args.url)
+        query_input = args.url
+        print(f"[INFO] Marketplace root: {marketplace_root}", file=sys.stderr)
+        print(f"[INFO] Auditing: {target_url} (input query: '{args.url}')", file=sys.stderr)
+        print(f"[INFO] Work dir: {work_dir.resolve()}", file=sys.stderr)
 
-    print(f"\n[STEP 1] Running site-crawler...", file=sys.stderr)
-    crawl_start = time.time()
+        crawler_script = str(marketplace_root / "skills" / "site-crawler" / "scripts" / "crawl.py")
+        print(f"\n[STEP 1] Running site-crawler...", file=sys.stderr)
+        crawl_start = time.time()
 
-    crawler_cmd = [
-        sys.executable, crawler_script,
-        "--url", target_url,
-        "--max-pages", str(args.max_pages),
-        "--output", snapshot_path,
-    ]
-    if args.use_js_render:
-        crawler_cmd.append("--use-js-render")
+        crawler_cmd = [
+            sys.executable, crawler_script,
+            "--url", target_url,
+            "--max-pages", str(args.max_pages),
+            "--output", snapshot_path,
+        ]
+        if args.use_js_render:
+            crawler_cmd.append("--use-js-render")
 
-    crawl_ok, _ = run_subprocess(crawler_cmd, "site-crawler")
+        crawl_ok, _ = run_subprocess(crawler_cmd, "site-crawler")
+        crawl_duration = time.time() - crawl_start
 
-    crawl_duration = time.time() - crawl_start
+        if not crawl_ok or not Path(snapshot_path).exists():
+            print("[ERROR] Crawl failed — aborting audit.", file=sys.stderr)
+            error_report = {
+                "error": "crawl_failed",
+                "reason": "site-crawler did not produce a snapshot.json",
+                "url": target_url,
+                "query_input": args.url,
+                "audited_at": audited_at
+            }
+            with open(args.output, "w", encoding="utf-8") as f:
+                json.dump(error_report, f, indent=2)
+            sys.exit(1)
 
-    if not crawl_ok or not Path(snapshot_path).exists():
-        print("[ERROR] Crawl failed — aborting audit.", file=sys.stderr)
-        error_report = {
-            "error": "crawl_failed",
-            "reason": "site-crawler did not produce a snapshot.json",
-            "url": target_url,
-            "query_input": args.url,
-            "audited_at": audited_at
-        }
-        with open(args.output, "w", encoding="utf-8") as f:
-            json.dump(error_report, f, indent=2)
-        sys.exit(1)
+        snapshot = load_json_safe(snapshot_path, "site-crawler")
+        if not snapshot:
+            print("[ERROR] Cannot read snapshot.json — aborting.", file=sys.stderr)
+            sys.exit(1)
 
-    snapshot = load_json_safe(snapshot_path, "site-crawler")
-    if not snapshot:
-        print("[ERROR] Cannot read snapshot.json — aborting.", file=sys.stderr)
-        sys.exit(1)
-
-    crawl_meta = snapshot.get("crawl_meta", {})
-    pages_crawled = crawl_meta.get("pages_crawled", 0)
-    print(f"[INFO] Crawled {pages_crawled} pages in {crawl_duration:.1f}s", file=sys.stderr)
+        crawl_meta = snapshot.get("crawl_meta", {})
+        pages_crawled = crawl_meta.get("pages_crawled", 0)
+        print(f"[INFO] Crawled {pages_crawled} pages in {crawl_duration:.1f}s", file=sys.stderr)
 
     # ── Step 2: Fan-out to audit skills ────────────────────────────────────
     print(f"\n[STEP 2] Running {len(AUDIT_SKILLS)} audit skills...", file=sys.stderr)
@@ -372,7 +398,7 @@ def main():
         "audited_at": audited_at,
         "run_info": {
             "marketplace_version": MARKETPLACE_VERSION,
-            "query_input": args.url,
+            "query_input": args.url or target_url,
             "target_url": target_url,
             "skills_invoked": skills_invoked,
             "failed_skills": failed_skills,

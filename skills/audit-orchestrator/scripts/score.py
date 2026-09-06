@@ -192,8 +192,8 @@ def evaluate_agent_answerability(snapshot: dict, findings: list[dict] | None = N
             if isinstance(b, dict):
                 b_type = b.get("@type", "")
                 types = b_type if isinstance(b_type, list) else [b_type]
-                if any(t in ("Product", "Service", "SoftwareApplication", "Course", "IndividualProduct") for t in types):
-                    p_name = b.get("name") or p.get("title") or "Product"
+                if any(t in ("Product", "Service", "SoftwareApplication", "Course", "IndividualProduct", "MedicalSpecialty", "MedicalProcedure", "Menu", "MenuItem", "EducationalOccupationalProgram") for t in types):
+                    p_name = b.get("name") or p.get("title") or "Product/Service"
                     structured_products.append((p_name, p["url"]))
 
     q2 = {
@@ -295,9 +295,13 @@ def evaluate_agent_answerability(snapshot: dict, findings: list[dict] | None = N
     price_sources = []
     has_pricing_page = any(p.get("page_type") == "Pricing" or "/pricing" in p.get("url", "").lower() for p in pages)
     for p in pages:
-        # Check json-ld offers
+        # Check json-ld offers & priceRange
         for block in p.get("json_ld", []):
             if isinstance(block, dict):
+                pr_range = block.get("priceRange")
+                if pr_range and isinstance(pr_range, str):
+                    prices_found.append(f"Price range: {pr_range}")
+                    price_sources.append(p["url"])
                 offers = block.get("offers")
                 if isinstance(offers, list):
                     for off in offers:
@@ -342,7 +346,7 @@ def evaluate_agent_answerability(snapshot: dict, findings: list[dict] | None = N
     elif prices_found:
         q4["status"] = "Supported"
         q4["confidence"] = "high"
-        q4["evidence"] = f"Explicit pricing found: {', '.join(prices_found[:3])}."
+        q4["evidence"] = f"Explicit pricing or price range found: {', '.join(prices_found[:3])}."
         q4["sources"] = list(dict.fromkeys(price_sources))[:2]
     elif has_pricing_page:
         q4["status"] = "Weakly supported"

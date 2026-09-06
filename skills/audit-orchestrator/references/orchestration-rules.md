@@ -29,16 +29,16 @@ URL
      (cluster near-duplicates into root_cause_groups)
  │
  ▼
-[5] score.py                → summary.json
-     (counts, ai_readiness_score, by_category)
+[5] score.py                → summary, journey, answerability, top_priorities
+     (counts, ai_readiness_score, by_category, 6-pillar agent journey, answerability matrix, multi-factor priorities)
  │
  ▼
 [6] proactive-opportunities-audit → proactive_findings.json
      (runs AFTER findings are finalized; must not duplicate findings)
  │
  ▼
-[7] build_report.py         → final_report.json
-     (assemble all pieces into the final schema)
+[7] build_report.py         → report.json & report.md
+     (assemble all pieces into the final schema with methodology_and_limitations, companion markdown, terminal dashboard)
 ```
 
 ---

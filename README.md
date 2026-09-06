@@ -190,7 +190,7 @@ pip install playwright && playwright install chromium
 
 ### Running an Audit
 
-Accepts direct URLs or natural language queries:
+Accepts direct URLs, natural language queries, or pre-existing snapshots:
 
 ```bash
 # Direct URL
@@ -203,13 +203,20 @@ python skills/audit-orchestrator/scripts/build_report.py \
 python skills/audit-orchestrator/scripts/build_report.py \
     --url "Check the Microsoft website and generate a report" \
     --output report.json
+
+# Offline Snapshot Mode (replaces crawler/network step)
+python skills/audit-orchestrator/scripts/build_report.py \
+    --snapshot snapshot.json \
+    --output report.json
 ```
+
+*Note: Running `build_report.py` produces both the authoritative `report.json` and a human-readable companion `report.md`, and prints a scan-friendly summary dashboard to `sys.stderr`.*
 
 ---
 
 ## 10. Automated Testing
 
-The marketplace contains an offline, deterministic integration test suite covering **47 unit tests** across all 14 recommendation scenarios:
+The marketplace contains an offline, deterministic integration test suite covering **83 unit tests** across all 14 recommendation scenarios and real-world architectures:
 
 ```bash
 python -m unittest discover tests
@@ -218,9 +225,10 @@ python -m unittest discover tests
 ### Test Coverage Highlights:
 - **Clean Site Assertion (`TestCleanSite`)**: Asserts that a well-structured website receives 0 critical and 0 high-severity findings, achieving an AI readiness score ≥ 90.
 - **14 Specific Scenarios (`TestFourteenFixtureScenarios`)**: Tests JS-heavy SPAs, clean sites, conflicting canonicals, redirect loops, broken links, robots restrictions, image-only data, entity inconsistencies, visible vs schema price conflicts, raw vs rendered DOM disparities, product/blog/doc page contexts, and limited crawl coverage.
-- **Agent Journey & Answerability (`TestAgentJourneyAndAnswerability`)**: Validates journey scoring, 5-question answerability evaluation, and priority ranking.
+- **Agent Journey & Answerability (`TestAgentJourneyAndAnswerability`)**: Validates journey scoring, 5-question answerability evaluation, and multi-tier priority ranking.
 - **Natural Language Parsing & Resiliency (`TestNaturalLanguageParsingAndResilience`)**: Validates domain extraction from prompts and fault-tolerant execution.
 - **Marketplace Manifest Schema (`TestMarketplaceManifest`)**: Validates 100% compliance with Round 3 schema requirements.
+- **Real-World Generalization (`TestPhase7RealWorldGeneralization`)**: Validates local business schemas, multilingual `hreflang` paths, 20-page crawl budgets, AI bot exclusions, and specialized service schemas.
 
 ---
 
@@ -234,7 +242,14 @@ python -m unittest discover tests
     "marketplace_version": "1.0.0",
     "query_input": "https://example.com",
     "target_url": "https://example.com",
-    "skills_invoked": ["crawlability-render-audit", "structured-data-content-audit", "..."],
+    "skills_invoked": [
+      "crawlability-render-audit",
+      "structured-data-content-audit",
+      "entity-identity-audit",
+      "freshness-corroboration-audit",
+      "engagement-audit",
+      "proactive-opportunities-audit"
+    ],
     "failed_skills": [],
     "pages_crawled": 12,
     "max_pages": 20,
@@ -260,15 +275,6 @@ python -m unittest discover tests
     "by_category": {
       "discoverability": 3,
       "engagement": 1
-    },
-    "agent_journey_scores": {
-      "reach": 100,
-      "read": 95,
-      "understand": 80,
-      "trust": 85,
-      "navigate": 90,
-      "act": 80,
-      "overall_journey_score": 88
     }
   },
   "agent_journey_scores": {
@@ -304,6 +310,16 @@ python -m unittest discover tests
   ],
   "findings": [ ... ],
   "proactive_recommendations": [ ... ],
-  "strengths": [ ... ]
+  "strengths": [ ... ],
+  "methodology_and_limitations": {
+    "audit_scope": "Evaluates technical AI discoverability, content extractability, structured data completeness, and citation readiness based on an observable crawl snapshot.",
+    "deterministic_scoring": "All scoring formulas and journey deductions are 100% deterministic and rule-grounded, measuring concrete technical readiness rather than subjective or volatile LLM search rankings.",
+    "read_only_guarantee": "This audit operates purely in read-only analysis mode without modifying site infrastructure, publishing changes, or executing non-idempotent operations.",
+    "limitations": [
+      "Crawl depth is capped at 20 pages per run under standard execution parameters.",
+      "Dynamic Single-Page Application (SPA) content requires headless rendering with Playwright fallback when JavaScript rendering is enabled.",
+      "Content behind authentication, paywalls, or strict CAPTCHA barriers is outside audit scope."
+    ]
+  }
 }
 ```

@@ -63,7 +63,8 @@ def normalise_name(name: str) -> str:
 
 ORG_SUBSTRINGS = {
     "organization", "corporation", "business", "company", "university", "college",
-    "school", "ngo", "institution", "agency", "association", "newsmedia"
+    "school", "ngo", "institution", "agency", "association", "newsmedia",
+    "restaurant", "hospital", "clinic", "hotel", "store", "food", "establishment"
 }
 
 

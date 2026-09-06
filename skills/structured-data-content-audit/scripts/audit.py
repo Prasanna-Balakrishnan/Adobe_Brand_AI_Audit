@@ -24,7 +24,10 @@ ORG_HOMEPAGE_TYPES = {
     "Organization", "WebSite", "LocalBusiness", "Corporation",
     "EducationalOrganization", "CollegeOrUniversity", "School",
     "HighSchool", "NewsMediaOrganization", "GovernmentOrganization",
-    "NGO", "MedicalOrganization", "Event", "Project"
+    "NGO", "MedicalOrganization", "Event", "Project",
+    "Restaurant", "FoodEstablishment", "CafeOrCoffeeShop", "Bakery", "BarOrPub",
+    "Hospital", "MedicalClinic", "MedicalBusiness", "Physician",
+    "Hotel", "LodgingBusiness", "Store", "FinancialService", "AutomotiveBusiness"
 }
 
 
@@ -32,7 +35,12 @@ def is_org_homepage_type(t: str) -> bool:
     """Return True if type is Organization, WebSite, or any standard Organization/Entity subtype."""
     if not isinstance(t, str):
         return False
-    return t.endswith("Organization") or t in ORG_HOMEPAGE_TYPES
+    return (
+        t.endswith("Organization") or
+        t.endswith("Business") or
+        t.endswith("Establishment") or
+        t in ORG_HOMEPAGE_TYPES
+    )
 
 
 def parse_args():
