@@ -1,0 +1,135 @@
+{
+  "findings": [
+    {
+      "title": "Conflicting pricing information detected across 11 crawled pages",
+      "category": "discoverability",
+      "severity": "high",
+      "confidence": "high",
+      "source_skill": "freshness-corroboration-audit",
+      "check_id": "FRS-006",
+      "tags": [
+        "pricing",
+        "corroboration",
+        "contradiction"
+      ],
+      "affected_urls": [
+        "https://benchmark-acme.internal/products/product-suite-9",
+        "https://benchmark-acme.internal/products/product-suite-15",
+        "https://benchmark-acme.internal/products/product-suite-6",
+        "https://benchmark-acme.internal/products/product-suite-18",
+        "https://benchmark-acme.internal/products/product-suite-21"
+      ],
+      "evidence": "Contradicting price figures discovered: https://benchmark-acme.internal/products/product-suite-3 declares $129.0 while https://benchmark-acme.internal/products/product-suite-6 declares $159.0 for 'Acme Product Suite 3'. Discrepancies in published pricing confuse AI assistants and undermine transactional trust.",
+      "root_cause_group": "RC-001",
+      "suggested_action": {
+        "summary": "Reconcile product pricing across product pages, pricing tables, and structured data.",
+        "priority": "high",
+        "effort": "low"
+      },
+      "id": "F-001"
+    },
+    {
+      "title": "No structured data on 3/29 product/service pages",
+      "category": "discoverability",
+      "severity": "high",
+      "confidence": "high",
+      "source_skill": "structured-data-content-audit",
+      "check_id": "SDC-002",
+      "tags": [
+        "json-ld",
+        "schema-org",
+        "structured-data"
+      ],
+      "affected_urls": [
+        "https://benchmark-acme.internal/products/product-suite-12",
+        "https://benchmark-acme.internal/products/product-suite-24",
+        "https://benchmark-acme.internal/products/product-suite-36"
+      ],
+      "evidence": "3 of 29 product/service pages contain no JSON-LD. AI cannot extract product details, prices, or specs.",
+      "root_cause_group": "RC-002",
+      "suggested_action": {
+        "summary": "Add Product/Offer/Service JSON-LD to every product and service page.",
+        "priority": "high",
+        "effort": "medium"
+      },
+      "id": "F-002"
+    },
+    {
+      "title": "No sitemap signal detected — bulk agent discovery may be impaired",
+      "category": "discoverability",
+      "severity": "medium",
+      "confidence": "medium",
+      "source_skill": "agent-discoverability-audit",
+      "check_id": "AGD-004",
+      "tags": [
+        "discoverability",
+        "crawlability",
+        "indexability",
+        "sitemap"
+      ],
+      "affected_urls": [
+        "https://benchmark-acme.internal/"
+      ],
+      "evidence": "No sitemap.xml reference found in robots.txt, crawl metadata, or any of the 50 crawled pages. AI indexing systems rely on sitemaps for efficient bulk content discovery, especially for sites with many pages.",
+      "root_cause_group": "RC-003",
+      "suggested_action": {
+        "summary": "Consider publishing an XML sitemap at /sitemap.xml and referencing it in robots.txt (Sitemap: https://yourdomain.com/sitemap.xml). Include all important pages with <lastmod> dates.",
+        "priority": "medium",
+        "effort": "low"
+      },
+      "id": "F-003"
+    },
+    {
+      "title": "Article JSON-LD missing datePublished/dateModified on 1 page(s)",
+      "category": "discoverability",
+      "severity": "medium",
+      "confidence": "high",
+      "source_skill": "freshness-corroboration-audit",
+      "check_id": "FRS-004",
+      "tags": [
+        "stale-content",
+        "schema-org"
+      ],
+      "affected_urls": [
+        "https://benchmark-acme.internal/docs"
+      ],
+      "evidence": "1 page(s) have Article/BlogPosting JSON-LD but no datePublished or dateModified. AI cannot assess content currency.",
+      "root_cause_group": "RC-004",
+      "suggested_action": {
+        "summary": "Add datePublished and dateModified to all Article JSON-LD blocks.",
+        "priority": "medium",
+        "effort": "low"
+      },
+      "id": "F-004"
+    },
+    {
+      "title": "Semantic contradiction between Schema.org and visible headings on 15 page(s)",
+      "category": "discoverability",
+      "severity": "medium",
+      "confidence": "high",
+      "source_skill": "structured-data-content-audit",
+      "check_id": "SDC-209",
+      "tags": [
+        "schema-org",
+        "trust",
+        "contradiction",
+        "structured-data"
+      ],
+      "affected_urls": [
+        "https://benchmark-acme.internal/blog/ai-trends-article-1",
+        "https://benchmark-acme.internal/blog/ai-trends-article-4",
+        "https://benchmark-acme.internal/blog/ai-trends-article-7",
+        "https://benchmark-acme.internal/blog/ai-trends-article-10",
+        "https://benchmark-acme.internal/blog/ai-trends-article-13"
+      ],
+      "evidence": "Declared Schema.org entity name/headline contradicts visible page headings: Page https://benchmark-acme.internal/blog/ai-trends-article-1 declares schema entity 'Jane Doe' while visible heading is 'AI Trends and Best Practices Part 1'. Contradictory entity facts cause AI models to discount site reliability.",
+      "root_cause_group": "RC-005",
+      "suggested_action": {
+        "summary": "Ensure Schema.org entity names and headlines correspond to the actual on-page title and headings.",
+        "priority": "medium",
+        "effort": "low"
+      },
+      "id": "F-005"
+    }
+  ]
+}

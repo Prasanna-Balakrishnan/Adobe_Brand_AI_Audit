@@ -170,8 +170,8 @@ def validate_report(report: dict) -> list[str]:
     return errors
 
 
-def run_all_skills(snapshot: dict) -> tuple[list[dict], list[dict]]:
-    """Run all audit skills and return (skill_outputs, all_findings_normalized_deduped)."""
+def run_all_skills(snapshot: dict) -> tuple[list[dict], list[dict], list[dict]]:
+    """Run all audit skills and return (skill_outputs, all_findings_normalized_deduped, strengths)."""
     skills = [
         lambda s: cra_mod.run_checks(s),
         lambda s: sdc_mod.run_checks(s),
@@ -2232,6 +2232,598 @@ class TestPhase7RealWorldGeneralization(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+
+
+# ─── Phase 5 Module Loader ────────────────────────────────────────────────────
+
+agd_mod = load_module(
+    REPO_ROOT / "skills/agent-discoverability-audit/scripts/audit.py",
+    "agd"
+)
+
+
+# ─── Phase 5: Agent Discoverability Tests ─────────────────────────────────────
+
+class TestAgentDiscoverabilityAudit(unittest.TestCase):
+    """
+    Regression tests for Phase 5: Marketplace / Agent Discoverability.
+
+    All tests verify that:
+    - Expected check IDs fire when the problematic condition is present.
+    - They do NOT fire on well-structured pages (false-positive regression).
+    - Findings target pages with high page_importance_score first.
+    - No Adobe-specific or domain-specific logic is used.
+    """
+
+    # ── AGD-001: Important pages missing machine-readable summary metadata ────
+
+    def test_agd001_fires_when_important_page_has_no_meta_description(self):
+        """AGD-001 fires when an important page has no meta description."""
+        pages = [
+            make_page(
+                url="https://shop.example.com/",
+                page_type="Homepage",
+                title="Shop Example",
+                meta_description="",        # missing
+                page_importance_score=90,
+            ),
+        ]
+        snap = make_snapshot(pages, start_url="https://shop.example.com/")
+        findings, _ = agd_mod.run_checks(snap)
+        agd001 = [f for f in findings if f.get("check_id") == "AGD-001"]
+        self.assertEqual(len(agd001), 1, f"Expected AGD-001 to fire. Got: {[f['check_id'] for f in findings]}")
+        self.assertEqual(agd001[0]["severity"], "high")
+        self.assertIn("https://shop.example.com/", agd001[0]["affected_urls"])
+
+    def test_agd001_fires_when_important_page_has_no_title(self):
+        """AGD-001 fires when an important page has a trivially short / missing title."""
+        pages = [
+            make_page(
+                url="https://example.com/pricing",
+                page_type="Pricing",
+                title="",                   # missing
+                meta_description="See our pricing plans.",
+                page_importance_score=85,
+            ),
+        ]
+        snap = make_snapshot(pages)
+        findings, _ = agd_mod.run_checks(snap)
+        agd001 = [f for f in findings if f.get("check_id") == "AGD-001"]
+        self.assertEqual(len(agd001), 1)
+
+    def test_agd001_does_not_fire_on_page_with_good_metadata(self):
+        """AGD-001 must NOT fire when an important page has both title and meta description."""
+        pages = [
+            make_page(
+                url="https://example.com/",
+                page_type="Homepage",
+                title="Example — Cloud Data Platform",
+                meta_description="Explore our data platform built for modern engineering teams.",
+                page_importance_score=95,
+            ),
+        ]
+        snap = make_snapshot(pages)
+        findings, _ = agd_mod.run_checks(snap)
+        agd001 = [f for f in findings if f.get("check_id") == "AGD-001"]
+        self.assertEqual(agd001, [], f"AGD-001 false positive: {agd001}")
+
+    def test_agd001_ignores_low_importance_pages(self):
+        """AGD-001 only checks pages at or above the importance threshold."""
+        pages = [
+            make_page(
+                url="https://example.com/tag/misc",
+                page_type="Other",
+                title="",
+                meta_description="",
+                page_importance_score=40,   # below threshold
+            ),
+        ]
+        snap = make_snapshot(pages)
+        findings, _ = agd_mod.run_checks(snap)
+        agd001 = [f for f in findings if f.get("check_id") == "AGD-001"]
+        self.assertEqual(agd001, [], "AGD-001 should not fire on low-importance pages")
+
+    # ── AGD-002: High-importance page not reachable from homepage ─────────────
+
+    def test_agd002_fires_when_very_important_page_unreachable(self):
+        """AGD-002 fires when a very important page cannot be reached within 3 hops."""
+        hp = make_page(
+            url="https://example.com/",
+            page_type="Homepage",
+            page_importance_score=95,
+            links=[
+                {"href": "https://example.com/about", "text": "About", "is_internal": True},
+            ],
+        )
+        # Orphaned pricing page — no link from homepage or about
+        pricing = make_page(
+            url="https://example.com/pricing",
+            page_type="Pricing",
+            page_importance_score=88,
+            links=[],
+        )
+        about = make_page(
+            url="https://example.com/about",
+            page_type="About",
+            page_importance_score=70,
+            links=[
+                {"href": "https://example.com/", "text": "Home", "is_internal": True},
+            ],
+        )
+        snap = make_snapshot([hp, about, pricing], start_url="https://example.com/")
+        findings, _ = agd_mod.run_checks(snap)
+        agd002 = [f for f in findings if f.get("check_id") == "AGD-002"]
+        self.assertEqual(len(agd002), 1, f"Expected AGD-002 to fire. Got: {[f['check_id'] for f in findings]}")
+        self.assertIn("https://example.com/pricing", agd002[0]["affected_urls"])
+
+    def test_agd002_does_not_fire_when_all_important_pages_reachable(self):
+        """AGD-002 must NOT fire when all very important pages are reachable within 3 hops."""
+        hp = make_page(
+            url="https://example.com/",
+            page_type="Homepage",
+            page_importance_score=95,
+            links=[
+                {"href": "https://example.com/pricing", "text": "Pricing", "is_internal": True},
+                {"href": "https://example.com/about", "text": "About", "is_internal": True},
+            ],
+        )
+        pricing = make_page(
+            url="https://example.com/pricing",
+            page_type="Pricing",
+            page_importance_score=88,
+        )
+        about = make_page(
+            url="https://example.com/about",
+            page_type="About",
+            page_importance_score=75,
+        )
+        snap = make_snapshot([hp, pricing, about], start_url="https://example.com/")
+        findings, _ = agd_mod.run_checks(snap)
+        agd002 = [f for f in findings if f.get("check_id") == "AGD-002"]
+        self.assertEqual(agd002, [], f"AGD-002 false positive: {agd002}")
+
+    def test_agd002_reachable_via_intermediate_hop(self):
+        """AGD-002 must NOT fire when a page is reachable via a 2-hop path."""
+        hp = make_page(
+            url="https://example.com/",
+            page_type="Homepage",
+            page_importance_score=95,
+            links=[{"href": "https://example.com/products", "text": "Products", "is_internal": True}],
+        )
+        products = make_page(
+            url="https://example.com/products",
+            page_type="Category",
+            page_importance_score=80,
+            links=[{"href": "https://example.com/products/widget", "text": "Widget", "is_internal": True}],
+        )
+        widget = make_page(
+            url="https://example.com/products/widget",
+            page_type="Product",
+            page_importance_score=85,
+        )
+        snap = make_snapshot([hp, products, widget], start_url="https://example.com/")
+        findings, _ = agd_mod.run_checks(snap)
+        agd002 = [f for f in findings if f.get("check_id") == "AGD-002"]
+        self.assertEqual(agd002, [], f"AGD-002 false positive on 2-hop path: {agd002}")
+
+    # ── AGD-003: Important pages missing actionable structured data ───────────
+
+    def test_agd003_fires_when_product_page_has_no_schema(self):
+        """AGD-003 fires when a Product page has no actionable JSON-LD."""
+        pages = [
+            make_page(
+                url="https://store.example.com/widget",
+                page_type="Product",
+                json_ld=[],
+                page_importance_score=80,
+            ),
+        ]
+        snap = make_snapshot(pages)
+        findings, _ = agd_mod.run_checks(snap)
+        agd003 = [f for f in findings if f.get("check_id") == "AGD-003"]
+        self.assertEqual(len(agd003), 1, f"Expected AGD-003 to fire. Got: {[f['check_id'] for f in findings]}")
+        self.assertEqual(agd003[0]["severity"], "high")
+
+    def test_agd003_does_not_fire_on_product_with_product_schema(self):
+        """AGD-003 must NOT fire when Product page has Product JSON-LD."""
+        pages = [
+            make_page(
+                url="https://store.example.com/widget",
+                page_type="Product",
+                page_importance_score=80,
+                json_ld=[{
+                    "@context": "https://schema.org",
+                    "@type": "Product",
+                    "name": "Widget Pro",
+                    "offers": {"@type": "Offer", "price": "29.99"}
+                }],
+            ),
+        ]
+        snap = make_snapshot(pages)
+        findings, _ = agd_mod.run_checks(snap)
+        agd003 = [f for f in findings if f.get("check_id") == "AGD-003"]
+        self.assertEqual(agd003, [], f"AGD-003 false positive: {agd003}")
+
+    def test_agd003_context_aware_skips_generic_other_pages(self):
+        """AGD-003 must NOT fire on pages of type 'Other' or 'Privacy' (no schema expected)."""
+        pages = [
+            make_page(
+                url="https://example.com/privacy",
+                page_type="Other",
+                json_ld=[],
+                page_importance_score=75,
+            ),
+        ]
+        snap = make_snapshot(pages)
+        findings, _ = agd_mod.run_checks(snap)
+        agd003 = [f for f in findings if f.get("check_id") == "AGD-003"]
+        self.assertEqual(agd003, [], f"AGD-003 false positive on non-content page: {agd003}")
+
+    def test_agd003_detects_schema_in_graph_node(self):
+        """AGD-003 must NOT fire when actionable schema is inside @graph."""
+        pages = [
+            make_page(
+                url="https://example.com/events/conf",
+                page_type="Event",
+                page_importance_score=82,
+                json_ld=[{
+                    "@context": "https://schema.org",
+                    "@graph": [
+                        {"@type": "Event", "name": "Annual Conference 2026"}
+                    ]
+                }],
+            ),
+        ]
+        snap = make_snapshot(pages)
+        findings, _ = agd_mod.run_checks(snap)
+        agd003 = [f for f in findings if f.get("check_id") == "AGD-003"]
+        self.assertEqual(agd003, [], f"AGD-003 false positive on @graph schema: {agd003}")
+
+    # ── AGD-004: Missing sitemap signal ───────────────────────────────────────
+
+    def test_agd004_fires_when_large_site_has_no_sitemap_signal(self):
+        """AGD-004 fires when >3 pages are crawled and no sitemap is detectable."""
+        pages = [
+            make_page(url=f"https://example.com/p{i}", page_type="Article", page_importance_score=60)
+            for i in range(5)
+        ]
+        snap = make_snapshot(pages)
+        # No sitemap reference in meta or links
+        findings, _ = agd_mod.run_checks(snap)
+        agd004 = [f for f in findings if f.get("check_id") == "AGD-004"]
+        self.assertEqual(len(agd004), 1, f"Expected AGD-004. Got: {[f['check_id'] for f in findings]}")
+        self.assertEqual(agd004[0]["severity"], "medium")
+
+    def test_agd004_does_not_fire_when_sitemap_in_meta(self):
+        """AGD-004 must NOT fire when sitemap_url is present in crawl_meta."""
+        pages = [
+            make_page(url=f"https://example.com/p{i}", page_type="Article")
+            for i in range(5)
+        ]
+        snap = make_snapshot(pages)
+        snap["crawl_meta"]["sitemap_url"] = "https://example.com/sitemap.xml"
+        findings, _ = agd_mod.run_checks(snap)
+        agd004 = [f for f in findings if f.get("check_id") == "AGD-004"]
+        self.assertEqual(agd004, [], f"AGD-004 false positive when sitemap_url set: {agd004}")
+
+    def test_agd004_does_not_fire_on_tiny_site(self):
+        """AGD-004 must NOT fire for sites with 3 or fewer pages (sitemaps not critical)."""
+        pages = [
+            make_page(url="https://example.com/", page_type="Homepage"),
+            make_page(url="https://example.com/about", page_type="About"),
+        ]
+        snap = make_snapshot(pages)
+        findings, _ = agd_mod.run_checks(snap)
+        agd004 = [f for f in findings if f.get("check_id") == "AGD-004"]
+        self.assertEqual(agd004, [], f"AGD-004 false positive on tiny site: {agd004}")
+
+    def test_agd004_detects_sitemap_via_robots_txt(self):
+        """AGD-004 must NOT fire when robots.txt references a sitemap."""
+        pages = [
+            make_page(url=f"https://example.com/p{i}", page_type="Article")
+            for i in range(5)
+        ]
+        snap = make_snapshot(pages)
+        snap["crawl_meta"]["robots_txt"] = "User-agent: *\nAllow: /\nSitemap: https://example.com/sitemap.xml\n"
+        findings, _ = agd_mod.run_checks(snap)
+        agd004 = [f for f in findings if f.get("check_id") == "AGD-004"]
+        self.assertEqual(agd004, [], f"AGD-004 false positive when robots.txt has Sitemap: {agd004}")
+
+    # ── AGD-005: Non-canonical URL patterns on important pages ────────────────
+
+    def test_agd005_fires_on_mixed_case_path(self):
+        """AGD-005 fires when an important page URL has mixed-case path segments."""
+        pages = [
+            make_page(
+                url="https://example.com/Products/Widget",   # mixed case
+                page_type="Product",
+                page_importance_score=80,
+            ),
+        ]
+        snap = make_snapshot(pages)
+        findings, _ = agd_mod.run_checks(snap)
+        agd005 = [f for f in findings if f.get("check_id") == "AGD-005"]
+        self.assertEqual(len(agd005), 1, f"Expected AGD-005 on mixed-case URL. Got: {[f['check_id'] for f in findings]}")
+
+    def test_agd005_fires_on_tracking_params_in_url(self):
+        """AGD-005 fires when an important page URL contains tracking query parameters."""
+        pages = [
+            make_page(
+                url="https://example.com/pricing?utm_source=newsletter",
+                page_type="Pricing",
+                page_importance_score=85,
+            ),
+        ]
+        snap = make_snapshot(pages)
+        findings, _ = agd_mod.run_checks(snap)
+        agd005 = [f for f in findings if f.get("check_id") == "AGD-005"]
+        self.assertEqual(len(agd005), 1, f"Expected AGD-005 on tracking param URL. Got: {[f['check_id'] for f in findings]}")
+
+    def test_agd005_does_not_fire_on_clean_lowercase_url(self):
+        """AGD-005 must NOT fire on a clean lowercase URL with no tracking params."""
+        pages = [
+            make_page(
+                url="https://example.com/pricing",
+                page_type="Pricing",
+                page_importance_score=85,
+            ),
+        ]
+        snap = make_snapshot(pages)
+        findings, _ = agd_mod.run_checks(snap)
+        agd005 = [f for f in findings if f.get("check_id") == "AGD-005"]
+        self.assertEqual(agd005, [], f"AGD-005 false positive on clean URL: {agd005}")
+
+    # ── AGD-006: Content cluster isolation ────────────────────────────────────
+
+    def test_agd006_fires_when_blog_posts_not_interlinked(self):
+        """AGD-006 fires when multiple important blog posts share a cluster but have no cross-links."""
+        # 4 blog posts — all important, none linking to each other
+        posts = [
+            make_page(
+                url=f"https://example.com/blog/post-{i}",
+                page_type="Article",
+                page_importance_score=65,
+                links=[
+                    {"href": "https://example.com/", "text": "Home", "is_internal": True}
+                    # No links to sibling blog posts
+                ],
+            )
+            for i in range(1, 5)
+        ]
+        snap = make_snapshot(posts + [make_page(url="https://example.com/", page_type="Homepage")])
+        findings, _ = agd_mod.run_checks(snap)
+        agd006 = [f for f in findings if f.get("check_id") == "AGD-006"]
+        self.assertEqual(len(agd006), 1, f"Expected AGD-006. Got: {[f['check_id'] for f in findings]}")
+        self.assertIn("blog", agd006[0]["evidence"].lower())
+
+    def test_agd006_does_not_fire_when_posts_interlinked(self):
+        """AGD-006 must NOT fire when blog posts link to sibling posts in the same cluster."""
+        post_urls = [f"https://example.com/blog/post-{i}" for i in range(1, 5)]
+        posts = [
+            make_page(
+                url=url,
+                page_type="Article",
+                page_importance_score=65,
+                links=[
+                    {"href": other_url, "text": "Related Post", "is_internal": True}
+                    for other_url in post_urls if other_url != url
+                ],
+            )
+            for url in post_urls
+        ]
+        snap = make_snapshot(posts)
+        findings, _ = agd_mod.run_checks(snap)
+        agd006 = [f for f in findings if f.get("check_id") == "AGD-006"]
+        self.assertEqual(agd006, [], f"AGD-006 false positive on interlinked posts: {agd006}")
+
+    def test_agd006_ignores_single_page_clusters(self):
+        """AGD-006 must NOT fire when a path prefix has only 1 page (no cluster to form)."""
+        pages = [
+            make_page(
+                url="https://example.com/docs/intro",
+                page_type="Documentation",
+                page_importance_score=70,
+                links=[],
+            ),
+        ]
+        snap = make_snapshot(pages)
+        findings, _ = agd_mod.run_checks(snap)
+        agd006 = [f for f in findings if f.get("check_id") == "AGD-006"]
+        self.assertEqual(agd006, [], f"AGD-006 false positive on single-page cluster: {agd006}")
+
+    # ── AGD-007: Thin agent-visible content on important page ─────────────────
+
+    def test_agd007_fires_on_thin_product_page(self):
+        """AGD-007 fires when an important Product page has very little visible text."""
+        pages = [
+            make_page(
+                url="https://store.example.com/item-x",
+                page_type="Product",
+                visible_text_length=80,  # below 200 char threshold
+                page_importance_score=80,
+            ),
+        ]
+        snap = make_snapshot(pages)
+        findings, _ = agd_mod.run_checks(snap)
+        agd007 = [f for f in findings if f.get("check_id") == "AGD-007"]
+        self.assertEqual(len(agd007), 1, f"Expected AGD-007. Got: {[f['check_id'] for f in findings]}")
+        self.assertEqual(agd007[0]["severity"], "medium")
+
+    def test_agd007_does_not_fire_on_rich_product_page(self):
+        """AGD-007 must NOT fire on an important Product page with adequate visible text."""
+        pages = [
+            make_page(
+                url="https://store.example.com/widget-pro",
+                page_type="Product",
+                visible_text_length=1200,
+                page_importance_score=80,
+            ),
+        ]
+        snap = make_snapshot(pages)
+        findings, _ = agd_mod.run_checks(snap)
+        agd007 = [f for f in findings if f.get("check_id") == "AGD-007"]
+        self.assertEqual(agd007, [], f"AGD-007 false positive on rich page: {agd007}")
+
+    def test_agd007_ignores_non_content_page_types(self):
+        """AGD-007 must NOT fire on page types not expected to have rich body content."""
+        pages = [
+            make_page(
+                url="https://example.com/search",
+                page_type="Search",
+                visible_text_length=50,
+                page_importance_score=70,
+            ),
+        ]
+        snap = make_snapshot(pages)
+        findings, _ = agd_mod.run_checks(snap)
+        agd007 = [f for f in findings if f.get("check_id") == "AGD-007"]
+        self.assertEqual(agd007, [], f"AGD-007 false positive on Search page type: {agd007}")
+
+    # ── Clean site — all AGD checks must yield zero false positives ──────────
+
+    def test_clean_site_zero_agd_false_positives(self):
+        """
+        A well-structured site with all AGD best practices applied must generate
+        zero AGD findings (comprehensive false-positive regression).
+        """
+        blog_urls = [f"https://news.example.com/blog/article-{i}" for i in range(1, 4)]
+        hp = make_page(
+            url="https://news.example.com/",
+            page_type="Homepage",
+            title="News Example — Trusted Industry Coverage",
+            meta_description="In-depth reporting on technology, science, and culture.",
+            page_importance_score=100,
+            json_ld=[{
+                "@context": "https://schema.org",
+                "@type": "WebSite",
+                "name": "News Example",
+                "url": "https://news.example.com/"
+            }],
+            links=[
+                {"href": url, "text": f"Article {i}", "is_internal": True}
+                for i, url in enumerate(blog_urls, 1)
+            ] + [
+                {"href": "https://news.example.com/about", "text": "About", "is_internal": True}
+            ],
+        )
+        blog_posts = [
+            make_page(
+                url=url,
+                page_type="Article",
+                title=f"Article {i} — Deep Analysis",
+                meta_description=f"An in-depth look at industry trends, report {i}.",
+                page_importance_score=72,
+                visible_text_length=900,
+                json_ld=[{"@context": "https://schema.org", "@type": "Article", "headline": f"Article {i}"}],
+                links=[
+                    {"href": "https://news.example.com/", "text": "Home", "is_internal": True},
+                ] + [
+                    {"href": other_url, "text": "Related", "is_internal": True}
+                    for other_url in blog_urls if other_url != url
+                ],
+            )
+            for i, url in enumerate(blog_urls, 1)
+        ]
+        about = make_page(
+            url="https://news.example.com/about",
+            page_type="About",
+            title="About News Example",
+            meta_description="Learn about our editorial team and standards.",
+            page_importance_score=65,
+        )
+        pages = [hp] + blog_posts + [about]
+        snap = make_snapshot(pages, start_url="https://news.example.com/")
+        snap["crawl_meta"]["sitemap_url"] = "https://news.example.com/sitemap.xml"
+
+        findings, strengths = agd_mod.run_checks(snap)
+        agd_findings = [f for f in findings if f.get("check_id", "").startswith("AGD-")]
+        self.assertEqual(
+            agd_findings, [],
+            f"Expected zero AGD findings on clean site. Got: {[(f['check_id'], f['title']) for f in agd_findings]}"
+        )
+        # Confirm at least some strengths are generated
+        self.assertGreater(len(strengths), 0, "Clean site should generate strengths")
+
+    # ── Finding schema validation ─────────────────────────────────────────────
+
+    def test_agd_findings_have_required_fields(self):
+        """All AGD findings must have the required schema fields."""
+        pages = [
+            make_page(
+                url="https://deficient.example.com/",
+                page_type="Homepage",
+                title="",
+                meta_description="",
+                page_importance_score=90,
+                json_ld=[],
+                links=[],
+                visible_text_length=50,
+            ),
+        ]
+        snap = make_snapshot(pages)
+        findings, _ = agd_mod.run_checks(snap)
+        for f in findings:
+            with self.subTest(check_id=f.get("check_id")):
+                self.assertIn("check_id", f)
+                self.assertIn("title", f)
+                self.assertIn("category", f)
+                self.assertIn("severity", f)
+                self.assertIn("confidence", f)
+                self.assertIn("affected_urls", f)
+                self.assertIn("evidence", f)
+                self.assertIn("suggested_action", f)
+                self.assertIsInstance(f["affected_urls"], list)
+                self.assertGreater(len(f["affected_urls"]), 0)
+                self.assertIn("summary", f["suggested_action"])
+                self.assertIn(f["severity"], {"critical", "high", "medium", "low"})
+                self.assertIn(f["category"], {"discoverability", "engagement"})
+                self.assertIn(f["confidence"], {"high", "medium", "low"})
+
+    def test_agd_manifest_includes_new_skill(self):
+        """marketplace.json must include agent-discoverability-audit as a registered skill."""
+        manifest_path = REPO_ROOT / "marketplace.json"
+        with open(manifest_path, encoding="utf-8") as f:
+            manifest = json.load(f)
+        skill_ids = [s.get("id") or s.get("name") for s in manifest["skills"]]
+        self.assertIn(
+            "agent-discoverability-audit", skill_ids,
+            f"agent-discoverability-audit not found in marketplace.json skills: {skill_ids}"
+        )
+
+    def test_agd_skill_in_orchestrator_audit_skills(self):
+        """build_report.py AUDIT_SKILLS must include agent-discoverability-audit."""
+        skill_names = [s["name"] for s in build_mod.AUDIT_SKILLS]
+        self.assertIn(
+            "agent-discoverability-audit", skill_names,
+            f"agent-discoverability-audit not in build_report.AUDIT_SKILLS: {skill_names}"
+        )
+
+    def test_agd_results_are_deterministic(self):
+        """AGD findings must be identical across multiple runs on the same snapshot."""
+        pages = [
+            make_page(
+                url="https://example.com/",
+                page_type="Homepage",
+                title="",
+                meta_description="",
+                page_importance_score=95,
+                json_ld=[],
+            )
+        ] + [
+            make_page(
+                url=f"https://example.com/item-{i}",
+                page_type="Product",
+                page_importance_score=70,
+                json_ld=[],
+                links=[],
+            )
+            for i in range(1, 5)
+        ]
+        snap = make_snapshot(pages)
+        run1_ids = sorted(f["check_id"] for f in agd_mod.run_checks(snap)[0])
+        run2_ids = sorted(f["check_id"] for f in agd_mod.run_checks(snap)[0])
+        self.assertEqual(run1_ids, run2_ids, "AGD findings must be deterministic across runs")
+
 
 
 

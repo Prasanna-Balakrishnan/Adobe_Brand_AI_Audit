@@ -93,7 +93,7 @@ def normalize_finding(raw: dict, skill_name: str) -> dict | None:
         "source_skill": skill_name,
         "check_id": str(raw.get("check_id", "")),
         "tags": [str(t).lower() for t in raw.get("tags", []) if t],
-        "affected_urls": [str(u) for u in affected_urls if u],
+        "affected_urls": sorted(list(dict.fromkeys(str(u) for u in affected_urls if u))),
         "evidence": evidence,
         "root_cause_group": None,  # assigned by deduplicate_findings.py
         "suggested_action": {

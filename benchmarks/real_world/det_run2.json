@@ -1,0 +1,472 @@
+{
+  "site": "www.w3.org",
+  "audited_at": "2026-09-08T19:41:00.655213Z",
+  "run_info": {
+    "marketplace_version": "1.0.0",
+    "query_input": "https://www.w3.org/",
+    "target_url": "https://www.w3.org/",
+    "skills_invoked": [
+      "crawlability-render-audit",
+      "structured-data-content-audit",
+      "entity-identity-audit",
+      "freshness-corroboration-audit",
+      "engagement-audit",
+      "agent-discoverability-audit",
+      "proactive-opportunities-audit"
+    ],
+    "failed_skills": [],
+    "pages_crawled": 20,
+    "max_pages": 20,
+    "crawl_duration_seconds": 0.0,
+    "robots_txt_respected": true,
+    "crawl_coverage": {
+      "pages_discovered": 299,
+      "pages_crawled": 20,
+      "pages_skipped": 65,
+      "failed_pages": [],
+      "crawl_duration_seconds": 0.0,
+      "robots_status": 200,
+      "js_rendering_status": "disabled"
+    }
+  },
+  "summary": {
+    "total_findings": 9,
+    "critical": 0,
+    "high": 4,
+    "medium": 5,
+    "low": 0,
+    "ai_readiness_score": 40,
+    "overall_score": 70,
+    "by_category": {
+      "discoverability": 8,
+      "engagement": 1
+    },
+    "agent_journey_scores": {
+      "reach": 39,
+      "read": 62,
+      "understand": 47,
+      "trust": 84,
+      "navigate": 76,
+      "act": 85,
+      "overall_journey_score": 66
+    }
+  },
+  "agent_journey_scores": {
+    "reach": 39,
+    "read": 62,
+    "understand": 47,
+    "trust": 84,
+    "navigate": 76,
+    "act": 85,
+    "overall_journey_score": 66
+  },
+  "agent_answerability": [
+    {
+      "question": "What does this company do?",
+      "category": "identity",
+      "status": "Conflicting",
+      "confidence": "low",
+      "evidence": "Contradictory entity identity or company descriptions detected across crawled pages.",
+      "sources": [
+        "https://www.w3.org/",
+        "https://www.w3.org/standards/about/"
+      ],
+      "recommendation": "Consider aligning the company mission and description consistently across the homepage, about pages, and structured data."
+    },
+    {
+      "question": "What products/services does it offer?",
+      "category": "offerings",
+      "status": "Not found",
+      "confidence": "low",
+      "evidence": "No dedicated Product or Service pages discovered in snapshot.",
+      "sources": [],
+      "recommendation": "Consider publishing dedicated pages detailing your core products, services, or solutions."
+    },
+    {
+      "question": "Where is it located?",
+      "category": "location",
+      "status": "Not found",
+      "confidence": "low",
+      "evidence": "No physical address or geographic location declared in JSON-LD or contact text.",
+      "sources": [],
+      "recommendation": "Consider adding physical address or service area in structured data and contact pages."
+    },
+    {
+      "question": "What does the product cost?",
+      "category": "pricing",
+      "status": "Not found",
+      "confidence": "low",
+      "evidence": "No clear pricing, price tiers, or pricing model mentioned in crawled pages.",
+      "sources": [],
+      "recommendation": "Consider providing transparent baseline pricing, tiers, or a pricing calculator to assist AI and user evaluation."
+    },
+    {
+      "question": "How can users contact it?",
+      "category": "contact",
+      "status": "Not found",
+      "confidence": "low",
+      "evidence": "No email, telephone number, or dedicated contact page discovered.",
+      "sources": [],
+      "recommendation": "Consider publishing direct contact information such as email or telephone on a dedicated contact page."
+    }
+  ],
+  "top_priorities": [
+    {
+      "id": "F-002",
+      "title": "Important pages missing agent-actionable structured data (1 page(s))",
+      "category": "discoverability",
+      "severity": "high",
+      "confidence": "high",
+      "affected_pages_count": 5,
+      "suggested_action": "Add appropriate Schema.org JSON-LD to important pages: Product/Offer on product pages, Event on event pages, Organization/WebSite on the homepage. Focus on pages with highest importance scores first.",
+      "priority_score": 61.9,
+      "priority_rank": 1
+    },
+    {
+      "id": "F-003",
+      "title": "No canonical tags on any crawled page",
+      "category": "discoverability",
+      "severity": "high",
+      "confidence": "high",
+      "affected_pages_count": 5,
+      "suggested_action": "Add <link rel='canonical'> to every page pointing to its preferred URL.",
+      "priority_score": 56.2,
+      "priority_rank": 2
+    },
+    {
+      "id": "F-001",
+      "title": "Important pages lack machine-readable summary metadata (1 page(s))",
+      "category": "discoverability",
+      "severity": "high",
+      "confidence": "high",
+      "affected_pages_count": 1,
+      "suggested_action": "Ensure every important page has a descriptive <title> (10-70 chars) and <meta name='description'> (50-160 chars) capturing the page's core value.",
+      "priority_score": 45.4,
+      "priority_rank": 3
+    },
+    {
+      "id": "F-004",
+      "title": "No contact page or contact information found",
+      "category": "discoverability",
+      "severity": "high",
+      "confidence": "medium",
+      "affected_pages_count": 1,
+      "suggested_action": "Add a Contact page with email, phone, and/or address.",
+      "priority_score": 34.6,
+      "priority_rank": 4
+    },
+    {
+      "id": "F-009",
+      "title": "Alt text missing on 84/112 images (75%)",
+      "category": "discoverability",
+      "severity": "medium",
+      "confidence": "high",
+      "affected_pages_count": 5,
+      "suggested_action": "Add descriptive alt text to all meaningful images.",
+      "priority_score": 22.5,
+      "priority_rank": 5
+    }
+  ],
+  "findings": [
+    {
+      "id": "F-001",
+      "title": "Important pages lack machine-readable summary metadata (1 page(s))",
+      "category": "discoverability",
+      "severity": "high",
+      "confidence": "high",
+      "source_skill": "agent-discoverability-audit",
+      "tags": [
+        "meta-description",
+        "page-title",
+        "machine-readable",
+        "discoverability"
+      ],
+      "affected_urls": [
+        "https://www.w3.org/"
+      ],
+      "evidence": "1 of 5 important page(s) (importance >= 60) are missing title or meta description. Sample: https://www.w3.org/ (no title). AI agents use these signals to determine page relevance without full rendering.",
+      "root_cause_group": "RC-001",
+      "suggested_action": {
+        "summary": "Ensure every important page has a descriptive <title> (10-70 chars) and <meta name='description'> (50-160 chars) capturing the page's core value.",
+        "priority": "high",
+        "effort": "low"
+      }
+    },
+    {
+      "id": "F-002",
+      "title": "Important pages missing agent-actionable structured data (1 page(s))",
+      "category": "discoverability",
+      "severity": "high",
+      "confidence": "high",
+      "source_skill": "agent-discoverability-audit",
+      "tags": [
+        "json-ld",
+        "schema-org",
+        "structured-data",
+        "discoverability",
+        "machine-readable",
+        "entity-identity"
+      ],
+      "affected_urls": [
+        "https://www.w3.org/",
+        "https://www.w3.org/International/i18n-drafts/nav/about",
+        "https://www.w3.org/about/positive-work-environment/",
+        "https://www.w3.org/about/press-media/",
+        "https://www.w3.org/standards/about/"
+      ],
+      "evidence": "1 important page(s) of types that benefit from structured data have no actionable JSON-LD: 1 Homepage. Without structured data, AI agents cannot reliably extract offers, schedules, or entity details. [Also: structured-data-content-audit: Crawled 20 pages; 0/20 contain JSON-LD structured data. AI assistants cannot extract machine-readable facts about this site.] [Also: structured-data-content-audit: Homepage (https://www.w3.org/) has no JSON-LD with an Organization, WebSite, or brand entity type. Found types: none. AI assistants cannot reliably identify and describe this brand.]",
+      "root_cause_group": "RC-002",
+      "suggested_action": {
+        "summary": "Add appropriate Schema.org JSON-LD to important pages: Product/Offer on product pages, Event on event pages, Organization/WebSite on the homepage. Focus on pages with highest importance scores first.",
+        "priority": "high",
+        "effort": "medium"
+      },
+      "merged_from_skills": [
+        "agent-discoverability-audit",
+        "structured-data-content-audit"
+      ]
+    },
+    {
+      "id": "F-003",
+      "title": "No canonical tags on any crawled page",
+      "category": "discoverability",
+      "severity": "high",
+      "confidence": "high",
+      "source_skill": "crawlability-render-audit",
+      "tags": [
+        "canonical",
+        "crawlability"
+      ],
+      "affected_urls": [
+        "https://www.w3.org/",
+        "https://www.w3.org/International/i18n-drafts/nav/about",
+        "https://www.w3.org/about/positive-work-environment/",
+        "https://www.w3.org/about/press-media/",
+        "https://www.w3.org/standards/about/"
+      ],
+      "evidence": "0 of 20 crawled pages contain a <link rel='canonical'> tag. Without canonicals, duplicate content dilutes AI citation quality.",
+      "root_cause_group": "RC-003",
+      "suggested_action": {
+        "summary": "Add <link rel='canonical'> to every page pointing to its preferred URL.",
+        "priority": "high",
+        "effort": "medium"
+      }
+    },
+    {
+      "id": "F-004",
+      "title": "No contact page or contact information found",
+      "category": "discoverability",
+      "severity": "high",
+      "confidence": "medium",
+      "source_skill": "entity-identity-audit",
+      "tags": [
+        "contact-page",
+        "entity-identity"
+      ],
+      "affected_urls": [
+        "https://www.w3.org/"
+      ],
+      "evidence": "No URL matches contact-page patterns and no email, phone, or address detected in visible text samples across 20 crawled pages.",
+      "root_cause_group": "RC-004",
+      "suggested_action": {
+        "summary": "Add a Contact page with email, phone, and/or address.",
+        "priority": "high",
+        "effort": "low"
+      }
+    },
+    {
+      "id": "F-005",
+      "title": "No sitemap signal detected — bulk agent discovery may be impaired",
+      "category": "discoverability",
+      "severity": "medium",
+      "confidence": "medium",
+      "source_skill": "agent-discoverability-audit",
+      "tags": [
+        "discoverability",
+        "crawlability",
+        "indexability",
+        "sitemap"
+      ],
+      "affected_urls": [
+        "https://www.w3.org/"
+      ],
+      "evidence": "No sitemap.xml reference found in robots.txt, crawl metadata, or any of the 20 crawled pages. AI indexing systems rely on sitemaps for efficient bulk content discovery, especially for sites with many pages.",
+      "root_cause_group": "RC-005",
+      "suggested_action": {
+        "summary": "Consider publishing an XML sitemap at /sitemap.xml and referencing it in robots.txt (Sitemap: https://yourdomain.com/sitemap.xml). Include all important pages with <lastmod> dates.",
+        "priority": "medium",
+        "effort": "low"
+      }
+    },
+    {
+      "id": "F-006",
+      "title": "Important pages have non-canonical URL patterns (1 page(s))",
+      "category": "discoverability",
+      "severity": "medium",
+      "confidence": "high",
+      "source_skill": "agent-discoverability-audit",
+      "tags": [
+        "url-hygiene",
+        "canonical-conflict",
+        "discoverability",
+        "indexability"
+      ],
+      "affected_urls": [
+        "https://www.w3.org/International/i18n-drafts/nav/about"
+      ],
+      "evidence": "1 important page(s) have non-canonical URL patterns: https://www.w3.org/International/i18n-drafts/nav/about (mixed-case path). AI systems that deduplicate by URL may treat these as separate pages or fail to consolidate their authority.",
+      "root_cause_group": "RC-006",
+      "suggested_action": {
+        "summary": "Ensure all important page URLs use lowercase paths, no tracking parameters, and no duplicate slashes. Add canonical <link> tags to consolidate authority if multiple URL variants exist.",
+        "priority": "medium",
+        "effort": "medium"
+      }
+    },
+    {
+      "id": "F-007",
+      "title": "Core orientation page(s) isolated from homepage navigation (6 page(s))",
+      "category": "engagement",
+      "severity": "medium",
+      "confidence": "high",
+      "source_skill": "engagement-audit",
+      "tags": [
+        "navigation",
+        "internal-linking"
+      ],
+      "affected_urls": [
+        "https://www.w3.org/about/council/",
+        "https://www.w3.org/about/functional-organization/",
+        "https://www.w3.org/about/history/",
+        "https://www.w3.org/ja/standards/about/",
+        "https://www.w3.org/zh-hans/standards/about/"
+      ],
+      "evidence": "6 orientation page(s) exist in the site crawl but are not directly linked from the homepage: https://www.w3.org/zh-hans/standards/about/ (About), https://www.w3.org/ja/standards/about/ (About), https://www.w3.org/about/functional-organization/ (About). Key brand identity and contactability pages should be reachable from top-level site navigation.",
+      "root_cause_group": "RC-007",
+      "suggested_action": {
+        "summary": "Add clear header or footer navigation links on the homepage to all core orientation pages.",
+        "priority": "medium",
+        "effort": "low"
+      }
+    },
+    {
+      "id": "F-008",
+      "title": "Inconsistent organization identity across key page elements (3 variations)",
+      "category": "discoverability",
+      "severity": "medium",
+      "confidence": "high",
+      "source_skill": "entity-identity-audit",
+      "tags": [
+        "entity-name",
+        "entity-identity",
+        "identity-drift"
+      ],
+      "affected_urls": [
+        "https://www.w3.org/"
+      ],
+      "evidence": "Disparate identity signals detected vs canonical 'Making the web work': homepage_title ('W3C'), about_h1 ('关于我们'). AI search agents cross-reference title, H1, and JSON-LD to ground entity identity.",
+      "root_cause_group": "RC-008",
+      "suggested_action": {
+        "summary": "Align organization name consistently across Title, H1 headings, and JSON-LD schema.",
+        "priority": "high",
+        "effort": "low"
+      }
+    },
+    {
+      "id": "F-009",
+      "title": "Alt text missing on 84/112 images (75%)",
+      "category": "discoverability",
+      "severity": "medium",
+      "confidence": "high",
+      "source_skill": "structured-data-content-audit",
+      "tags": [
+        "alt-text"
+      ],
+      "affected_urls": [
+        "https://www.w3.org/",
+        "https://www.w3.org/International/i18n-drafts/nav/about",
+        "https://www.w3.org/about/",
+        "https://www.w3.org/about/corporation/",
+        "https://www.w3.org/about/council/"
+      ],
+      "evidence": "84 of 112 images across 20 page(s) have empty alt attributes. Image content is invisible to AI crawlers.",
+      "root_cause_group": "RC-009",
+      "suggested_action": {
+        "summary": "Add descriptive alt text to all meaningful images.",
+        "priority": "medium",
+        "effort": "medium"
+      }
+    }
+  ],
+  "proactive_recommendations": [
+    {
+      "id": "PRO-001",
+      "title": "Add BreadcrumbList structured data to reflect site hierarchy",
+      "category": "discoverability",
+      "rationale": "3 crawled pages are at depth > 2, suggesting a hierarchical structure, but no BreadcrumbList JSON-LD was found. Breadcrumbs help AI agents understand content context and navigation paths.",
+      "priority": "low"
+    },
+    {
+      "id": "PRO-002",
+      "title": "Add HowTo structured data to guide and tutorial pages",
+      "category": "discoverability",
+      "rationale": "2 page(s) have headings suggesting step-by-step guides, but no HowTo JSON-LD was found. HowTo schema is among the highest-ROI types for 'how do I' AI assistant queries.",
+      "priority": "medium"
+    }
+  ],
+  "strengths": [
+    {
+      "title": "No noindex directives on any crawled page",
+      "category": "discoverability"
+    },
+    {
+      "title": "Homepage returns HTTP 200",
+      "category": "discoverability"
+    },
+    {
+      "title": "All crawled pages return HTTP 200",
+      "category": "discoverability"
+    },
+    {
+      "title": "All crawled pages have content without JS rendering",
+      "category": "discoverability"
+    },
+    {
+      "title": "robots.txt present and permits crawling",
+      "category": "discoverability"
+    },
+    {
+      "title": "About page present for entity context",
+      "category": "discoverability"
+    },
+    {
+      "title": "Content appears fresh (recent modification dates on time-sensitive pages)",
+      "category": "discoverability"
+    },
+    {
+      "title": "Homepage has a clear primary call-to-action",
+      "category": "engagement"
+    },
+    {
+      "title": "Site navigation has descriptive text labels",
+      "category": "engagement"
+    },
+    {
+      "title": "No dead-end pages found — all pages have onward navigation",
+      "category": "engagement"
+    },
+    {
+      "title": "All high-importance pages are reachable from homepage within 3 hops",
+      "category": "discoverability"
+    }
+  ],
+  "methodology_and_limitations": {
+    "audit_scope": "Evaluates technical AI discoverability, content extractability, structured data completeness, and citation readiness based on an observable crawl snapshot.",
+    "deterministic_scoring": "All scoring formulas and journey deductions are 100% deterministic and rule-grounded, measuring concrete technical readiness rather than subjective or volatile LLM search rankings.",
+    "read_only_guarantee": "This audit operates purely in read-only analysis mode without modifying site infrastructure, publishing changes, or executing non-idempotent operations.",
+    "limitations": [
+      "Crawl depth is capped at 20 pages per run under standard execution parameters.",
+      "Dynamic Single-Page Application (SPA) content requires headless rendering with Playwright fallback when JavaScript rendering is enabled.",
+      "Content behind authentication, paywalls, or strict CAPTCHA barriers is outside audit scope."
+    ]
+  }
+}

@@ -80,6 +80,11 @@ def extract_target_url(query: str) -> str:
         if brand and brand not in ("a", "the", "this", "our"):
             return f"https://www.{brand}.com"
 
+    # 4. Check for generic bare brand/domain name (e.g. 'amazon', 'flipkart', 'microsoft', 'adobe')
+    # Single alphanumeric/hyphenated token without dots or slashes
+    if re.match(r'^[a-zA-Z0-9][-a-zA-Z0-9]*$', q):
+        return f"https://www.{q.lower()}.com"
+
     # Fallback
     if not q.startswith("http://") and not q.startswith("https://"):
         return f"https://{q}"
@@ -111,6 +116,11 @@ AUDIT_SKILLS = [
         "name": "engagement-audit",
         "script": "skills/engagement-audit/scripts/audit.py",
         "output_name": "engagement_findings.json",
+    },
+    {
+        "name": "agent-discoverability-audit",
+        "script": "skills/agent-discoverability-audit/scripts/audit.py",
+        "output_name": "agd_findings.json",
     },
 ]
 
@@ -147,6 +157,27 @@ def find_marketplace_root() -> Path:
         here = here.parent
     # Fallback: current working directory
     return Path.cwd()
+
+
+_SKILL_MODULE_CACHE = {}
+
+
+def get_skill_module(script_path: Path, module_name: str):
+    """Dynamically load and cache a skill module for in-process execution."""
+    if module_name not in _SKILL_MODULE_CACHE:
+        try:
+            import importlib.util
+            spec = importlib.util.spec_from_file_location(module_name, str(script_path))
+            if spec and spec.loader:
+                mod = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(mod)
+                _SKILL_MODULE_CACHE[module_name] = mod
+            else:
+                return None
+        except Exception as e:
+            print(f"  [DEBUG] Could not load {module_name} in-process: {e}", file=sys.stderr)
+            return None
+    return _SKILL_MODULE_CACHE.get(module_name)
 
 
 def run_subprocess(cmd: list, label: str) -> tuple[bool, str]:
@@ -279,32 +310,58 @@ def main():
 
         print(f"  → {skill_name}", file=sys.stderr)
 
-        # Build command
-        cmd = [
-            sys.executable, skill_script,
-            "--snapshot", snapshot_path,
-            "--output", skill_output_path,
-        ]
-        if skill_name == "freshness-corroboration-audit":
-            cmd += ["--stale-threshold-days", str(args.stale_threshold_days)]
-
-        # Fault-tolerant execution (Req 25)
+        executed_in_process = False
         try:
-            ok, stderr_output = run_subprocess(cmd, skill_name)
-            if ok:
-                output = load_json_safe(skill_output_path, skill_name)
-                if output:
-                    skill_outputs.append(output)
-                    skills_invoked.append(skill_name)
+            mod_name = f"skill_{skill_name.replace('-', '_')}"
+            mod = get_skill_module(Path(skill_script), mod_name)
+            if mod and hasattr(mod, "run_checks"):
+                if skill_name == "freshness-corroboration-audit":
+                    findings, strengths = mod.run_checks(snapshot, stale_threshold_days=args.stale_threshold_days)
                 else:
-                    skills_invoked.append(f"{skill_name}_SKIPPED")
-                    failed_skills.append({"skill": skill_name, "error": "Output file missing or invalid"})
-            else:
-                skills_invoked.append(f"{skill_name}_FAILED")
-                failed_skills.append({"skill": skill_name, "error": stderr_output or "Non-zero exit code"})
+                    findings, strengths = mod.run_checks(snapshot)
+
+                output = {
+                    "skill": skill_name,
+                    "findings": findings,
+                    "strengths": strengths
+                }
+                with open(skill_output_path, "w", encoding="utf-8") as f:
+                    json.dump(output, f, indent=2, ensure_ascii=False)
+
+                skill_outputs.append(output)
+                skills_invoked.append(skill_name)
+                executed_in_process = True
         except Exception as exc:
-            skills_invoked.append(f"{skill_name}_ERROR")
-            failed_skills.append({"skill": skill_name, "error": str(exc)})
+            print(f"  [WARN] In-process execution of {skill_name} failed: {exc}; falling back to subprocess.", file=sys.stderr)
+            executed_in_process = False
+
+        if not executed_in_process:
+            # Build command
+            cmd = [
+                sys.executable, skill_script,
+                "--snapshot", snapshot_path,
+                "--output", skill_output_path,
+            ]
+            if skill_name == "freshness-corroboration-audit":
+                cmd += ["--stale-threshold-days", str(args.stale_threshold_days)]
+
+            # Fault-tolerant execution (Req 25)
+            try:
+                ok, stderr_output = run_subprocess(cmd, skill_name)
+                if ok:
+                    output = load_json_safe(skill_output_path, skill_name)
+                    if output:
+                        skill_outputs.append(output)
+                        skills_invoked.append(skill_name)
+                    else:
+                        skills_invoked.append(f"{skill_name}_SKIPPED")
+                        failed_skills.append({"skill": skill_name, "error": "Output file missing or invalid"})
+                else:
+                    skills_invoked.append(f"{skill_name}_FAILED")
+                    failed_skills.append({"skill": skill_name, "error": stderr_output or "Non-zero exit code"})
+            except Exception as exc:
+                skills_invoked.append(f"{skill_name}_ERROR")
+                failed_skills.append({"skill": skill_name, "error": str(exc)})
 
     # ── Step 3: Normalize ──────────────────────────────────────────────────
     print(f"\n[STEP 3] Normalizing findings...", file=sys.stderr)
@@ -326,7 +383,7 @@ def main():
     summary = compute_summary(deduped_findings, snapshot)
     journey_scores = compute_agent_journey_scores(deduped_findings)
     answerability = evaluate_agent_answerability(snapshot, deduped_findings)
-    top_priorities = compute_top_priorities(deduped_findings, limit=5)
+    top_priorities = compute_top_priorities(deduped_findings, limit=5, snapshot=snapshot)
     print(f"  AI Readiness Score: {summary['ai_readiness_score']}/100", file=sys.stderr)
     print(f"  Agent Journey Overall: {journey_scores['overall_journey_score']}/100", file=sys.stderr)
 
@@ -335,24 +392,42 @@ def main():
     proactive_output_path = str(work_dir / PROACTIVE_SKILL["output_name"])
     proactive_script = str(marketplace_root / PROACTIVE_SKILL["script"])
 
-    proactive_cmd = [
-        sys.executable, proactive_script,
-        "--snapshot", snapshot_path,
-        "--findings", dedup_path,
-        "--output", proactive_output_path,
-    ]
-    pro_ok, _ = run_subprocess(proactive_cmd, PROACTIVE_SKILL["name"])
-
     proactive_recommendations = []
-    if pro_ok:
-        pro_data = load_json_safe(proactive_output_path, PROACTIVE_SKILL["name"])
-        if pro_data:
-            proactive_recommendations = pro_data.get("recommendations", [])
+    executed_proactive_in_process = False
+    try:
+        pro_mod = get_skill_module(Path(proactive_script), "skill_proactive_opportunities_audit")
+        if pro_mod and hasattr(pro_mod, "run_opportunities"):
+            proactive_recommendations = pro_mod.run_opportunities(snapshot, deduped_findings)
+            pro_data = {
+                "skill": PROACTIVE_SKILL["name"],
+                "recommendations": proactive_recommendations
+            }
+            with open(proactive_output_path, "w", encoding="utf-8") as f:
+                json.dump(pro_data, f, indent=2, ensure_ascii=False)
             skills_invoked.append(PROACTIVE_SKILL["name"])
+            executed_proactive_in_process = True
+    except Exception as exc:
+        print(f"  [WARN] In-process proactive failed: {exc}; falling back to subprocess.", file=sys.stderr)
+        executed_proactive_in_process = False
+
+    if not executed_proactive_in_process:
+        proactive_cmd = [
+            sys.executable, proactive_script,
+            "--snapshot", snapshot_path,
+            "--findings", dedup_path,
+            "--output", proactive_output_path,
+        ]
+        pro_ok, _ = run_subprocess(proactive_cmd, PROACTIVE_SKILL["name"])
+
+        if pro_ok:
+            pro_data = load_json_safe(proactive_output_path, PROACTIVE_SKILL["name"])
+            if pro_data:
+                proactive_recommendations = pro_data.get("recommendations", [])
+                skills_invoked.append(PROACTIVE_SKILL["name"])
+            else:
+                skills_invoked.append(f"{PROACTIVE_SKILL['name']}_SKIPPED")
         else:
             skills_invoked.append(f"{PROACTIVE_SKILL['name']}_SKIPPED")
-    else:
-        skills_invoked.append(f"{PROACTIVE_SKILL['name']}_SKIPPED")
 
     print(f"  {len(proactive_recommendations)} proactive recommendation(s)", file=sys.stderr)
 
@@ -418,10 +493,13 @@ def main():
         "methodology_and_limitations": METHODOLOGY_AND_LIMITATIONS
     }
 
-    with open(args.output, "w", encoding="utf-8") as f:
+    out_p = Path(args.output)
+    if out_p.parent:
+        out_p.parent.mkdir(parents=True, exist_ok=True)
+
+    with open(out_p, "w", encoding="utf-8") as f:
         json.dump(report, f, indent=2, ensure_ascii=False)
 
-    out_p = Path(args.output)
     md_output_path = out_p.with_suffix(".md") if out_p.suffix == ".json" else out_p.parent / f"{out_p.name}.md"
     md_content = generate_markdown_report(report)
     with open(md_output_path, "w", encoding="utf-8") as f:
@@ -443,7 +521,7 @@ def generate_markdown_report(report: dict) -> str:
     summary = report.get("summary", {})
     if not isinstance(summary, dict):
         score_val = summary if isinstance(summary, (int, float)) else 0
-        summary = {"ai_readiness_score": score_val, "total_findings": len(findings), "critical": 0, "high": 0, "medium": 0, "low": 0}
+        summary = {"ai_readiness_score": score_val, "total_findings": 0, "critical": 0, "high": 0, "medium": 0, "low": 0}
 
     journey = report.get("agent_journey_scores", {})
     if not isinstance(journey, dict):

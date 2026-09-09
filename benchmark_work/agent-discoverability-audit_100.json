@@ -1,0 +1,33 @@
+{
+  "skill": "agent-discoverability-audit",
+  "findings": [
+    {
+      "check_id": "AGD-004",
+      "title": "No sitemap signal detected — bulk agent discovery may be impaired",
+      "category": "discoverability",
+      "severity": "medium",
+      "confidence": "medium",
+      "affected_urls": [
+        "https://benchmark-acme.internal/"
+      ],
+      "evidence": "No sitemap.xml reference found in robots.txt, crawl metadata, or any of the 100 crawled pages. AI indexing systems rely on sitemaps for efficient bulk content discovery, especially for sites with many pages.",
+      "tags": [
+        "discoverability",
+        "crawlability",
+        "indexability",
+        "sitemap"
+      ],
+      "suggested_action": {
+        "summary": "Consider publishing an XML sitemap at /sitemap.xml and referencing it in robots.txt (Sitemap: https://yourdomain.com/sitemap.xml). Include all important pages with <lastmod> dates.",
+        "priority": "medium",
+        "effort": "low"
+      }
+    }
+  ],
+  "strengths": [
+    {
+      "title": "All important pages have title and meta description for agent readability",
+      "category": "discoverability"
+    }
+  ]
+}

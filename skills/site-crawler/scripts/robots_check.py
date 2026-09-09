@@ -97,8 +97,8 @@ class RobotsChecker:
 
     def is_allowed(self, url: str) -> bool:
         """Return True if the URL is allowed to be crawled."""
-        # If robots.txt fetch failed, allow everything
-        if self.robots_status == 0:
+        # If robots.txt was not found (e.g. 404, 410), failed to fetch, or returned non-200, allow everything (RFC 9309)
+        if self.robots_status != 200:
             return True
         try:
             return self._parser.can_fetch(self.user_agent, url)

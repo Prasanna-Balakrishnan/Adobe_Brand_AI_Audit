@@ -69,6 +69,14 @@
       "entrypoint": false,
       "description": "Runs last. Suggests improvements beyond defects: FAQ content, BreadcrumbList, Event schema, etc.",
       "version": "1.0.0"
+    },
+    {
+      "id": "agent-discoverability-audit",
+      "name": "agent-discoverability-audit",
+      "path": "skills/agent-discoverability-audit",
+      "entrypoint": false,
+      "description": "Audits whether important website information is exposed in a way that AI agents, search systems, and marketplace discovery engines can navigate, read, and act on it. Checks canonical entry points, link-graph reachability, machine-readable metadata, structured data coverage, sitemap signals, URL hygiene, cluster interlinking, and thin content on important pages.",
+      "version": "1.0.0"
     }
   ]
 }

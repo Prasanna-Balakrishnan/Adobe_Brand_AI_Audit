@@ -64,8 +64,10 @@ def is_spa_page(page: dict) -> bool:
 
 def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
     """Return (findings, strengths)."""
-    meta = snapshot.get("crawl_meta", {})
-    pages = snapshot.get("pages", [])
+    if not isinstance(snapshot, dict):
+        return [], []
+    meta = snapshot.get("crawl_meta") or {}
+    pages = [p for p in (snapshot.get("pages") or []) if isinstance(p, dict)]
     findings = []
     strengths = []
 
@@ -125,7 +127,7 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
             "category": "discoverability",
             "severity": "critical",
             "confidence": "high",
-            "affected_urls": [p["url"] for p in noindex_pages[:5]],
+            "affected_urls": [p.get("url") or p.get("final_url") or "" for p in noindex_pages[:5]],
             "evidence": (
                 f"All {noindex_count}/{total} crawled pages have 'noindex' in "
                 "meta_robots or X-Robots-Tag. AI assistants and search engines "
@@ -146,7 +148,7 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
             "category": "discoverability",
             "severity": "high",
             "confidence": "high",
-            "affected_urls": [p["url"] for p in noindex_pages[:5]],
+            "affected_urls": [p.get("url") or p.get("final_url") or "" for p in noindex_pages[:5]],
             "evidence": (
                 f"{noindex_count} of {total} pages ({noindex_ratio*100:.0f}%) have "
                 "noindex directives. These pages are invisible to AI assistants."
@@ -166,18 +168,18 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
 
     # --- CRA-003: Homepage HTTP error ---
     start_url = meta.get("start_url", "")
-    homepage = next((p for p in pages if p["url"] == start_url or
-                     p["final_url"] == start_url), pages[0] if pages else None)
-    if homepage and homepage.get("status_code", 200) >= 400:
+    homepage = next((p for p in pages if p.get("url") == start_url or
+                     p.get("final_url") == start_url), pages[0] if pages else None)
+    if homepage and (homepage.get("status_code") or 200) >= 400:
         findings.append({
             "check_id": "CRA-003",
             "title": f"Homepage returns HTTP {homepage['status_code']}",
             "category": "discoverability",
             "severity": "critical",
             "confidence": "high",
-            "affected_urls": [homepage["url"]],
+            "affected_urls": [homepage.get("url") or homepage.get("final_url") or ""],
             "evidence": (
-                f"The homepage at {homepage['url']} returned HTTP {homepage['status_code']}. "
+                f"The homepage at {homepage.get('url') or homepage.get('final_url') or ''} returned HTTP {homepage.get('status_code')}. "
                 "Crawlers and AI agents cannot retrieve any content."
             ),
             "tags": ["crawlability"],
@@ -205,10 +207,10 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
             "category": "discoverability",
             "severity": "high",
             "confidence": "high",
-            "affected_urls": [p["url"] for p in loop_pages[:5]],
+            "affected_urls": [p.get("url") or p.get("final_url") or "" for p in loop_pages[:5]],
             "evidence": (
                 f"{len(loop_pages)} page(s) triggered redirect loops or chains longer "
-                f"than 5 hops. Examples: {', '.join(p['url'] for p in loop_pages[:3])}."
+                f"than 5 hops. Examples: {', '.join(p.get('url') or p.get('final_url') or '' for p in loop_pages[:3])}."
             ),
             "tags": ["redirect", "crawlability"],
             "suggested_action": {
@@ -231,7 +233,7 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
             "category": "discoverability",
             "severity": "high",
             "confidence": "high",
-            "affected_urls": [p["url"] for p in pages[:5]],
+            "affected_urls": [p.get("url") or p.get("final_url") or "" for p in pages[:5]],
             "evidence": (
                 f"0 of {total} crawled pages contain a <link rel='canonical'> tag. "
                 "Without canonicals, duplicate content dilutes AI citation quality."
@@ -253,7 +255,7 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
             "category": "discoverability",
             "severity": "medium",
             "confidence": "high",
-            "affected_urls": [p["url"] for p in pages_without_canonical[:5]],
+            "affected_urls": [p.get("url") or p.get("final_url") or "" for p in pages_without_canonical[:5]],
             "evidence": (
                 f"{len(pages_without_canonical)} of {total} pages "
                 f"({canonical_ratio_missing*100:.0f}%) lack canonical tags."
@@ -272,7 +274,7 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
         })
 
     # --- CRA-007: Broken internal links ---
-    error_pages = [p for p in pages if p.get("status_code", 200) >= 400]
+    error_pages = [p for p in pages if (p.get("status_code") or 200) >= 400]
     error_ratio = len(error_pages) / total
     if error_ratio > 0.30:
         findings.append({
@@ -281,7 +283,7 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
             "category": "discoverability",
             "severity": "high",
             "confidence": "high",
-            "affected_urls": [p["url"] for p in error_pages[:10]],
+            "affected_urls": [p.get("url") or p.get("final_url") or "" for p in error_pages[:10]],
             "evidence": (
                 f"{len(error_pages)} of {total} crawled pages returned HTTP 4xx/5xx errors "
                 f"({error_ratio*100:.0f}%)."
@@ -300,7 +302,7 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
             "category": "discoverability",
             "severity": "medium",
             "confidence": "high",
-            "affected_urls": [p["url"] for p in error_pages[:10]],
+            "affected_urls": [p.get("url") or p.get("final_url") or "" for p in error_pages[:10]],
             "evidence": (
                 f"{len(error_pages)} of {total} pages returned 4xx/5xx errors "
                 f"({error_ratio*100:.0f}%)."
@@ -319,7 +321,7 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
             "category": "discoverability",
             "severity": "low",
             "confidence": "high",
-            "affected_urls": [p["url"] for p in error_pages[:5]],
+            "affected_urls": [p.get("url") or p.get("final_url") or "" for p in error_pages[:5]],
             "evidence": (
                 f"{len(error_pages)} of {total} pages returned 4xx/5xx errors "
                 f"({error_ratio*100:.0f}%)."
@@ -342,8 +344,8 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
         p for p in pages
         if (not p.get("crawled_with_js", False) and
             p.get("visible_text_length", 9999) < 300 and
-            len(p.get("headings", [])) == 0 and
-            p.get("status_code", 200) == 200)
+            len((p.get("headings") or [])) == 0 and
+            (p.get("status_code") or 200) == 200)
     ]
     if js_only_pages:
         findings.append({
@@ -352,7 +354,7 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
             "category": "discoverability",
             "severity": "high",
             "confidence": "medium",
-            "affected_urls": [p["url"] for p in js_only_pages[:5]],
+            "affected_urls": [p.get("url") or p.get("final_url") or "" for p in js_only_pages[:5]],
             "evidence": (
                 f"{len(js_only_pages)} page(s) have fewer than 300 visible characters "
                 "and no headings when crawled without JavaScript. These pages may be "
@@ -376,15 +378,25 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
 
     # --- CRA-010: Conflicting canonical ---
     conflicting = []
-    crawled_urls = {p["url"].rstrip("/") for p in pages} | {p.get("final_url", "").rstrip("/") for p in pages}
+    crawled_urls = {p.get("url", "").rstrip("/") for p in pages} | {p.get("final_url", "").rstrip("/") for p in pages}
     for p in pages:
         c = p.get("canonical")
-        fu = p.get("final_url", p["url"])
+        fu = p.get("final_url") or p.get("url", "")
         if c:
             c_norm = c.rstrip("/")
             fu_norm = fu.rstrip("/")
-            if c_norm != fu_norm and c_norm not in crawled_urls:
-                conflicting.append(p)
+            if c_norm != fu_norm:
+                c_parsed = urlparse(c)
+                fu_parsed = urlparse(fu)
+                same_domain = (c_parsed.netloc.lower() == fu_parsed.netloc.lower()) if (c_parsed.netloc and fu_parsed.netloc) else True
+                same_scheme = (c_parsed.scheme.lower() == fu_parsed.scheme.lower()) if (c_parsed.scheme and fu_parsed.scheme) else True
+                
+                # Flag cross-domain, scheme mismatch, or same-domain canonical pointing to a different crawled page
+                if not same_domain or not same_scheme:
+                    if c_norm not in crawled_urls or not same_domain:
+                        conflicting.append(p)
+                elif c_norm in crawled_urls:
+                    conflicting.append(p)
     if conflicting:
         findings.append({
             "check_id": "CRA-010",
@@ -392,11 +404,11 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
             "category": "discoverability",
             "severity": "medium",
             "confidence": "high",
-            "affected_urls": [p["url"] for p in conflicting[:5]],
+            "affected_urls": [p.get("url") or p.get("final_url") or "" for p in conflicting[:5]],
             "evidence": (
                 f"{len(conflicting)} page(s) have canonical URLs that differ from their "
                 "final URL and point to uncrawled locations. "
-                f"Example: {conflicting[0]['url']} → canonical: {conflicting[0].get('canonical')}."
+                f"Example: {conflicting[0].get('url') or conflicting[0].get('final_url') or ''} → canonical: {conflicting[0].get('canonical')}."
             ),
             "tags": ["canonical", "crawlability"],
             "suggested_action": {
@@ -409,29 +421,57 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
     # --- CRA-011: Missing title or meta description ---
     missing_meta_pages = [
         p for p in pages
-        if not p.get("title") or not p.get("meta_description")
+        if not p.get("title") or not (p.get("title") or "").strip() or not p.get("meta_description") or not (p.get("meta_description") or "").strip()
     ]
     meta_missing_ratio = len(missing_meta_pages) / total
     if meta_missing_ratio > 0.25:
+        high_imp = [p for p in missing_meta_pages if p.get("page_importance_score", 0) >= 70]
+        imp_note = f" (including {len(high_imp)} high-importance page(s))" if high_imp else ""
         findings.append({
             "check_id": "CRA-011",
             "title": (
                 f"Missing title or meta description on {len(missing_meta_pages)}/{total} pages"
             ),
             "category": "discoverability",
-            "severity": "medium",
+            "severity": "high" if high_imp else "medium",
             "confidence": "high",
-            "affected_urls": [p["url"] for p in missing_meta_pages[:5]],
+            "affected_urls": [p.get("url") or p.get("final_url") or "" for p in missing_meta_pages[:5]],
             "evidence": (
                 f"{len(missing_meta_pages)} of {total} pages "
                 f"({meta_missing_ratio*100:.0f}%) are missing a <title> and/or "
-                "<meta name='description'>."
+                f"<meta name='description'>{imp_note}."
             ),
             "tags": ["page-title", "meta-description", "crawlability"],
             "suggested_action": {
                 "summary": "Add unique, descriptive title tags and meta descriptions to every page.",
-                "priority": "medium",
+                "priority": "high" if high_imp else "medium",
                 "effort": "medium"
+            }
+        })
+
+    # --- CRA-021: Empty or whitespace-only <title> tag on page(s) ---
+    empty_title_pages = [
+        p for p in pages
+        if p.get("title") is not None and len(p.get("title").strip()) == 0 and (p.get("status_code") or 200) < 300
+    ]
+    if empty_title_pages:
+        findings.append({
+            "check_id": "CRA-021",
+            "title": f"Empty or blank <title> tag on {len(empty_title_pages)} page(s)",
+            "category": "discoverability",
+            "severity": "medium",
+            "confidence": "high",
+            "affected_urls": [p.get("url") or p.get("final_url") or "" for p in empty_title_pages[:5]],
+            "evidence": (
+                f"{len(empty_title_pages)} page(s) declare an empty or whitespace-only <title> tag "
+                f"(e.g. {empty_title_pages[0].get('url') or empty_title_pages[0].get('final_url') or ''}). "
+                "Empty titles prevent search engines and AI crawlers from indexing page identity and relevance."
+            ),
+            "tags": ["page-title", "crawlability", "seo-hygiene"],
+            "suggested_action": {
+                "summary": "Add meaningful descriptive text within the <title> tag of each page.",
+                "priority": "medium",
+                "effort": "low"
             }
         })
 
@@ -445,7 +485,7 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
             "category": "discoverability",
             "severity": "medium",
             "confidence": "high",
-            "affected_urls": [p["url"] for p in thin_pages[:5]],
+            "affected_urls": [p.get("url") or p.get("final_url") or "" for p in thin_pages[:5]],
             "evidence": (
                 f"{len(thin_pages)} of {total} pages ({thin_ratio*100:.0f}%) have fewer "
                 "than 200 visible characters. AI assistants have little content to cite."
@@ -460,20 +500,21 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
 
     # --- CRA-013: Disallowed rules block inferred high-value discoverability pages ---
     # Zero hardcoding: Uses page-type inference and link targets dynamically.
-    high_value_types = {"About", "Contact", "Product", "Service", "Pricing", "Documentation"}
+    high_value_types = {"About", "Contact", "Product", "Service", "Pricing", "Documentation", "Article", "Event", "Restaurant", "MedicalBusiness"}
     blocked_high_value = []
     for p in pages:
         pt = p.get("page_type")
-        if pt in high_value_types:
+        imp = p.get("page_importance_score", 0)
+        if pt in high_value_types or imp >= 70:
             p_path = urlparse(p.get("url", "")).path
             for dis in disallowed:
                 if dis and dis != "/" and p_path.startswith(dis):
-                    blocked_high_value.append((p.get("url"), pt, dis))
+                    blocked_high_value.append((p.get("url"), pt or f"Importance {imp}", dis))
                     break
     if not blocked_high_value:
         high_value_link_keywords = {"about", "contact", "pricing", "product", "docs", "documentation", "support"}
         for p in pages:
-            for l in p.get("links", []):
+            for l in (p.get("links") or []):
                 if l.get("is_internal"):
                     l_path = urlparse(l.get("href", "")).path
                     l_text = l.get("text", "").lower()
@@ -508,7 +549,7 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
     inefficient_redirects = []
     for p in pages:
         chain = p.get("redirect_chain", [])
-        if len(chain) >= 3 and not p.get("redirect_loop", False) and p.get("status_code", 200) != 310:
+        if len(chain) >= 3 and not p.get("redirect_loop", False) and (p.get("status_code") or 200) != 310:
             inefficient_redirects.append(p)
         elif len(chain) >= 2:
             schemes = [urlparse(u).scheme for u in chain if u]
@@ -522,10 +563,10 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
             "category": "discoverability",
             "severity": "medium",
             "confidence": "high",
-            "affected_urls": [p["url"] for p in inefficient_redirects[:5]],
+            "affected_urls": [p.get("url") or p.get("final_url") or "" for p in inefficient_redirects[:5]],
             "evidence": (
                 f"{len(inefficient_redirects)} page(s) require 3 or more redirect hops to reach their destination. "
-                f"Example: {inefficient_redirects[0]['url']} → {len(inefficient_redirects[0].get('redirect_chain', []))} hops. "
+                f"Example: {inefficient_redirects[0].get('url') or inefficient_redirects[0].get('final_url') or ''} → {len(inefficient_redirects[0].get('redirect_chain', []))} hops. "
                 "Long chains deplete crawler budget and increase request latency for AI agents."
             ),
             "tags": ["redirect", "crawlability"],
@@ -541,12 +582,12 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
         blocked_brand_pages = []
         for p in pages:
             if has_noindex(p):
-                is_home = (p["url"] == start_url or p.get("final_url") == start_url or p == homepage)
-                is_core = p.get("page_type") in ("About", "Contact", "Product", "Pricing")
-                if is_home:
+                is_home = (p.get("url") == start_url or p.get("final_url") == start_url or p == homepage)
+                is_core = p.get("page_type") in ("About", "Contact", "Product", "Pricing", "Service", "Documentation") or p.get("page_importance_score", 0) >= 70
+                if is_home or p.get("page_importance_score", 0) >= 80:
                     blocked_brand_pages.append((p, "Homepage", "critical"))
                 elif is_core:
-                    blocked_brand_pages.append((p, p.get("page_type"), "high"))
+                    blocked_brand_pages.append((p, p.get("page_type") or "High Importance", "high"))
 
         if blocked_brand_pages:
             top_severity = "critical" if any(sev == "critical" for _, _, sev in blocked_brand_pages) else "high"
@@ -557,7 +598,7 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
                 "category": "discoverability",
                 "severity": top_severity,
                 "confidence": "high",
-                "affected_urls": [p["url"] for p, _, _ in blocked_brand_pages[:5]],
+                "affected_urls": [p.get("url") or p.get("final_url") or "" for p, _, _ in blocked_brand_pages[:5]],
                 "evidence": (
                     f"{len(blocked_brand_pages)} key orientation page(s) specify 'noindex' in meta_robots or X-Robots-Tag: "
                     f"{', '.join(sample_pages)}. "
@@ -572,11 +613,11 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
             })
 
     # --- CRA-016: Canonical URL points to error, redirect, or invalid destination ---
-    status_map = {p["url"].rstrip("/"): p.get("status_code", 200) for p in pages}
+    status_map = {p.get("url", "").rstrip("/"): (p.get("status_code") or 200) for p in pages}
     for p in pages:
         fu = p.get("final_url")
         if fu:
-            status_map[fu.rstrip("/")] = p.get("status_code", 200)
+            status_map[fu.rstrip("/")] = (p.get("status_code") or 200)
 
     broken_canonicals = []
     redirect_canonicals = []
@@ -604,10 +645,10 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
             "category": "discoverability",
             "severity": "high",
             "confidence": "high",
-            "affected_urls": [p["url"] for p, _, _ in broken_canonicals[:5]],
+            "affected_urls": [p.get("url") or p.get("final_url") or "" for p, _, _ in broken_canonicals[:5]],
             "evidence": (
                 f"{len(broken_canonicals)} page(s) have <link rel='canonical'> pointing to 4xx/5xx error URLs. "
-                f"Example: {broken_canonicals[0][0]['url']} → canonical {broken_canonicals[0][1]} ({broken_canonicals[0][2]}). "
+                f"Example: {broken_canonicals[0][0].get('url', '')} → canonical {broken_canonicals[0][1]} ({broken_canonicals[0][2]}). "
                 "AI search engines cannot index the canonical destination."
             ),
             "tags": ["canonical", "indexability", "canonical-conflict"],
@@ -625,10 +666,10 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
             "category": "discoverability",
             "severity": "medium",
             "confidence": "high",
-            "affected_urls": [p["url"] for p, _, _ in items[:5]],
+            "affected_urls": [p.get("url") or p.get("final_url") or "" for p, _, _ in items[:5]],
             "evidence": (
                 f"{len(items)} page(s) declare canonical URLs that redirect or contain fragment/syntax issues. "
-                f"Example: {items[0][0]['url']} → canonical {items[0][1]} ({items[0][2]})."
+                f"Example: {items[0][0].get('url', '')} → canonical {items[0][1]} ({items[0][2]})."
             ),
             "tags": ["canonical", "indexability", "canonical-conflict"],
             "suggested_action": {
@@ -647,11 +688,11 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
         if parsed_url.query:
             query_keys = {q.split("=")[0].lower() for q in parsed_url.query.split("&") if q}
             if query_keys & tracking_params:
-                pages_with_tracking.append(p["url"])
+                pages_with_tracking.append(p.get("url") or p.get("final_url") or "")
 
     if not pages_with_tracking:
         for p in pages:
-            for l in p.get("links", []):
+            for l in (p.get("links") or []):
                 if l.get("is_internal"):
                     parsed_link = urlparse(l.get("href", ""))
                     if parsed_link.query:
@@ -661,6 +702,17 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
                             break
             if pages_with_tracking:
                 break
+
+    # Also detect duplicate URL variants (e.g. trailing slash differences, casing variations)
+    normalized_url_map = {}
+    url_variant_dupes = []
+    for p in pages:
+        parsed = urlparse(p.get("url", ""))
+        norm_key = f"{parsed.netloc.lower()}{parsed.path.rstrip('/').lower()}"
+        if norm_key in normalized_url_map:
+            url_variant_dupes.append((p.get("url") or p.get("final_url") or "", normalized_url_map[norm_key]))
+        else:
+            normalized_url_map[norm_key] = p.get("url") or p.get("final_url") or ""
 
     if pages_with_tracking:
         distinct_tracking = list(dict.fromkeys(pages_with_tracking))
@@ -678,6 +730,27 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
             "tags": ["url-hygiene", "canonical", "crawlability"],
             "suggested_action": {
                 "summary": "Strip marketing tracking and session tokens from internal site links.",
+                "priority": "medium",
+                "effort": "low"
+            }
+        })
+    elif url_variant_dupes:
+        distinct_dupes = [item[0] for item in url_variant_dupes]
+        findings.append({
+            "check_id": "CRA-018",
+            "title": f"Duplicate URL variants crawled on {len(distinct_dupes)} page(s)",
+            "category": "discoverability",
+            "severity": "medium",
+            "confidence": "high",
+            "affected_urls": distinct_dupes[:5],
+            "evidence": (
+                f"Crawler discovered duplicate URL variations resolving to the same resource "
+                f"(e.g. {distinct_dupes[0]} vs {url_variant_dupes[0][1]}). "
+                "Duplicate URL variants dilute page authority and waste crawl budget for search and AI crawlers."
+            ),
+            "tags": ["url-hygiene", "canonical", "crawlability"],
+            "suggested_action": {
+                "summary": "Enforce consistent URL normalization (casing, trailing slashes) and declare canonical tags.",
                 "priority": "medium",
                 "effort": "low"
             }
@@ -701,10 +774,10 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
             "category": "discoverability",
             "severity": "high" if any(p.get("raw_text_length", 9999) < 200 for p in disparity_pages) else "medium",
             "confidence": "high",
-            "affected_urls": [p["url"] for p in disparity_pages[:5]],
+            "affected_urls": [p.get("url") or p.get("final_url") or "" for p in disparity_pages[:5]],
             "evidence": (
                 f"{len(disparity_pages)} page(s) require JavaScript rendering to expose their primary content. "
-                f"Example: {disparity_pages[0]['url']} has raw HTML text of {disparity_pages[0].get('raw_text_length', 0)} chars "
+                f"Example: {disparity_pages[0].get('url') or disparity_pages[0].get('final_url') or ''} has raw HTML text of {disparity_pages[0].get('raw_text_length', 0)} chars "
                 f"vs {disparity_pages[0].get('rendered_text_length', 0)} rendered chars. "
                 "AI agents without client-side JS rendering engines cannot extract this information."
             ),

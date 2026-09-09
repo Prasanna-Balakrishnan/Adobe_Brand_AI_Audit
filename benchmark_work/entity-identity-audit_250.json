@@ -1,0 +1,26 @@
+{
+  "skill": "entity-identity-audit",
+  "findings": [],
+  "strengths": [
+    {
+      "title": "Brand name declared in Organization JSON-LD",
+      "category": "discoverability"
+    },
+    {
+      "title": "About page present for entity context",
+      "category": "discoverability"
+    },
+    {
+      "title": "Contact information accessible",
+      "category": "discoverability"
+    },
+    {
+      "title": "sameAs links in Organization schema support entity corroboration",
+      "category": "discoverability"
+    },
+    {
+      "title": "Entity identity strongly corroborated (High confidence: 100%)",
+      "category": "discoverability"
+    }
+  ]
+}

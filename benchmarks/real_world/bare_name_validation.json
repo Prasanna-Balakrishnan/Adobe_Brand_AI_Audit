@@ -1,0 +1,47 @@
+{
+  "python": {
+    "returncode": 0,
+    "resolved_url": "https://www.python.com",
+    "pages_crawled": 1,
+    "score": 30,
+    "findings_count": 12,
+    "stdout_head": "benchmarks/real_world/bare_python.json\n",
+    "stderr_head": "[INFO] Marketplace root: D:\\COLLEGE\\Adobe_Hackathon\\brand-ai-auditor\n[INFO] Auditing: https://www.python.com (input query: 'python')\n[INFO] Work dir: D:\\COLLEGE\\Adobe_Hackathon\\brand-ai-auditor\\benchmarks\\real_world\\work_bare_python\n\n[STEP 1] Running site-crawler...\n  [site-crawler] [INFO] Crawling "
+  },
+  "w3": {
+    "returncode": 0,
+    "resolved_url": "https://www.w3.com",
+    "pages_crawled": 1,
+    "score": 30,
+    "findings_count": 12,
+    "stdout_head": "benchmarks/real_world/bare_w3.json\n",
+    "stderr_head": "[INFO] Marketplace root: D:\\COLLEGE\\Adobe_Hackathon\\brand-ai-auditor\n[INFO] Auditing: https://www.w3.com (input query: 'w3')\n[INFO] Work dir: D:\\COLLEGE\\Adobe_Hackathon\\brand-ai-auditor\\benchmarks\\real_world\\work_bare_w3\n\n[STEP 1] Running site-crawler...\n  [site-crawler] [WARN] Could not fetch robot"
+  },
+  "curl": {
+    "returncode": 0,
+    "resolved_url": "https://www.curl.com",
+    "pages_crawled": 5,
+    "score": 79,
+    "findings_count": 6,
+    "stdout_head": "benchmarks/real_world/bare_curl.json\n",
+    "stderr_head": "[INFO] Marketplace root: D:\\COLLEGE\\Adobe_Hackathon\\brand-ai-auditor\n[INFO] Auditing: https://www.curl.com (input query: 'curl')\n[INFO] Work dir: D:\\COLLEGE\\Adobe_Hackathon\\brand-ai-auditor\\benchmarks\\real_world\\work_bare_curl\n\n[STEP 1] Running site-crawler...\n  [site-crawler] [INFO] Crawling (1/5):"
+  },
+  "amazon": {
+    "returncode": 0,
+    "resolved_url": "https://www.amazon.com",
+    "pages_crawled": 1,
+    "score": 30,
+    "findings_count": 12,
+    "stdout_head": "benchmarks/real_world/bare_amazon.json\n",
+    "stderr_head": "[INFO] Marketplace root: D:\\COLLEGE\\Adobe_Hackathon\\brand-ai-auditor\n[INFO] Auditing: https://www.amazon.com (input query: 'amazon')\n[INFO] Work dir: D:\\COLLEGE\\Adobe_Hackathon\\brand-ai-auditor\\benchmarks\\real_world\\work_bare_amazon\n\n[STEP 1] Running site-crawler...\n  [site-crawler] [INFO] Crawling "
+  },
+  "flipkart": {
+    "returncode": 0,
+    "resolved_url": "https://www.flipkart.com",
+    "pages_crawled": 5,
+    "score": 70,
+    "findings_count": 9,
+    "stdout_head": "benchmarks/real_world/bare_flipkart.json\n",
+    "stderr_head": "[INFO] Marketplace root: D:\\COLLEGE\\Adobe_Hackathon\\brand-ai-auditor\n[INFO] Auditing: https://www.flipkart.com (input query: 'flipkart')\n[INFO] Work dir: D:\\COLLEGE\\Adobe_Hackathon\\brand-ai-auditor\\benchmarks\\real_world\\work_bare_flipkart\n\n[STEP 1] Running site-crawler...\n  [site-crawler] [WARN] rob"
+  }
+}

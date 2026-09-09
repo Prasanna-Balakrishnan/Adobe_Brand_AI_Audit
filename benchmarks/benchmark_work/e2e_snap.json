@@ -1,0 +1,4746 @@
+{
+  "crawl_meta": {
+    "start_url": "https://benchmark-acme.internal/",
+    "crawl_started_at": "2026-09-08T12:00:00Z",
+    "crawl_ended_at": "2026-09-08T12:00:05Z",
+    "crawl_duration_seconds": 5.0,
+    "pages_discovered": 50,
+    "pages_crawled": 50,
+    "pages_skipped": 0,
+    "robots_txt_status": 200,
+    "robots_txt_respected": true,
+    "js_rendering_status": "disabled",
+    "failed_pages": []
+  },
+  "pages": [
+    {
+      "url": "https://benchmark-acme.internal/",
+      "status_code": 200,
+      "final_url": "https://benchmark-acme.internal/",
+      "redirect_chain": [],
+      "redirect_loop": false,
+      "canonical": "https://benchmark-acme.internal/",
+      "canonical_conflict": false,
+      "meta_robots": "index, follow",
+      "x_robots_tag": "",
+      "page_type": "Homepage",
+      "classification_confidence": "high",
+      "title": "Acme Global \u2014 Enterprise AI Cloud Platform",
+      "meta_description": "Acme Global provides autonomous AI agent orchestration and enterprise intelligence infrastructure.",
+      "h1": [
+        "Next-Generation Autonomous AI Cloud Platform"
+      ],
+      "headings": [
+        {
+          "level": 1,
+          "text": "Next-Generation Autonomous AI Cloud Platform"
+        },
+        {
+          "level": 2,
+          "text": "Platform Capabilities"
+        },
+        {
+          "level": 2,
+          "text": "Trusted by 5,000+ Enterprises"
+        },
+        {
+          "level": 3,
+          "text": "Request a Demo"
+        }
+      ],
+      "json_ld": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          "name": "Acme Global Inc.",
+          "url": "https://benchmark-acme.internal/",
+          "logo": "https://benchmark-acme.internal/assets/logo.png",
+          "description": "Acme Global provides enterprise AI intelligence infrastructure.",
+          "sameAs": [
+            "https://twitter.com/acmeglobal",
+            "https://linkedin.com/company/acmeglobal"
+          ]
+        },
+        {
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          "name": "Acme Global",
+          "url": "https://benchmark-acme.internal/"
+        }
+      ],
+      "open_graph": {
+        "og:title": "Acme Global \u2014 Enterprise AI Cloud Platform",
+        "og:description": "Acme Global enterprise AI platform.",
+        "og:image": "https://benchmark-acme.internal/assets/og-home.png"
+      },
+      "twitter_card": {
+        "twitter:card": "summary_large_image"
+      },
+      "links": [
+        {
+          "href": "https://benchmark-acme.internal/about",
+          "text": "About Us",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/pricing",
+          "text": "Pricing & Plans",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/docs",
+          "text": "Documentation",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/contact",
+          "text": "Contact Sales",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/blog",
+          "text": "Insights Blog",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/careers",
+          "text": "Careers",
+          "is_internal": true
+        }
+      ],
+      "nav_link_texts": [
+        "About Us",
+        "Pricing & Plans",
+        "Documentation",
+        "Contact Sales",
+        "Insights Blog",
+        "Careers"
+      ],
+      "images": [
+        {
+          "src": "https://benchmark-acme.internal/assets/logo.png",
+          "alt": "Acme Global Logo",
+          "width": 200,
+          "height": 60
+        }
+      ],
+      "visible_text_length": 2800,
+      "visible_text_sample": "Acme Global enterprise AI cloud platform empowers organizations to deploy autonomous agents...",
+      "last_modified": "2026-03-01T10:00:00Z",
+      "crawled_with_js": false,
+      "js_render_available": true,
+      "raw_html_length": 14500,
+      "raw_text_length": 2800,
+      "rendered_text_length": 2800,
+      "js_dependent_content": false,
+      "content_disparity": 0
+    },
+    {
+      "url": "https://benchmark-acme.internal/about",
+      "status_code": 200,
+      "final_url": "https://benchmark-acme.internal/about",
+      "redirect_chain": [],
+      "redirect_loop": false,
+      "canonical": "https://benchmark-acme.internal/about",
+      "canonical_conflict": false,
+      "meta_robots": "index, follow",
+      "x_robots_tag": "",
+      "page_type": "About",
+      "classification_confidence": "high",
+      "title": "About Acme Global \u2014 Our Leadership & Vision | Acme Global",
+      "meta_description": "Learn more about About Acme Global \u2014 Our Leadership & Vision at Acme Global.",
+      "h1": [
+        "About Acme Global \u2014 Our Leadership & Vision"
+      ],
+      "headings": [
+        {
+          "level": 1,
+          "text": "About Acme Global \u2014 Our Leadership & Vision"
+        },
+        {
+          "level": 2,
+          "text": "Details"
+        },
+        {
+          "level": 3,
+          "text": "More info"
+        }
+      ],
+      "json_ld": [
+        {
+          "@context": "https://schema.org",
+          "@type": "AboutPage",
+          "name": "About Acme Global"
+        }
+      ],
+      "open_graph": {
+        "og:title": "About Acme Global \u2014 Our Leadership & Vision",
+        "og:description": "About Acme Global \u2014 Our Leadership & Vision",
+        "og:image": "https://benchmark-acme.internal/assets/about.png"
+      },
+      "twitter_card": {
+        "twitter:card": "summary"
+      },
+      "links": [
+        {
+          "href": "https://benchmark-acme.internal/",
+          "text": "Home",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/pricing",
+          "text": "Pricing",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/docs",
+          "text": "Docs",
+          "is_internal": true
+        }
+      ],
+      "nav_link_texts": [
+        "Home",
+        "About Us",
+        "Pricing & Plans",
+        "Documentation"
+      ],
+      "images": [
+        {
+          "src": "https://benchmark-acme.internal/assets/about.png",
+          "alt": "About Acme Global \u2014 Our Leadership & Vision"
+        }
+      ],
+      "visible_text_length": 1800,
+      "visible_text_sample": "About Acme Global \u2014 Our Leadership & Vision content overview and information for enterprise customers.",
+      "last_modified": "2026-02-15T12:00:00Z",
+      "crawled_with_js": false,
+      "js_render_available": true,
+      "raw_html_length": 9200,
+      "raw_text_length": 1800,
+      "rendered_text_length": 1800,
+      "js_dependent_content": false,
+      "content_disparity": 0
+    },
+    {
+      "url": "https://benchmark-acme.internal/contact",
+      "status_code": 200,
+      "final_url": "https://benchmark-acme.internal/contact",
+      "redirect_chain": [],
+      "redirect_loop": false,
+      "canonical": "https://benchmark-acme.internal/contact",
+      "canonical_conflict": false,
+      "meta_robots": "index, follow",
+      "x_robots_tag": "",
+      "page_type": "Contact",
+      "classification_confidence": "high",
+      "title": "Contact Acme Global \u2014 Support & Sales | Acme Global",
+      "meta_description": "Learn more about Contact Acme Global \u2014 Support & Sales at Acme Global.",
+      "h1": [
+        "Contact Acme Global \u2014 Support & Sales"
+      ],
+      "headings": [
+        {
+          "level": 1,
+          "text": "Contact Acme Global \u2014 Support & Sales"
+        },
+        {
+          "level": 2,
+          "text": "Details"
+        },
+        {
+          "level": 3,
+          "text": "More info"
+        }
+      ],
+      "json_ld": [
+        {
+          "@context": "https://schema.org",
+          "@type": "ContactPage",
+          "name": "Contact Acme Global"
+        }
+      ],
+      "open_graph": {
+        "og:title": "Contact Acme Global \u2014 Support & Sales",
+        "og:description": "Contact Acme Global \u2014 Support & Sales",
+        "og:image": "https://benchmark-acme.internal/assets/contact.png"
+      },
+      "twitter_card": {
+        "twitter:card": "summary"
+      },
+      "links": [
+        {
+          "href": "https://benchmark-acme.internal/",
+          "text": "Home",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/pricing",
+          "text": "Pricing",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/docs",
+          "text": "Docs",
+          "is_internal": true
+        }
+      ],
+      "nav_link_texts": [
+        "Home",
+        "About Us",
+        "Pricing & Plans",
+        "Documentation"
+      ],
+      "images": [
+        {
+          "src": "https://benchmark-acme.internal/assets/contact.png",
+          "alt": "Contact Acme Global \u2014 Support & Sales"
+        }
+      ],
+      "visible_text_length": 1800,
+      "visible_text_sample": "Contact Acme Global \u2014 Support & Sales content overview and information for enterprise customers.",
+      "last_modified": "2026-02-15T12:00:00Z",
+      "crawled_with_js": false,
+      "js_render_available": true,
+      "raw_html_length": 9200,
+      "raw_text_length": 1800,
+      "rendered_text_length": 1800,
+      "js_dependent_content": false,
+      "content_disparity": 0
+    },
+    {
+      "url": "https://benchmark-acme.internal/pricing",
+      "status_code": 200,
+      "final_url": "https://benchmark-acme.internal/pricing",
+      "redirect_chain": [],
+      "redirect_loop": false,
+      "canonical": "https://benchmark-acme.internal/pricing",
+      "canonical_conflict": false,
+      "meta_robots": "index, follow",
+      "x_robots_tag": "",
+      "page_type": "Pricing",
+      "classification_confidence": "high",
+      "title": "Transparent Enterprise Pricing & Subscription Plans | Acme Global",
+      "meta_description": "Learn more about Transparent Enterprise Pricing & Subscription Plans at Acme Global.",
+      "h1": [
+        "Transparent Enterprise Pricing & Subscription Plans"
+      ],
+      "headings": [
+        {
+          "level": 1,
+          "text": "Transparent Enterprise Pricing & Subscription Plans"
+        },
+        {
+          "level": 2,
+          "text": "Details"
+        },
+        {
+          "level": 3,
+          "text": "More info"
+        }
+      ],
+      "json_ld": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Product",
+          "name": "Acme Cloud Enterprise",
+          "offers": {
+            "@type": "AggregateOffer",
+            "lowPrice": "49",
+            "highPrice": "499",
+            "priceCurrency": "USD"
+          }
+        }
+      ],
+      "open_graph": {
+        "og:title": "Transparent Enterprise Pricing & Subscription Plans",
+        "og:description": "Transparent Enterprise Pricing & Subscription Plans",
+        "og:image": "https://benchmark-acme.internal/assets/pricing.png"
+      },
+      "twitter_card": {
+        "twitter:card": "summary"
+      },
+      "links": [
+        {
+          "href": "https://benchmark-acme.internal/",
+          "text": "Home",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/pricing",
+          "text": "Pricing",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/docs",
+          "text": "Docs",
+          "is_internal": true
+        }
+      ],
+      "nav_link_texts": [
+        "Home",
+        "About Us",
+        "Pricing & Plans",
+        "Documentation"
+      ],
+      "images": [
+        {
+          "src": "https://benchmark-acme.internal/assets/pricing.png",
+          "alt": "Transparent Enterprise Pricing & Subscription Plans"
+        }
+      ],
+      "visible_text_length": 1800,
+      "visible_text_sample": "Transparent Enterprise Pricing & Subscription Plans content overview and information for enterprise customers.",
+      "last_modified": "2026-02-15T12:00:00Z",
+      "crawled_with_js": false,
+      "js_render_available": true,
+      "raw_html_length": 9200,
+      "raw_text_length": 1800,
+      "rendered_text_length": 1800,
+      "js_dependent_content": false,
+      "content_disparity": 0
+    },
+    {
+      "url": "https://benchmark-acme.internal/docs",
+      "status_code": 200,
+      "final_url": "https://benchmark-acme.internal/docs",
+      "redirect_chain": [],
+      "redirect_loop": false,
+      "canonical": "https://benchmark-acme.internal/docs",
+      "canonical_conflict": false,
+      "meta_robots": "index, follow",
+      "x_robots_tag": "",
+      "page_type": "Documentation",
+      "classification_confidence": "high",
+      "title": "Developer API Reference & Integration Guides | Acme Global",
+      "meta_description": "Learn more about Developer API Reference & Integration Guides at Acme Global.",
+      "h1": [
+        "Developer API Reference & Integration Guides"
+      ],
+      "headings": [
+        {
+          "level": 1,
+          "text": "Developer API Reference & Integration Guides"
+        },
+        {
+          "level": 2,
+          "text": "Details"
+        },
+        {
+          "level": 3,
+          "text": "More info"
+        }
+      ],
+      "json_ld": [
+        {
+          "@context": "https://schema.org",
+          "@type": "TechArticle",
+          "headline": "Developer API Reference"
+        }
+      ],
+      "open_graph": {
+        "og:title": "Developer API Reference & Integration Guides",
+        "og:description": "Developer API Reference & Integration Guides",
+        "og:image": "https://benchmark-acme.internal/assets/docs.png"
+      },
+      "twitter_card": {
+        "twitter:card": "summary"
+      },
+      "links": [
+        {
+          "href": "https://benchmark-acme.internal/",
+          "text": "Home",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/pricing",
+          "text": "Pricing",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/docs",
+          "text": "Docs",
+          "is_internal": true
+        }
+      ],
+      "nav_link_texts": [
+        "Home",
+        "About Us",
+        "Pricing & Plans",
+        "Documentation"
+      ],
+      "images": [
+        {
+          "src": "https://benchmark-acme.internal/assets/docs.png",
+          "alt": "Developer API Reference & Integration Guides"
+        }
+      ],
+      "visible_text_length": 1800,
+      "visible_text_sample": "Developer API Reference & Integration Guides content overview and information for enterprise customers.",
+      "last_modified": "2026-02-15T12:00:00Z",
+      "crawled_with_js": false,
+      "js_render_available": true,
+      "raw_html_length": 9200,
+      "raw_text_length": 1800,
+      "rendered_text_length": 1800,
+      "js_dependent_content": false,
+      "content_disparity": 0
+    },
+    {
+      "url": "https://benchmark-acme.internal/faq",
+      "status_code": 200,
+      "final_url": "https://benchmark-acme.internal/faq",
+      "redirect_chain": [],
+      "redirect_loop": false,
+      "canonical": "https://benchmark-acme.internal/faq",
+      "canonical_conflict": false,
+      "meta_robots": "index, follow",
+      "x_robots_tag": "",
+      "page_type": "FAQ",
+      "classification_confidence": "high",
+      "title": "Frequently Asked Questions \u2014 Knowledge Base | Acme Global",
+      "meta_description": "Learn more about Frequently Asked Questions \u2014 Knowledge Base at Acme Global.",
+      "h1": [
+        "Frequently Asked Questions \u2014 Knowledge Base"
+      ],
+      "headings": [
+        {
+          "level": 1,
+          "text": "Frequently Asked Questions \u2014 Knowledge Base"
+        },
+        {
+          "level": 2,
+          "text": "Details"
+        },
+        {
+          "level": 3,
+          "text": "More info"
+        }
+      ],
+      "json_ld": [
+        {
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "What is Acme Global?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Acme Global is an AI cloud."
+              }
+            }
+          ]
+        }
+      ],
+      "open_graph": {
+        "og:title": "Frequently Asked Questions \u2014 Knowledge Base",
+        "og:description": "Frequently Asked Questions \u2014 Knowledge Base",
+        "og:image": "https://benchmark-acme.internal/assets/faq.png"
+      },
+      "twitter_card": {
+        "twitter:card": "summary"
+      },
+      "links": [
+        {
+          "href": "https://benchmark-acme.internal/",
+          "text": "Home",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/pricing",
+          "text": "Pricing",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/docs",
+          "text": "Docs",
+          "is_internal": true
+        }
+      ],
+      "nav_link_texts": [
+        "Home",
+        "About Us",
+        "Pricing & Plans",
+        "Documentation"
+      ],
+      "images": [
+        {
+          "src": "https://benchmark-acme.internal/assets/faq.png",
+          "alt": "Frequently Asked Questions \u2014 Knowledge Base"
+        }
+      ],
+      "visible_text_length": 1800,
+      "visible_text_sample": "Frequently Asked Questions \u2014 Knowledge Base content overview and information for enterprise customers.",
+      "last_modified": "2026-02-15T12:00:00Z",
+      "crawled_with_js": false,
+      "js_render_available": true,
+      "raw_html_length": 9200,
+      "raw_text_length": 1800,
+      "rendered_text_length": 1800,
+      "js_dependent_content": false,
+      "content_disparity": 0
+    },
+    {
+      "url": "https://benchmark-acme.internal/careers",
+      "status_code": 200,
+      "final_url": "https://benchmark-acme.internal/careers",
+      "redirect_chain": [],
+      "redirect_loop": false,
+      "canonical": "https://benchmark-acme.internal/careers",
+      "canonical_conflict": false,
+      "meta_robots": "index, follow",
+      "x_robots_tag": "",
+      "page_type": "Careers",
+      "classification_confidence": "high",
+      "title": "Careers at Acme Global \u2014 Join Our Team | Acme Global",
+      "meta_description": "Learn more about Careers at Acme Global \u2014 Join Our Team at Acme Global.",
+      "h1": [
+        "Careers at Acme Global \u2014 Join Our Team"
+      ],
+      "headings": [
+        {
+          "level": 1,
+          "text": "Careers at Acme Global \u2014 Join Our Team"
+        },
+        {
+          "level": 2,
+          "text": "Details"
+        },
+        {
+          "level": 3,
+          "text": "More info"
+        }
+      ],
+      "json_ld": [
+        {
+          "@context": "https://schema.org",
+          "@type": "JobPosting",
+          "title": "Staff AI Engineer"
+        }
+      ],
+      "open_graph": {
+        "og:title": "Careers at Acme Global \u2014 Join Our Team",
+        "og:description": "Careers at Acme Global \u2014 Join Our Team",
+        "og:image": "https://benchmark-acme.internal/assets/careers.png"
+      },
+      "twitter_card": {
+        "twitter:card": "summary"
+      },
+      "links": [
+        {
+          "href": "https://benchmark-acme.internal/",
+          "text": "Home",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/pricing",
+          "text": "Pricing",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/docs",
+          "text": "Docs",
+          "is_internal": true
+        }
+      ],
+      "nav_link_texts": [
+        "Home",
+        "About Us",
+        "Pricing & Plans",
+        "Documentation"
+      ],
+      "images": [
+        {
+          "src": "https://benchmark-acme.internal/assets/careers.png",
+          "alt": "Careers at Acme Global \u2014 Join Our Team"
+        }
+      ],
+      "visible_text_length": 1800,
+      "visible_text_sample": "Careers at Acme Global \u2014 Join Our Team content overview and information for enterprise customers.",
+      "last_modified": "2026-02-15T12:00:00Z",
+      "crawled_with_js": false,
+      "js_render_available": true,
+      "raw_html_length": 9200,
+      "raw_text_length": 1800,
+      "rendered_text_length": 1800,
+      "js_dependent_content": false,
+      "content_disparity": 0
+    },
+    {
+      "url": "https://benchmark-acme.internal/blog/ai-trends-article-1",
+      "status_code": 200,
+      "final_url": "https://benchmark-acme.internal/blog/ai-trends-article-1",
+      "redirect_chain": [],
+      "redirect_loop": false,
+      "canonical": "https://benchmark-acme.internal/blog/ai-trends-article-1",
+      "canonical_conflict": false,
+      "meta_robots": "index, follow",
+      "x_robots_tag": "",
+      "page_type": "Blog/article",
+      "classification_confidence": "high",
+      "title": "AI Trends and Best Practices Part 1 | Acme Global",
+      "meta_description": "Explore AI Trends and Best Practices Part 1 designed for modern autonomous enterprise workflows.",
+      "h1": [
+        "AI Trends and Best Practices Part 1"
+      ],
+      "headings": [
+        {
+          "level": 1,
+          "text": "AI Trends and Best Practices Part 1"
+        },
+        {
+          "level": 2,
+          "text": "Feature Overview"
+        },
+        {
+          "level": 3,
+          "text": "Specifications"
+        }
+      ],
+      "json_ld": [
+        {
+          "@context": "https://schema.org",
+          "@type": "BlogPosting",
+          "headline": "AI Trends and Best Practices Part 1",
+          "datePublished": "2025-11-20T08:00:00Z",
+          "dateModified": "2026-01-10T11:00:00Z",
+          "author": {
+            "@type": "Person",
+            "name": "Jane Doe"
+          }
+        }
+      ],
+      "open_graph": {
+        "og:title": "AI Trends and Best Practices Part 1",
+        "og:description": "AI Trends and Best Practices Part 1",
+        "og:image": "https://benchmark-acme.internal/assets/prod-1.png"
+      },
+      "twitter_card": {
+        "twitter:card": "summary_large_image"
+      },
+      "links": [
+        {
+          "href": "https://benchmark-acme.internal/",
+          "text": "Home",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/pricing",
+          "text": "Pricing",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/contact",
+          "text": "Get Started",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/docs",
+          "text": "Documentation",
+          "is_internal": true
+        }
+      ],
+      "nav_link_texts": [
+        "Home",
+        "Pricing & Plans",
+        "Documentation",
+        "Contact Sales"
+      ],
+      "images": [
+        {
+          "src": "https://benchmark-acme.internal/assets/prod-1.png",
+          "alt": "AI Trends and Best Practices Part 1"
+        }
+      ],
+      "visible_text_length": 1417,
+      "visible_text_sample": "AI Trends and Best Practices Part 1 provides end-to-end automation with guaranteed uptime and compliance.",
+      "last_modified": "2026-01-15T09:00:00Z",
+      "crawled_with_js": false,
+      "js_render_available": true,
+      "raw_html_length": 8531,
+      "raw_text_length": 1417,
+      "rendered_text_length": 1417,
+      "js_dependent_content": false,
+      "content_disparity": 0
+    },
+    {
+      "url": "https://benchmark-acme.internal/solutions/enterprise-solution-2",
+      "status_code": 200,
+      "final_url": "https://benchmark-acme.internal/solutions/enterprise-solution-2",
+      "redirect_chain": [],
+      "redirect_loop": false,
+      "canonical": "https://benchmark-acme.internal/solutions/enterprise-solution-2",
+      "canonical_conflict": false,
+      "meta_robots": "index, follow",
+      "x_robots_tag": "",
+      "page_type": "Service",
+      "classification_confidence": "high",
+      "title": "Enterprise Solution 2 | Acme Global",
+      "meta_description": "Explore Enterprise Solution 2 designed for modern autonomous enterprise workflows.",
+      "h1": [
+        "Enterprise Solution 2"
+      ],
+      "headings": [
+        {
+          "level": 1,
+          "text": "Enterprise Solution 2"
+        },
+        {
+          "level": 2,
+          "text": "Feature Overview"
+        },
+        {
+          "level": 3,
+          "text": "Specifications"
+        }
+      ],
+      "json_ld": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Service",
+          "name": "Enterprise Solution 2",
+          "serviceType": "Cloud AI Solution"
+        }
+      ],
+      "open_graph": {
+        "og:title": "Enterprise Solution 2",
+        "og:description": "Enterprise Solution 2",
+        "og:image": "https://benchmark-acme.internal/assets/prod-2.png"
+      },
+      "twitter_card": {
+        "twitter:card": "summary_large_image"
+      },
+      "links": [
+        {
+          "href": "https://benchmark-acme.internal/",
+          "text": "Home",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/pricing",
+          "text": "Pricing",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/contact",
+          "text": "Get Started",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/docs",
+          "text": "Documentation",
+          "is_internal": true
+        }
+      ],
+      "nav_link_texts": [
+        "Home",
+        "Pricing & Plans",
+        "Documentation",
+        "Contact Sales"
+      ],
+      "images": [
+        {
+          "src": "https://benchmark-acme.internal/assets/prod-2.png",
+          "alt": "Enterprise Solution 2"
+        }
+      ],
+      "visible_text_length": 1434,
+      "visible_text_sample": "Enterprise Solution 2 provides end-to-end automation with guaranteed uptime and compliance.",
+      "last_modified": "2026-01-15T09:00:00Z",
+      "crawled_with_js": false,
+      "js_render_available": true,
+      "raw_html_length": 8562,
+      "raw_text_length": 1434,
+      "rendered_text_length": 1434,
+      "js_dependent_content": false,
+      "content_disparity": 0
+    },
+    {
+      "url": "https://benchmark-acme.internal/products/product-suite-3",
+      "status_code": 200,
+      "final_url": "https://benchmark-acme.internal/products/product-suite-3",
+      "redirect_chain": [],
+      "redirect_loop": false,
+      "canonical": "https://benchmark-acme.internal/products/product-suite-3",
+      "canonical_conflict": false,
+      "meta_robots": "index, follow",
+      "x_robots_tag": "",
+      "page_type": "Product",
+      "classification_confidence": "high",
+      "title": "Acme Product Suite 3 | Acme Global",
+      "meta_description": "Explore Acme Product Suite 3 designed for modern autonomous enterprise workflows.",
+      "h1": [
+        "Acme Product Suite 3"
+      ],
+      "headings": [
+        {
+          "level": 1,
+          "text": "Acme Product Suite 3"
+        },
+        {
+          "level": 2,
+          "text": "Feature Overview"
+        },
+        {
+          "level": 3,
+          "text": "Specifications"
+        }
+      ],
+      "json_ld": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Product",
+          "name": "Acme Product Suite 3",
+          "description": "High performance AI capability module 3.",
+          "offers": {
+            "@type": "Offer",
+            "price": "129",
+            "priceCurrency": "USD",
+            "availability": "https://schema.org/InStock"
+          }
+        }
+      ],
+      "open_graph": {
+        "og:title": "Acme Product Suite 3",
+        "og:description": "Acme Product Suite 3",
+        "og:image": "https://benchmark-acme.internal/assets/prod-3.png"
+      },
+      "twitter_card": {
+        "twitter:card": "summary_large_image"
+      },
+      "links": [
+        {
+          "href": "https://benchmark-acme.internal/",
+          "text": "Home",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/pricing",
+          "text": "Pricing",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/contact",
+          "text": "Get Started",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/docs",
+          "text": "Documentation",
+          "is_internal": true
+        }
+      ],
+      "nav_link_texts": [
+        "Home",
+        "Pricing & Plans",
+        "Documentation",
+        "Contact Sales"
+      ],
+      "images": [
+        {
+          "src": "https://benchmark-acme.internal/assets/prod-3.png",
+          "alt": "Acme Product Suite 3"
+        }
+      ],
+      "visible_text_length": 1451,
+      "visible_text_sample": "Acme Product Suite 3 provides end-to-end automation with guaranteed uptime and compliance.",
+      "last_modified": "2026-01-15T09:00:00Z",
+      "crawled_with_js": false,
+      "js_render_available": true,
+      "raw_html_length": 8593,
+      "raw_text_length": 1451,
+      "rendered_text_length": 1451,
+      "js_dependent_content": false,
+      "content_disparity": 0
+    },
+    {
+      "url": "https://benchmark-acme.internal/blog/ai-trends-article-4",
+      "status_code": 200,
+      "final_url": "https://benchmark-acme.internal/blog/ai-trends-article-4",
+      "redirect_chain": [],
+      "redirect_loop": false,
+      "canonical": "https://benchmark-acme.internal/blog/ai-trends-article-4",
+      "canonical_conflict": false,
+      "meta_robots": "index, follow",
+      "x_robots_tag": "",
+      "page_type": "Blog/article",
+      "classification_confidence": "high",
+      "title": "AI Trends and Best Practices Part 4 | Acme Global",
+      "meta_description": "Explore AI Trends and Best Practices Part 4 designed for modern autonomous enterprise workflows.",
+      "h1": [
+        "AI Trends and Best Practices Part 4"
+      ],
+      "headings": [
+        {
+          "level": 1,
+          "text": "AI Trends and Best Practices Part 4"
+        },
+        {
+          "level": 2,
+          "text": "Feature Overview"
+        },
+        {
+          "level": 3,
+          "text": "Specifications"
+        }
+      ],
+      "json_ld": [
+        {
+          "@context": "https://schema.org",
+          "@type": "BlogPosting",
+          "headline": "AI Trends and Best Practices Part 4",
+          "datePublished": "2025-11-20T08:00:00Z",
+          "dateModified": "2026-01-10T11:00:00Z",
+          "author": {
+            "@type": "Person",
+            "name": "Jane Doe"
+          }
+        }
+      ],
+      "open_graph": {
+        "og:title": "AI Trends and Best Practices Part 4",
+        "og:description": "AI Trends and Best Practices Part 4",
+        "og:image": "https://benchmark-acme.internal/assets/prod-4.png"
+      },
+      "twitter_card": {
+        "twitter:card": "summary_large_image"
+      },
+      "links": [
+        {
+          "href": "https://benchmark-acme.internal/",
+          "text": "Home",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/pricing",
+          "text": "Pricing",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/contact",
+          "text": "Get Started",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/docs",
+          "text": "Documentation",
+          "is_internal": true
+        }
+      ],
+      "nav_link_texts": [
+        "Home",
+        "Pricing & Plans",
+        "Documentation",
+        "Contact Sales"
+      ],
+      "images": [
+        {
+          "src": "https://benchmark-acme.internal/assets/prod-4.png",
+          "alt": "AI Trends and Best Practices Part 4"
+        }
+      ],
+      "visible_text_length": 1468,
+      "visible_text_sample": "AI Trends and Best Practices Part 4 provides end-to-end automation with guaranteed uptime and compliance.",
+      "last_modified": "2026-01-15T09:00:00Z",
+      "crawled_with_js": false,
+      "js_render_available": true,
+      "raw_html_length": 8624,
+      "raw_text_length": 1468,
+      "rendered_text_length": 1468,
+      "js_dependent_content": false,
+      "content_disparity": 0
+    },
+    {
+      "url": "https://benchmark-acme.internal/solutions/enterprise-solution-5",
+      "status_code": 200,
+      "final_url": "https://benchmark-acme.internal/solutions/enterprise-solution-5",
+      "redirect_chain": [],
+      "redirect_loop": false,
+      "canonical": "https://benchmark-acme.internal/solutions/enterprise-solution-5",
+      "canonical_conflict": false,
+      "meta_robots": "index, follow",
+      "x_robots_tag": "",
+      "page_type": "Service",
+      "classification_confidence": "high",
+      "title": "Enterprise Solution 5 | Acme Global",
+      "meta_description": "Explore Enterprise Solution 5 designed for modern autonomous enterprise workflows.",
+      "h1": [
+        "Enterprise Solution 5"
+      ],
+      "headings": [
+        {
+          "level": 1,
+          "text": "Enterprise Solution 5"
+        },
+        {
+          "level": 2,
+          "text": "Feature Overview"
+        },
+        {
+          "level": 3,
+          "text": "Specifications"
+        }
+      ],
+      "json_ld": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Service",
+          "name": "Enterprise Solution 5",
+          "serviceType": "Cloud AI Solution"
+        }
+      ],
+      "open_graph": {
+        "og:title": "Enterprise Solution 5",
+        "og:description": "Enterprise Solution 5",
+        "og:image": "https://benchmark-acme.internal/assets/prod-5.png"
+      },
+      "twitter_card": {
+        "twitter:card": "summary_large_image"
+      },
+      "links": [
+        {
+          "href": "https://benchmark-acme.internal/",
+          "text": "Home",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/pricing",
+          "text": "Pricing",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/contact",
+          "text": "Get Started",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/docs",
+          "text": "Documentation",
+          "is_internal": true
+        }
+      ],
+      "nav_link_texts": [
+        "Home",
+        "Pricing & Plans",
+        "Documentation",
+        "Contact Sales"
+      ],
+      "images": [
+        {
+          "src": "https://benchmark-acme.internal/assets/prod-5.png",
+          "alt": "Enterprise Solution 5"
+        }
+      ],
+      "visible_text_length": 1485,
+      "visible_text_sample": "Enterprise Solution 5 provides end-to-end automation with guaranteed uptime and compliance.",
+      "last_modified": "2026-01-15T09:00:00Z",
+      "crawled_with_js": false,
+      "js_render_available": true,
+      "raw_html_length": 8655,
+      "raw_text_length": 1485,
+      "rendered_text_length": 1485,
+      "js_dependent_content": false,
+      "content_disparity": 0
+    },
+    {
+      "url": "https://benchmark-acme.internal/products/product-suite-6",
+      "status_code": 200,
+      "final_url": "https://benchmark-acme.internal/products/product-suite-6",
+      "redirect_chain": [],
+      "redirect_loop": false,
+      "canonical": "https://benchmark-acme.internal/products/product-suite-6",
+      "canonical_conflict": false,
+      "meta_robots": "index, follow",
+      "x_robots_tag": "",
+      "page_type": "Product",
+      "classification_confidence": "high",
+      "title": "Acme Product Suite 6 | Acme Global",
+      "meta_description": "Explore Acme Product Suite 6 designed for modern autonomous enterprise workflows.",
+      "h1": [
+        "Acme Product Suite 6"
+      ],
+      "headings": [
+        {
+          "level": 1,
+          "text": "Acme Product Suite 6"
+        },
+        {
+          "level": 2,
+          "text": "Feature Overview"
+        },
+        {
+          "level": 3,
+          "text": "Specifications"
+        }
+      ],
+      "json_ld": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Product",
+          "name": "Acme Product Suite 6",
+          "description": "High performance AI capability module 6.",
+          "offers": {
+            "@type": "Offer",
+            "price": "159",
+            "priceCurrency": "USD",
+            "availability": "https://schema.org/InStock"
+          }
+        }
+      ],
+      "open_graph": {
+        "og:title": "Acme Product Suite 6",
+        "og:description": "Acme Product Suite 6",
+        "og:image": "https://benchmark-acme.internal/assets/prod-6.png"
+      },
+      "twitter_card": {
+        "twitter:card": "summary_large_image"
+      },
+      "links": [
+        {
+          "href": "https://benchmark-acme.internal/",
+          "text": "Home",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/pricing",
+          "text": "Pricing",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/contact",
+          "text": "Get Started",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/docs",
+          "text": "Documentation",
+          "is_internal": true
+        }
+      ],
+      "nav_link_texts": [
+        "Home",
+        "Pricing & Plans",
+        "Documentation",
+        "Contact Sales"
+      ],
+      "images": [
+        {
+          "src": "https://benchmark-acme.internal/assets/prod-6.png",
+          "alt": "Acme Product Suite 6"
+        }
+      ],
+      "visible_text_length": 1502,
+      "visible_text_sample": "Acme Product Suite 6 provides end-to-end automation with guaranteed uptime and compliance.",
+      "last_modified": "2026-01-15T09:00:00Z",
+      "crawled_with_js": false,
+      "js_render_available": true,
+      "raw_html_length": 8686,
+      "raw_text_length": 1502,
+      "rendered_text_length": 1502,
+      "js_dependent_content": false,
+      "content_disparity": 0
+    },
+    {
+      "url": "https://benchmark-acme.internal/blog/ai-trends-article-7",
+      "status_code": 200,
+      "final_url": "https://benchmark-acme.internal/blog/ai-trends-article-7",
+      "redirect_chain": [],
+      "redirect_loop": false,
+      "canonical": "https://benchmark-acme.internal/blog/ai-trends-article-7",
+      "canonical_conflict": false,
+      "meta_robots": "index, follow",
+      "x_robots_tag": "",
+      "page_type": "Blog/article",
+      "classification_confidence": "high",
+      "title": "AI Trends and Best Practices Part 7 | Acme Global",
+      "meta_description": "Explore AI Trends and Best Practices Part 7 designed for modern autonomous enterprise workflows.",
+      "h1": [
+        "AI Trends and Best Practices Part 7"
+      ],
+      "headings": [
+        {
+          "level": 1,
+          "text": "AI Trends and Best Practices Part 7"
+        },
+        {
+          "level": 2,
+          "text": "Feature Overview"
+        },
+        {
+          "level": 3,
+          "text": "Specifications"
+        }
+      ],
+      "json_ld": [
+        {
+          "@context": "https://schema.org",
+          "@type": "BlogPosting",
+          "headline": "AI Trends and Best Practices Part 7",
+          "datePublished": "2025-11-20T08:00:00Z",
+          "dateModified": "2026-01-10T11:00:00Z",
+          "author": {
+            "@type": "Person",
+            "name": "Jane Doe"
+          }
+        }
+      ],
+      "open_graph": {
+        "og:title": "AI Trends and Best Practices Part 7",
+        "og:description": "AI Trends and Best Practices Part 7",
+        "og:image": "https://benchmark-acme.internal/assets/prod-7.png"
+      },
+      "twitter_card": {
+        "twitter:card": "summary_large_image"
+      },
+      "links": [
+        {
+          "href": "https://benchmark-acme.internal/",
+          "text": "Home",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/pricing",
+          "text": "Pricing",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/contact",
+          "text": "Get Started",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/docs",
+          "text": "Documentation",
+          "is_internal": true
+        }
+      ],
+      "nav_link_texts": [
+        "Home",
+        "Pricing & Plans",
+        "Documentation",
+        "Contact Sales"
+      ],
+      "images": [
+        {
+          "src": "https://benchmark-acme.internal/assets/prod-7.png",
+          "alt": "AI Trends and Best Practices Part 7"
+        }
+      ],
+      "visible_text_length": 1519,
+      "visible_text_sample": "AI Trends and Best Practices Part 7 provides end-to-end automation with guaranteed uptime and compliance.",
+      "last_modified": "2026-01-15T09:00:00Z",
+      "crawled_with_js": false,
+      "js_render_available": true,
+      "raw_html_length": 8717,
+      "raw_text_length": 1519,
+      "rendered_text_length": 1519,
+      "js_dependent_content": false,
+      "content_disparity": 0
+    },
+    {
+      "url": "https://benchmark-acme.internal/solutions/enterprise-solution-8",
+      "status_code": 200,
+      "final_url": "https://benchmark-acme.internal/solutions/enterprise-solution-8",
+      "redirect_chain": [],
+      "redirect_loop": false,
+      "canonical": "https://benchmark-acme.internal/solutions/enterprise-solution-8",
+      "canonical_conflict": false,
+      "meta_robots": "index, follow",
+      "x_robots_tag": "",
+      "page_type": "Service",
+      "classification_confidence": "high",
+      "title": "Enterprise Solution 8 | Acme Global",
+      "meta_description": "Explore Enterprise Solution 8 designed for modern autonomous enterprise workflows.",
+      "h1": [
+        "Enterprise Solution 8"
+      ],
+      "headings": [
+        {
+          "level": 1,
+          "text": "Enterprise Solution 8"
+        },
+        {
+          "level": 2,
+          "text": "Feature Overview"
+        },
+        {
+          "level": 3,
+          "text": "Specifications"
+        }
+      ],
+      "json_ld": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Service",
+          "name": "Enterprise Solution 8",
+          "serviceType": "Cloud AI Solution"
+        }
+      ],
+      "open_graph": {
+        "og:title": "Enterprise Solution 8",
+        "og:description": "Enterprise Solution 8",
+        "og:image": "https://benchmark-acme.internal/assets/prod-8.png"
+      },
+      "twitter_card": {
+        "twitter:card": "summary_large_image"
+      },
+      "links": [
+        {
+          "href": "https://benchmark-acme.internal/",
+          "text": "Home",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/pricing",
+          "text": "Pricing",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/contact",
+          "text": "Get Started",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/docs",
+          "text": "Documentation",
+          "is_internal": true
+        }
+      ],
+      "nav_link_texts": [
+        "Home",
+        "Pricing & Plans",
+        "Documentation",
+        "Contact Sales"
+      ],
+      "images": [
+        {
+          "src": "https://benchmark-acme.internal/assets/prod-8.png",
+          "alt": "Enterprise Solution 8"
+        }
+      ],
+      "visible_text_length": 1536,
+      "visible_text_sample": "Enterprise Solution 8 provides end-to-end automation with guaranteed uptime and compliance.",
+      "last_modified": "2026-01-15T09:00:00Z",
+      "crawled_with_js": false,
+      "js_render_available": true,
+      "raw_html_length": 8748,
+      "raw_text_length": 1536,
+      "rendered_text_length": 1536,
+      "js_dependent_content": false,
+      "content_disparity": 0
+    },
+    {
+      "url": "https://benchmark-acme.internal/products/product-suite-9",
+      "status_code": 200,
+      "final_url": "https://benchmark-acme.internal/products/product-suite-9",
+      "redirect_chain": [],
+      "redirect_loop": false,
+      "canonical": "https://benchmark-acme.internal/products/product-suite-9",
+      "canonical_conflict": false,
+      "meta_robots": "index, follow",
+      "x_robots_tag": "",
+      "page_type": "Product",
+      "classification_confidence": "high",
+      "title": "Acme Product Suite 9 | Acme Global",
+      "meta_description": "Explore Acme Product Suite 9 designed for modern autonomous enterprise workflows.",
+      "h1": [
+        "Acme Product Suite 9"
+      ],
+      "headings": [
+        {
+          "level": 1,
+          "text": "Acme Product Suite 9"
+        },
+        {
+          "level": 2,
+          "text": "Feature Overview"
+        },
+        {
+          "level": 3,
+          "text": "Specifications"
+        }
+      ],
+      "json_ld": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Product",
+          "name": "Acme Product Suite 9",
+          "description": "High performance AI capability module 9.",
+          "offers": {
+            "@type": "Offer",
+            "price": "189",
+            "priceCurrency": "USD",
+            "availability": "https://schema.org/InStock"
+          }
+        }
+      ],
+      "open_graph": {
+        "og:title": "Acme Product Suite 9",
+        "og:description": "Acme Product Suite 9",
+        "og:image": "https://benchmark-acme.internal/assets/prod-9.png"
+      },
+      "twitter_card": {
+        "twitter:card": "summary_large_image"
+      },
+      "links": [
+        {
+          "href": "https://benchmark-acme.internal/",
+          "text": "Home",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/pricing",
+          "text": "Pricing",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/contact",
+          "text": "Get Started",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/docs",
+          "text": "Documentation",
+          "is_internal": true
+        }
+      ],
+      "nav_link_texts": [
+        "Home",
+        "Pricing & Plans",
+        "Documentation",
+        "Contact Sales"
+      ],
+      "images": [
+        {
+          "src": "https://benchmark-acme.internal/assets/prod-9.png",
+          "alt": "Acme Product Suite 9"
+        }
+      ],
+      "visible_text_length": 1553,
+      "visible_text_sample": "Acme Product Suite 9 provides end-to-end automation with guaranteed uptime and compliance.",
+      "last_modified": "2026-01-15T09:00:00Z",
+      "crawled_with_js": false,
+      "js_render_available": true,
+      "raw_html_length": 8779,
+      "raw_text_length": 1553,
+      "rendered_text_length": 1553,
+      "js_dependent_content": false,
+      "content_disparity": 0
+    },
+    {
+      "url": "https://benchmark-acme.internal/blog/ai-trends-article-10",
+      "status_code": 200,
+      "final_url": "https://benchmark-acme.internal/blog/ai-trends-article-10",
+      "redirect_chain": [],
+      "redirect_loop": false,
+      "canonical": "https://benchmark-acme.internal/blog/ai-trends-article-10",
+      "canonical_conflict": false,
+      "meta_robots": "index, follow",
+      "x_robots_tag": "",
+      "page_type": "Blog/article",
+      "classification_confidence": "high",
+      "title": "AI Trends and Best Practices Part 10 | Acme Global",
+      "meta_description": "Explore AI Trends and Best Practices Part 10 designed for modern autonomous enterprise workflows.",
+      "h1": [
+        "AI Trends and Best Practices Part 10"
+      ],
+      "headings": [
+        {
+          "level": 1,
+          "text": "AI Trends and Best Practices Part 10"
+        },
+        {
+          "level": 2,
+          "text": "Feature Overview"
+        },
+        {
+          "level": 3,
+          "text": "Specifications"
+        }
+      ],
+      "json_ld": [
+        {
+          "@context": "https://schema.org",
+          "@type": "BlogPosting",
+          "headline": "AI Trends and Best Practices Part 10",
+          "datePublished": "2025-11-20T08:00:00Z",
+          "dateModified": "2026-01-10T11:00:00Z",
+          "author": {
+            "@type": "Person",
+            "name": "Jane Doe"
+          }
+        }
+      ],
+      "open_graph": {
+        "og:title": "AI Trends and Best Practices Part 10",
+        "og:description": "AI Trends and Best Practices Part 10",
+        "og:image": "https://benchmark-acme.internal/assets/prod-10.png"
+      },
+      "twitter_card": {
+        "twitter:card": "summary_large_image"
+      },
+      "links": [
+        {
+          "href": "https://benchmark-acme.internal/",
+          "text": "Home",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/pricing",
+          "text": "Pricing",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/contact",
+          "text": "Get Started",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/docs",
+          "text": "Documentation",
+          "is_internal": true
+        }
+      ],
+      "nav_link_texts": [
+        "Home",
+        "Pricing & Plans",
+        "Documentation",
+        "Contact Sales"
+      ],
+      "images": [
+        {
+          "src": "https://benchmark-acme.internal/assets/prod-10.png",
+          "alt": "AI Trends and Best Practices Part 10"
+        }
+      ],
+      "visible_text_length": 1570,
+      "visible_text_sample": "AI Trends and Best Practices Part 10 provides end-to-end automation with guaranteed uptime and compliance.",
+      "last_modified": "2026-01-15T09:00:00Z",
+      "crawled_with_js": false,
+      "js_render_available": true,
+      "raw_html_length": 8810,
+      "raw_text_length": 1570,
+      "rendered_text_length": 1570,
+      "js_dependent_content": false,
+      "content_disparity": 0
+    },
+    {
+      "url": "https://benchmark-acme.internal/solutions/enterprise-solution-11",
+      "status_code": 200,
+      "final_url": "https://benchmark-acme.internal/solutions/enterprise-solution-11",
+      "redirect_chain": [],
+      "redirect_loop": false,
+      "canonical": "https://benchmark-acme.internal/solutions/enterprise-solution-11",
+      "canonical_conflict": false,
+      "meta_robots": "index, follow",
+      "x_robots_tag": "",
+      "page_type": "Service",
+      "classification_confidence": "high",
+      "title": "Enterprise Solution 11 | Acme Global",
+      "meta_description": "Explore Enterprise Solution 11 designed for modern autonomous enterprise workflows.",
+      "h1": [
+        "Enterprise Solution 11"
+      ],
+      "headings": [
+        {
+          "level": 1,
+          "text": "Enterprise Solution 11"
+        },
+        {
+          "level": 2,
+          "text": "Feature Overview"
+        },
+        {
+          "level": 3,
+          "text": "Specifications"
+        }
+      ],
+      "json_ld": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Service",
+          "name": "Enterprise Solution 11",
+          "serviceType": "Cloud AI Solution"
+        }
+      ],
+      "open_graph": {
+        "og:title": "Enterprise Solution 11",
+        "og:description": "Enterprise Solution 11",
+        "og:image": "https://benchmark-acme.internal/assets/prod-11.png"
+      },
+      "twitter_card": {
+        "twitter:card": "summary_large_image"
+      },
+      "links": [
+        {
+          "href": "https://benchmark-acme.internal/",
+          "text": "Home",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/pricing",
+          "text": "Pricing",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/contact",
+          "text": "Get Started",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/docs",
+          "text": "Documentation",
+          "is_internal": true
+        }
+      ],
+      "nav_link_texts": [
+        "Home",
+        "Pricing & Plans",
+        "Documentation",
+        "Contact Sales"
+      ],
+      "images": [
+        {
+          "src": "https://benchmark-acme.internal/assets/prod-11.png",
+          "alt": "Enterprise Solution 11"
+        }
+      ],
+      "visible_text_length": 1587,
+      "visible_text_sample": "Enterprise Solution 11 provides end-to-end automation with guaranteed uptime and compliance.",
+      "last_modified": "2026-01-15T09:00:00Z",
+      "crawled_with_js": false,
+      "js_render_available": true,
+      "raw_html_length": 8841,
+      "raw_text_length": 1587,
+      "rendered_text_length": 1587,
+      "js_dependent_content": false,
+      "content_disparity": 0
+    },
+    {
+      "url": "https://benchmark-acme.internal/products/product-suite-12",
+      "status_code": 200,
+      "final_url": "https://benchmark-acme.internal/products/product-suite-12",
+      "redirect_chain": [],
+      "redirect_loop": false,
+      "canonical": "https://benchmark-acme.internal/products/product-suite-12",
+      "canonical_conflict": false,
+      "meta_robots": "index, follow",
+      "x_robots_tag": "",
+      "page_type": "Product",
+      "classification_confidence": "high",
+      "title": "Acme Product Suite 12 | Acme Global",
+      "meta_description": "Explore Acme Product Suite 12 designed for modern autonomous enterprise workflows.",
+      "h1": [
+        "Acme Product Suite 12"
+      ],
+      "headings": [
+        {
+          "level": 1,
+          "text": "Acme Product Suite 12"
+        },
+        {
+          "level": 2,
+          "text": "Feature Overview"
+        },
+        {
+          "level": 3,
+          "text": "Specifications"
+        }
+      ],
+      "json_ld": [],
+      "open_graph": {
+        "og:title": "Acme Product Suite 12",
+        "og:description": "Acme Product Suite 12",
+        "og:image": "https://benchmark-acme.internal/assets/prod-12.png"
+      },
+      "twitter_card": {
+        "twitter:card": "summary_large_image"
+      },
+      "links": [
+        {
+          "href": "https://benchmark-acme.internal/",
+          "text": "Home",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/pricing",
+          "text": "Pricing",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/contact",
+          "text": "Get Started",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/docs",
+          "text": "Documentation",
+          "is_internal": true
+        }
+      ],
+      "nav_link_texts": [
+        "Home",
+        "Pricing & Plans",
+        "Documentation",
+        "Contact Sales"
+      ],
+      "images": [
+        {
+          "src": "https://benchmark-acme.internal/assets/prod-12.png",
+          "alt": "Acme Product Suite 12"
+        }
+      ],
+      "visible_text_length": 1604,
+      "visible_text_sample": "Acme Product Suite 12 provides end-to-end automation with guaranteed uptime and compliance.",
+      "last_modified": "2026-01-15T09:00:00Z",
+      "crawled_with_js": false,
+      "js_render_available": true,
+      "raw_html_length": 8872,
+      "raw_text_length": 1604,
+      "rendered_text_length": 1604,
+      "js_dependent_content": false,
+      "content_disparity": 0
+    },
+    {
+      "url": "https://benchmark-acme.internal/blog/ai-trends-article-13",
+      "status_code": 200,
+      "final_url": "https://benchmark-acme.internal/blog/ai-trends-article-13",
+      "redirect_chain": [],
+      "redirect_loop": false,
+      "canonical": "https://benchmark-acme.internal/blog/ai-trends-article-13",
+      "canonical_conflict": false,
+      "meta_robots": "index, follow",
+      "x_robots_tag": "",
+      "page_type": "Blog/article",
+      "classification_confidence": "high",
+      "title": "AI Trends and Best Practices Part 13 | Acme Global",
+      "meta_description": "Explore AI Trends and Best Practices Part 13 designed for modern autonomous enterprise workflows.",
+      "h1": [
+        "AI Trends and Best Practices Part 13"
+      ],
+      "headings": [
+        {
+          "level": 1,
+          "text": "AI Trends and Best Practices Part 13"
+        },
+        {
+          "level": 2,
+          "text": "Feature Overview"
+        },
+        {
+          "level": 3,
+          "text": "Specifications"
+        }
+      ],
+      "json_ld": [
+        {
+          "@context": "https://schema.org",
+          "@type": "BlogPosting",
+          "headline": "AI Trends and Best Practices Part 13",
+          "datePublished": "2025-11-20T08:00:00Z",
+          "dateModified": "2026-01-10T11:00:00Z",
+          "author": {
+            "@type": "Person",
+            "name": "Jane Doe"
+          }
+        }
+      ],
+      "open_graph": {
+        "og:title": "AI Trends and Best Practices Part 13",
+        "og:description": "AI Trends and Best Practices Part 13",
+        "og:image": "https://benchmark-acme.internal/assets/prod-13.png"
+      },
+      "twitter_card": {
+        "twitter:card": "summary_large_image"
+      },
+      "links": [
+        {
+          "href": "https://benchmark-acme.internal/",
+          "text": "Home",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/pricing",
+          "text": "Pricing",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/contact",
+          "text": "Get Started",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/docs",
+          "text": "Documentation",
+          "is_internal": true
+        }
+      ],
+      "nav_link_texts": [
+        "Home",
+        "Pricing & Plans",
+        "Documentation",
+        "Contact Sales"
+      ],
+      "images": [
+        {
+          "src": "https://benchmark-acme.internal/assets/prod-13.png",
+          "alt": "AI Trends and Best Practices Part 13"
+        }
+      ],
+      "visible_text_length": 1621,
+      "visible_text_sample": "AI Trends and Best Practices Part 13 provides end-to-end automation with guaranteed uptime and compliance.",
+      "last_modified": "2026-01-15T09:00:00Z",
+      "crawled_with_js": false,
+      "js_render_available": true,
+      "raw_html_length": 8903,
+      "raw_text_length": 1621,
+      "rendered_text_length": 1621,
+      "js_dependent_content": false,
+      "content_disparity": 0
+    },
+    {
+      "url": "https://benchmark-acme.internal/solutions/enterprise-solution-14",
+      "status_code": 200,
+      "final_url": "https://benchmark-acme.internal/solutions/enterprise-solution-14",
+      "redirect_chain": [],
+      "redirect_loop": false,
+      "canonical": "https://benchmark-acme.internal/solutions/enterprise-solution-14",
+      "canonical_conflict": false,
+      "meta_robots": "index, follow",
+      "x_robots_tag": "",
+      "page_type": "Service",
+      "classification_confidence": "high",
+      "title": "Enterprise Solution 14 | Acme Global",
+      "meta_description": "Explore Enterprise Solution 14 designed for modern autonomous enterprise workflows.",
+      "h1": [
+        "Enterprise Solution 14"
+      ],
+      "headings": [
+        {
+          "level": 1,
+          "text": "Enterprise Solution 14"
+        },
+        {
+          "level": 2,
+          "text": "Feature Overview"
+        },
+        {
+          "level": 3,
+          "text": "Specifications"
+        }
+      ],
+      "json_ld": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Service",
+          "name": "Enterprise Solution 14",
+          "serviceType": "Cloud AI Solution"
+        }
+      ],
+      "open_graph": {
+        "og:title": "Enterprise Solution 14",
+        "og:description": "Enterprise Solution 14",
+        "og:image": "https://benchmark-acme.internal/assets/prod-14.png"
+      },
+      "twitter_card": {
+        "twitter:card": "summary_large_image"
+      },
+      "links": [
+        {
+          "href": "https://benchmark-acme.internal/",
+          "text": "Home",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/pricing",
+          "text": "Pricing",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/contact",
+          "text": "Get Started",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/docs",
+          "text": "Documentation",
+          "is_internal": true
+        }
+      ],
+      "nav_link_texts": [
+        "Home",
+        "Pricing & Plans",
+        "Documentation",
+        "Contact Sales"
+      ],
+      "images": [
+        {
+          "src": "https://benchmark-acme.internal/assets/prod-14.png",
+          "alt": "Enterprise Solution 14"
+        }
+      ],
+      "visible_text_length": 1638,
+      "visible_text_sample": "Enterprise Solution 14 provides end-to-end automation with guaranteed uptime and compliance.",
+      "last_modified": "2026-01-15T09:00:00Z",
+      "crawled_with_js": false,
+      "js_render_available": true,
+      "raw_html_length": 8934,
+      "raw_text_length": 1638,
+      "rendered_text_length": 1638,
+      "js_dependent_content": false,
+      "content_disparity": 0
+    },
+    {
+      "url": "https://benchmark-acme.internal/products/product-suite-15",
+      "status_code": 200,
+      "final_url": "https://benchmark-acme.internal/products/product-suite-15",
+      "redirect_chain": [],
+      "redirect_loop": false,
+      "canonical": "https://benchmark-acme.internal/products/product-suite-15",
+      "canonical_conflict": false,
+      "meta_robots": "index, follow",
+      "x_robots_tag": "",
+      "page_type": "Product",
+      "classification_confidence": "high",
+      "title": "Acme Product Suite 15 | Acme Global",
+      "meta_description": "Explore Acme Product Suite 15 designed for modern autonomous enterprise workflows.",
+      "h1": [
+        "Acme Product Suite 15"
+      ],
+      "headings": [
+        {
+          "level": 1,
+          "text": "Acme Product Suite 15"
+        },
+        {
+          "level": 2,
+          "text": "Feature Overview"
+        },
+        {
+          "level": 3,
+          "text": "Specifications"
+        }
+      ],
+      "json_ld": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Product",
+          "name": "Acme Product Suite 15",
+          "description": "High performance AI capability module 15.",
+          "offers": {
+            "@type": "Offer",
+            "price": "249",
+            "priceCurrency": "USD",
+            "availability": "https://schema.org/InStock"
+          }
+        }
+      ],
+      "open_graph": {
+        "og:title": "Acme Product Suite 15",
+        "og:description": "Acme Product Suite 15",
+        "og:image": "https://benchmark-acme.internal/assets/prod-15.png"
+      },
+      "twitter_card": {
+        "twitter:card": "summary_large_image"
+      },
+      "links": [
+        {
+          "href": "https://benchmark-acme.internal/",
+          "text": "Home",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/pricing",
+          "text": "Pricing",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/contact",
+          "text": "Get Started",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/docs",
+          "text": "Documentation",
+          "is_internal": true
+        }
+      ],
+      "nav_link_texts": [
+        "Home",
+        "Pricing & Plans",
+        "Documentation",
+        "Contact Sales"
+      ],
+      "images": [
+        {
+          "src": "https://benchmark-acme.internal/assets/prod-15.png",
+          "alt": "Acme Product Suite 15"
+        }
+      ],
+      "visible_text_length": 1655,
+      "visible_text_sample": "Acme Product Suite 15 provides end-to-end automation with guaranteed uptime and compliance.",
+      "last_modified": "2026-01-15T09:00:00Z",
+      "crawled_with_js": false,
+      "js_render_available": true,
+      "raw_html_length": 8965,
+      "raw_text_length": 1655,
+      "rendered_text_length": 1655,
+      "js_dependent_content": false,
+      "content_disparity": 0
+    },
+    {
+      "url": "https://benchmark-acme.internal/blog/ai-trends-article-16",
+      "status_code": 200,
+      "final_url": "https://benchmark-acme.internal/blog/ai-trends-article-16",
+      "redirect_chain": [],
+      "redirect_loop": false,
+      "canonical": "https://benchmark-acme.internal/blog/ai-trends-article-16",
+      "canonical_conflict": false,
+      "meta_robots": "index, follow",
+      "x_robots_tag": "",
+      "page_type": "Blog/article",
+      "classification_confidence": "high",
+      "title": "AI Trends and Best Practices Part 16 | Acme Global",
+      "meta_description": "Explore AI Trends and Best Practices Part 16 designed for modern autonomous enterprise workflows.",
+      "h1": [
+        "AI Trends and Best Practices Part 16"
+      ],
+      "headings": [
+        {
+          "level": 1,
+          "text": "AI Trends and Best Practices Part 16"
+        },
+        {
+          "level": 2,
+          "text": "Feature Overview"
+        },
+        {
+          "level": 3,
+          "text": "Specifications"
+        }
+      ],
+      "json_ld": [
+        {
+          "@context": "https://schema.org",
+          "@type": "BlogPosting",
+          "headline": "AI Trends and Best Practices Part 16",
+          "datePublished": "2025-11-20T08:00:00Z",
+          "dateModified": "2026-01-10T11:00:00Z",
+          "author": {
+            "@type": "Person",
+            "name": "Jane Doe"
+          }
+        }
+      ],
+      "open_graph": {
+        "og:title": "AI Trends and Best Practices Part 16",
+        "og:description": "AI Trends and Best Practices Part 16",
+        "og:image": "https://benchmark-acme.internal/assets/prod-16.png"
+      },
+      "twitter_card": {
+        "twitter:card": "summary_large_image"
+      },
+      "links": [
+        {
+          "href": "https://benchmark-acme.internal/",
+          "text": "Home",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/pricing",
+          "text": "Pricing",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/contact",
+          "text": "Get Started",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/docs",
+          "text": "Documentation",
+          "is_internal": true
+        }
+      ],
+      "nav_link_texts": [
+        "Home",
+        "Pricing & Plans",
+        "Documentation",
+        "Contact Sales"
+      ],
+      "images": [
+        {
+          "src": "https://benchmark-acme.internal/assets/prod-16.png",
+          "alt": "AI Trends and Best Practices Part 16"
+        }
+      ],
+      "visible_text_length": 1672,
+      "visible_text_sample": "AI Trends and Best Practices Part 16 provides end-to-end automation with guaranteed uptime and compliance.",
+      "last_modified": "2026-01-15T09:00:00Z",
+      "crawled_with_js": false,
+      "js_render_available": true,
+      "raw_html_length": 8996,
+      "raw_text_length": 1672,
+      "rendered_text_length": 1672,
+      "js_dependent_content": false,
+      "content_disparity": 0
+    },
+    {
+      "url": "https://benchmark-acme.internal/solutions/enterprise-solution-17",
+      "status_code": 200,
+      "final_url": "https://benchmark-acme.internal/solutions/enterprise-solution-17",
+      "redirect_chain": [],
+      "redirect_loop": false,
+      "canonical": "https://benchmark-acme.internal/solutions/enterprise-solution-17",
+      "canonical_conflict": false,
+      "meta_robots": "index, follow",
+      "x_robots_tag": "",
+      "page_type": "Service",
+      "classification_confidence": "high",
+      "title": "Enterprise Solution 17 | Acme Global",
+      "meta_description": "Explore Enterprise Solution 17 designed for modern autonomous enterprise workflows.",
+      "h1": [
+        "Enterprise Solution 17"
+      ],
+      "headings": [
+        {
+          "level": 1,
+          "text": "Enterprise Solution 17"
+        },
+        {
+          "level": 2,
+          "text": "Feature Overview"
+        },
+        {
+          "level": 3,
+          "text": "Specifications"
+        }
+      ],
+      "json_ld": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Service",
+          "name": "Enterprise Solution 17",
+          "serviceType": "Cloud AI Solution"
+        }
+      ],
+      "open_graph": {
+        "og:title": "Enterprise Solution 17",
+        "og:description": "Enterprise Solution 17",
+        "og:image": "https://benchmark-acme.internal/assets/prod-17.png"
+      },
+      "twitter_card": {
+        "twitter:card": "summary_large_image"
+      },
+      "links": [
+        {
+          "href": "https://benchmark-acme.internal/",
+          "text": "Home",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/pricing",
+          "text": "Pricing",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/contact",
+          "text": "Get Started",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/docs",
+          "text": "Documentation",
+          "is_internal": true
+        }
+      ],
+      "nav_link_texts": [
+        "Home",
+        "Pricing & Plans",
+        "Documentation",
+        "Contact Sales"
+      ],
+      "images": [
+        {
+          "src": "https://benchmark-acme.internal/assets/prod-17.png",
+          "alt": "Enterprise Solution 17"
+        }
+      ],
+      "visible_text_length": 1689,
+      "visible_text_sample": "Enterprise Solution 17 provides end-to-end automation with guaranteed uptime and compliance.",
+      "last_modified": "2026-01-15T09:00:00Z",
+      "crawled_with_js": false,
+      "js_render_available": true,
+      "raw_html_length": 9027,
+      "raw_text_length": 1689,
+      "rendered_text_length": 1689,
+      "js_dependent_content": false,
+      "content_disparity": 0
+    },
+    {
+      "url": "https://benchmark-acme.internal/products/product-suite-18",
+      "status_code": 200,
+      "final_url": "https://benchmark-acme.internal/products/product-suite-18",
+      "redirect_chain": [],
+      "redirect_loop": false,
+      "canonical": "https://benchmark-acme.internal/products/product-suite-18",
+      "canonical_conflict": false,
+      "meta_robots": "index, follow",
+      "x_robots_tag": "",
+      "page_type": "Product",
+      "classification_confidence": "high",
+      "title": "Acme Product Suite 18 | Acme Global",
+      "meta_description": "Explore Acme Product Suite 18 designed for modern autonomous enterprise workflows.",
+      "h1": [
+        "Acme Product Suite 18"
+      ],
+      "headings": [
+        {
+          "level": 1,
+          "text": "Acme Product Suite 18"
+        },
+        {
+          "level": 2,
+          "text": "Feature Overview"
+        },
+        {
+          "level": 3,
+          "text": "Specifications"
+        }
+      ],
+      "json_ld": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Product",
+          "name": "Acme Product Suite 18",
+          "description": "High performance AI capability module 18.",
+          "offers": {
+            "@type": "Offer",
+            "price": "279",
+            "priceCurrency": "USD",
+            "availability": "https://schema.org/InStock"
+          }
+        }
+      ],
+      "open_graph": {
+        "og:title": "Acme Product Suite 18",
+        "og:description": "Acme Product Suite 18",
+        "og:image": "https://benchmark-acme.internal/assets/prod-18.png"
+      },
+      "twitter_card": {
+        "twitter:card": "summary_large_image"
+      },
+      "links": [
+        {
+          "href": "https://benchmark-acme.internal/",
+          "text": "Home",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/pricing",
+          "text": "Pricing",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/contact",
+          "text": "Get Started",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/docs",
+          "text": "Documentation",
+          "is_internal": true
+        }
+      ],
+      "nav_link_texts": [
+        "Home",
+        "Pricing & Plans",
+        "Documentation",
+        "Contact Sales"
+      ],
+      "images": [
+        {
+          "src": "https://benchmark-acme.internal/assets/prod-18.png",
+          "alt": "Acme Product Suite 18"
+        }
+      ],
+      "visible_text_length": 1706,
+      "visible_text_sample": "Acme Product Suite 18 provides end-to-end automation with guaranteed uptime and compliance.",
+      "last_modified": "2026-01-15T09:00:00Z",
+      "crawled_with_js": false,
+      "js_render_available": true,
+      "raw_html_length": 9058,
+      "raw_text_length": 1706,
+      "rendered_text_length": 1706,
+      "js_dependent_content": false,
+      "content_disparity": 0
+    },
+    {
+      "url": "https://benchmark-acme.internal/blog/ai-trends-article-19",
+      "status_code": 200,
+      "final_url": "https://benchmark-acme.internal/blog/ai-trends-article-19",
+      "redirect_chain": [],
+      "redirect_loop": false,
+      "canonical": "https://benchmark-acme.internal/blog/ai-trends-article-19",
+      "canonical_conflict": false,
+      "meta_robots": "index, follow",
+      "x_robots_tag": "",
+      "page_type": "Blog/article",
+      "classification_confidence": "high",
+      "title": "AI Trends and Best Practices Part 19 | Acme Global",
+      "meta_description": "Explore AI Trends and Best Practices Part 19 designed for modern autonomous enterprise workflows.",
+      "h1": [
+        "AI Trends and Best Practices Part 19"
+      ],
+      "headings": [
+        {
+          "level": 1,
+          "text": "AI Trends and Best Practices Part 19"
+        },
+        {
+          "level": 2,
+          "text": "Feature Overview"
+        },
+        {
+          "level": 3,
+          "text": "Specifications"
+        }
+      ],
+      "json_ld": [
+        {
+          "@context": "https://schema.org",
+          "@type": "BlogPosting",
+          "headline": "AI Trends and Best Practices Part 19",
+          "datePublished": "2025-11-20T08:00:00Z",
+          "dateModified": "2026-01-10T11:00:00Z",
+          "author": {
+            "@type": "Person",
+            "name": "Jane Doe"
+          }
+        }
+      ],
+      "open_graph": {
+        "og:title": "AI Trends and Best Practices Part 19",
+        "og:description": "AI Trends and Best Practices Part 19",
+        "og:image": "https://benchmark-acme.internal/assets/prod-19.png"
+      },
+      "twitter_card": {
+        "twitter:card": "summary_large_image"
+      },
+      "links": [
+        {
+          "href": "https://benchmark-acme.internal/",
+          "text": "Home",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/pricing",
+          "text": "Pricing",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/contact",
+          "text": "Get Started",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/docs",
+          "text": "Documentation",
+          "is_internal": true
+        }
+      ],
+      "nav_link_texts": [
+        "Home",
+        "Pricing & Plans",
+        "Documentation",
+        "Contact Sales"
+      ],
+      "images": [
+        {
+          "src": "https://benchmark-acme.internal/assets/prod-19.png",
+          "alt": "AI Trends and Best Practices Part 19"
+        }
+      ],
+      "visible_text_length": 1723,
+      "visible_text_sample": "AI Trends and Best Practices Part 19 provides end-to-end automation with guaranteed uptime and compliance.",
+      "last_modified": "2026-01-15T09:00:00Z",
+      "crawled_with_js": false,
+      "js_render_available": true,
+      "raw_html_length": 9089,
+      "raw_text_length": 1723,
+      "rendered_text_length": 1723,
+      "js_dependent_content": false,
+      "content_disparity": 0
+    },
+    {
+      "url": "https://benchmark-acme.internal/solutions/enterprise-solution-20",
+      "status_code": 200,
+      "final_url": "https://benchmark-acme.internal/solutions/enterprise-solution-20",
+      "redirect_chain": [],
+      "redirect_loop": false,
+      "canonical": "https://benchmark-acme.internal/solutions/enterprise-solution-20",
+      "canonical_conflict": false,
+      "meta_robots": "index, follow",
+      "x_robots_tag": "",
+      "page_type": "Service",
+      "classification_confidence": "high",
+      "title": "Enterprise Solution 20 | Acme Global",
+      "meta_description": "Explore Enterprise Solution 20 designed for modern autonomous enterprise workflows.",
+      "h1": [
+        "Enterprise Solution 20"
+      ],
+      "headings": [
+        {
+          "level": 1,
+          "text": "Enterprise Solution 20"
+        },
+        {
+          "level": 2,
+          "text": "Feature Overview"
+        },
+        {
+          "level": 3,
+          "text": "Specifications"
+        }
+      ],
+      "json_ld": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Service",
+          "name": "Enterprise Solution 20",
+          "serviceType": "Cloud AI Solution"
+        }
+      ],
+      "open_graph": {
+        "og:title": "Enterprise Solution 20",
+        "og:description": "Enterprise Solution 20",
+        "og:image": "https://benchmark-acme.internal/assets/prod-20.png"
+      },
+      "twitter_card": {
+        "twitter:card": "summary_large_image"
+      },
+      "links": [
+        {
+          "href": "https://benchmark-acme.internal/",
+          "text": "Home",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/pricing",
+          "text": "Pricing",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/contact",
+          "text": "Get Started",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/docs",
+          "text": "Documentation",
+          "is_internal": true
+        }
+      ],
+      "nav_link_texts": [
+        "Home",
+        "Pricing & Plans",
+        "Documentation",
+        "Contact Sales"
+      ],
+      "images": [
+        {
+          "src": "https://benchmark-acme.internal/assets/prod-20.png",
+          "alt": "Enterprise Solution 20"
+        }
+      ],
+      "visible_text_length": 1740,
+      "visible_text_sample": "Enterprise Solution 20 provides end-to-end automation with guaranteed uptime and compliance.",
+      "last_modified": "2026-01-15T09:00:00Z",
+      "crawled_with_js": false,
+      "js_render_available": true,
+      "raw_html_length": 9120,
+      "raw_text_length": 1740,
+      "rendered_text_length": 1740,
+      "js_dependent_content": false,
+      "content_disparity": 0
+    },
+    {
+      "url": "https://benchmark-acme.internal/products/product-suite-21",
+      "status_code": 200,
+      "final_url": "https://benchmark-acme.internal/products/product-suite-21",
+      "redirect_chain": [],
+      "redirect_loop": false,
+      "canonical": "https://benchmark-acme.internal/products/product-suite-21",
+      "canonical_conflict": false,
+      "meta_robots": "index, follow",
+      "x_robots_tag": "",
+      "page_type": "Product",
+      "classification_confidence": "high",
+      "title": "Acme Product Suite 21 | Acme Global",
+      "meta_description": "Explore Acme Product Suite 21 designed for modern autonomous enterprise workflows.",
+      "h1": [
+        "Acme Product Suite 21"
+      ],
+      "headings": [
+        {
+          "level": 1,
+          "text": "Acme Product Suite 21"
+        },
+        {
+          "level": 2,
+          "text": "Feature Overview"
+        },
+        {
+          "level": 3,
+          "text": "Specifications"
+        }
+      ],
+      "json_ld": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Product",
+          "name": "Acme Product Suite 21",
+          "description": "High performance AI capability module 21.",
+          "offers": {
+            "@type": "Offer",
+            "price": "309",
+            "priceCurrency": "USD",
+            "availability": "https://schema.org/InStock"
+          }
+        }
+      ],
+      "open_graph": {
+        "og:title": "Acme Product Suite 21",
+        "og:description": "Acme Product Suite 21",
+        "og:image": "https://benchmark-acme.internal/assets/prod-21.png"
+      },
+      "twitter_card": {
+        "twitter:card": "summary_large_image"
+      },
+      "links": [
+        {
+          "href": "https://benchmark-acme.internal/",
+          "text": "Home",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/pricing",
+          "text": "Pricing",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/contact",
+          "text": "Get Started",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/docs",
+          "text": "Documentation",
+          "is_internal": true
+        }
+      ],
+      "nav_link_texts": [
+        "Home",
+        "Pricing & Plans",
+        "Documentation",
+        "Contact Sales"
+      ],
+      "images": [
+        {
+          "src": "https://benchmark-acme.internal/assets/prod-21.png",
+          "alt": "Acme Product Suite 21"
+        }
+      ],
+      "visible_text_length": 1757,
+      "visible_text_sample": "Acme Product Suite 21 provides end-to-end automation with guaranteed uptime and compliance.",
+      "last_modified": "2026-01-15T09:00:00Z",
+      "crawled_with_js": false,
+      "js_render_available": true,
+      "raw_html_length": 9151,
+      "raw_text_length": 1757,
+      "rendered_text_length": 1757,
+      "js_dependent_content": false,
+      "content_disparity": 0
+    },
+    {
+      "url": "https://benchmark-acme.internal/blog/ai-trends-article-22",
+      "status_code": 200,
+      "final_url": "https://benchmark-acme.internal/blog/ai-trends-article-22",
+      "redirect_chain": [],
+      "redirect_loop": false,
+      "canonical": "https://benchmark-acme.internal/blog/ai-trends-article-22",
+      "canonical_conflict": false,
+      "meta_robots": "index, follow",
+      "x_robots_tag": "",
+      "page_type": "Blog/article",
+      "classification_confidence": "high",
+      "title": "AI Trends and Best Practices Part 22 | Acme Global",
+      "meta_description": "Explore AI Trends and Best Practices Part 22 designed for modern autonomous enterprise workflows.",
+      "h1": [
+        "AI Trends and Best Practices Part 22"
+      ],
+      "headings": [
+        {
+          "level": 1,
+          "text": "AI Trends and Best Practices Part 22"
+        },
+        {
+          "level": 2,
+          "text": "Feature Overview"
+        },
+        {
+          "level": 3,
+          "text": "Specifications"
+        }
+      ],
+      "json_ld": [
+        {
+          "@context": "https://schema.org",
+          "@type": "BlogPosting",
+          "headline": "AI Trends and Best Practices Part 22",
+          "datePublished": "2025-11-20T08:00:00Z",
+          "dateModified": "2026-01-10T11:00:00Z",
+          "author": {
+            "@type": "Person",
+            "name": "Jane Doe"
+          }
+        }
+      ],
+      "open_graph": {
+        "og:title": "AI Trends and Best Practices Part 22",
+        "og:description": "AI Trends and Best Practices Part 22",
+        "og:image": "https://benchmark-acme.internal/assets/prod-22.png"
+      },
+      "twitter_card": {
+        "twitter:card": "summary_large_image"
+      },
+      "links": [
+        {
+          "href": "https://benchmark-acme.internal/",
+          "text": "Home",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/pricing",
+          "text": "Pricing",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/contact",
+          "text": "Get Started",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/docs",
+          "text": "Documentation",
+          "is_internal": true
+        }
+      ],
+      "nav_link_texts": [
+        "Home",
+        "Pricing & Plans",
+        "Documentation",
+        "Contact Sales"
+      ],
+      "images": [
+        {
+          "src": "https://benchmark-acme.internal/assets/prod-22.png",
+          "alt": "AI Trends and Best Practices Part 22"
+        }
+      ],
+      "visible_text_length": 1774,
+      "visible_text_sample": "AI Trends and Best Practices Part 22 provides end-to-end automation with guaranteed uptime and compliance.",
+      "last_modified": "2026-01-15T09:00:00Z",
+      "crawled_with_js": false,
+      "js_render_available": true,
+      "raw_html_length": 9182,
+      "raw_text_length": 1774,
+      "rendered_text_length": 1774,
+      "js_dependent_content": false,
+      "content_disparity": 0
+    },
+    {
+      "url": "https://benchmark-acme.internal/solutions/enterprise-solution-23",
+      "status_code": 200,
+      "final_url": "https://benchmark-acme.internal/solutions/enterprise-solution-23",
+      "redirect_chain": [],
+      "redirect_loop": false,
+      "canonical": "https://benchmark-acme.internal/solutions/enterprise-solution-23",
+      "canonical_conflict": false,
+      "meta_robots": "index, follow",
+      "x_robots_tag": "",
+      "page_type": "Service",
+      "classification_confidence": "high",
+      "title": "Enterprise Solution 23 | Acme Global",
+      "meta_description": "Explore Enterprise Solution 23 designed for modern autonomous enterprise workflows.",
+      "h1": [
+        "Enterprise Solution 23"
+      ],
+      "headings": [
+        {
+          "level": 1,
+          "text": "Enterprise Solution 23"
+        },
+        {
+          "level": 2,
+          "text": "Feature Overview"
+        },
+        {
+          "level": 3,
+          "text": "Specifications"
+        }
+      ],
+      "json_ld": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Service",
+          "name": "Enterprise Solution 23",
+          "serviceType": "Cloud AI Solution"
+        }
+      ],
+      "open_graph": {
+        "og:title": "Enterprise Solution 23",
+        "og:description": "Enterprise Solution 23",
+        "og:image": "https://benchmark-acme.internal/assets/prod-23.png"
+      },
+      "twitter_card": {
+        "twitter:card": "summary_large_image"
+      },
+      "links": [
+        {
+          "href": "https://benchmark-acme.internal/",
+          "text": "Home",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/pricing",
+          "text": "Pricing",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/contact",
+          "text": "Get Started",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/docs",
+          "text": "Documentation",
+          "is_internal": true
+        }
+      ],
+      "nav_link_texts": [
+        "Home",
+        "Pricing & Plans",
+        "Documentation",
+        "Contact Sales"
+      ],
+      "images": [
+        {
+          "src": "https://benchmark-acme.internal/assets/prod-23.png",
+          "alt": "Enterprise Solution 23"
+        }
+      ],
+      "visible_text_length": 1791,
+      "visible_text_sample": "Enterprise Solution 23 provides end-to-end automation with guaranteed uptime and compliance.",
+      "last_modified": "2026-01-15T09:00:00Z",
+      "crawled_with_js": false,
+      "js_render_available": true,
+      "raw_html_length": 9213,
+      "raw_text_length": 1791,
+      "rendered_text_length": 1791,
+      "js_dependent_content": false,
+      "content_disparity": 0
+    },
+    {
+      "url": "https://benchmark-acme.internal/products/product-suite-24",
+      "status_code": 200,
+      "final_url": "https://benchmark-acme.internal/products/product-suite-24",
+      "redirect_chain": [],
+      "redirect_loop": false,
+      "canonical": "https://benchmark-acme.internal/products/product-suite-24",
+      "canonical_conflict": false,
+      "meta_robots": "index, follow",
+      "x_robots_tag": "",
+      "page_type": "Product",
+      "classification_confidence": "high",
+      "title": "Acme Product Suite 24 | Acme Global",
+      "meta_description": "Explore Acme Product Suite 24 designed for modern autonomous enterprise workflows.",
+      "h1": [
+        "Acme Product Suite 24"
+      ],
+      "headings": [
+        {
+          "level": 1,
+          "text": "Acme Product Suite 24"
+        },
+        {
+          "level": 2,
+          "text": "Feature Overview"
+        },
+        {
+          "level": 3,
+          "text": "Specifications"
+        }
+      ],
+      "json_ld": [],
+      "open_graph": {
+        "og:title": "Acme Product Suite 24",
+        "og:description": "Acme Product Suite 24",
+        "og:image": "https://benchmark-acme.internal/assets/prod-24.png"
+      },
+      "twitter_card": {
+        "twitter:card": "summary_large_image"
+      },
+      "links": [
+        {
+          "href": "https://benchmark-acme.internal/",
+          "text": "Home",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/pricing",
+          "text": "Pricing",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/contact",
+          "text": "Get Started",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/docs",
+          "text": "Documentation",
+          "is_internal": true
+        }
+      ],
+      "nav_link_texts": [
+        "Home",
+        "Pricing & Plans",
+        "Documentation",
+        "Contact Sales"
+      ],
+      "images": [
+        {
+          "src": "https://benchmark-acme.internal/assets/prod-24.png",
+          "alt": "Acme Product Suite 24"
+        }
+      ],
+      "visible_text_length": 1808,
+      "visible_text_sample": "Acme Product Suite 24 provides end-to-end automation with guaranteed uptime and compliance.",
+      "last_modified": "2026-01-15T09:00:00Z",
+      "crawled_with_js": false,
+      "js_render_available": true,
+      "raw_html_length": 9244,
+      "raw_text_length": 1808,
+      "rendered_text_length": 1808,
+      "js_dependent_content": false,
+      "content_disparity": 0
+    },
+    {
+      "url": "https://benchmark-acme.internal/blog/ai-trends-article-25",
+      "status_code": 200,
+      "final_url": "https://benchmark-acme.internal/blog/ai-trends-article-25",
+      "redirect_chain": [],
+      "redirect_loop": false,
+      "canonical": "https://benchmark-acme.internal/blog/ai-trends-article-25",
+      "canonical_conflict": false,
+      "meta_robots": "index, follow",
+      "x_robots_tag": "",
+      "page_type": "Blog/article",
+      "classification_confidence": "high",
+      "title": "AI Trends and Best Practices Part 25 | Acme Global",
+      "meta_description": "Explore AI Trends and Best Practices Part 25 designed for modern autonomous enterprise workflows.",
+      "h1": [
+        "AI Trends and Best Practices Part 25"
+      ],
+      "headings": [
+        {
+          "level": 1,
+          "text": "AI Trends and Best Practices Part 25"
+        },
+        {
+          "level": 2,
+          "text": "Feature Overview"
+        },
+        {
+          "level": 3,
+          "text": "Specifications"
+        }
+      ],
+      "json_ld": [
+        {
+          "@context": "https://schema.org",
+          "@type": "BlogPosting",
+          "headline": "AI Trends and Best Practices Part 25",
+          "datePublished": "2025-11-20T08:00:00Z",
+          "dateModified": "2026-01-10T11:00:00Z",
+          "author": {
+            "@type": "Person",
+            "name": "Jane Doe"
+          }
+        }
+      ],
+      "open_graph": {
+        "og:title": "AI Trends and Best Practices Part 25",
+        "og:description": "AI Trends and Best Practices Part 25",
+        "og:image": "https://benchmark-acme.internal/assets/prod-25.png"
+      },
+      "twitter_card": {
+        "twitter:card": "summary_large_image"
+      },
+      "links": [
+        {
+          "href": "https://benchmark-acme.internal/",
+          "text": "Home",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/pricing",
+          "text": "Pricing",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/contact",
+          "text": "Get Started",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/docs",
+          "text": "Documentation",
+          "is_internal": true
+        }
+      ],
+      "nav_link_texts": [
+        "Home",
+        "Pricing & Plans",
+        "Documentation",
+        "Contact Sales"
+      ],
+      "images": [
+        {
+          "src": "https://benchmark-acme.internal/assets/prod-25.png",
+          "alt": "AI Trends and Best Practices Part 25"
+        }
+      ],
+      "visible_text_length": 1825,
+      "visible_text_sample": "AI Trends and Best Practices Part 25 provides end-to-end automation with guaranteed uptime and compliance.",
+      "last_modified": "2026-01-15T09:00:00Z",
+      "crawled_with_js": false,
+      "js_render_available": true,
+      "raw_html_length": 9275,
+      "raw_text_length": 1825,
+      "rendered_text_length": 1825,
+      "js_dependent_content": false,
+      "content_disparity": 0
+    },
+    {
+      "url": "https://benchmark-acme.internal/solutions/enterprise-solution-26",
+      "status_code": 200,
+      "final_url": "https://benchmark-acme.internal/solutions/enterprise-solution-26",
+      "redirect_chain": [],
+      "redirect_loop": false,
+      "canonical": "https://benchmark-acme.internal/solutions/enterprise-solution-26",
+      "canonical_conflict": false,
+      "meta_robots": "index, follow",
+      "x_robots_tag": "",
+      "page_type": "Service",
+      "classification_confidence": "high",
+      "title": "Enterprise Solution 26 | Acme Global",
+      "meta_description": "Explore Enterprise Solution 26 designed for modern autonomous enterprise workflows.",
+      "h1": [
+        "Enterprise Solution 26"
+      ],
+      "headings": [
+        {
+          "level": 1,
+          "text": "Enterprise Solution 26"
+        },
+        {
+          "level": 2,
+          "text": "Feature Overview"
+        },
+        {
+          "level": 3,
+          "text": "Specifications"
+        }
+      ],
+      "json_ld": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Service",
+          "name": "Enterprise Solution 26",
+          "serviceType": "Cloud AI Solution"
+        }
+      ],
+      "open_graph": {
+        "og:title": "Enterprise Solution 26",
+        "og:description": "Enterprise Solution 26",
+        "og:image": "https://benchmark-acme.internal/assets/prod-26.png"
+      },
+      "twitter_card": {
+        "twitter:card": "summary_large_image"
+      },
+      "links": [
+        {
+          "href": "https://benchmark-acme.internal/",
+          "text": "Home",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/pricing",
+          "text": "Pricing",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/contact",
+          "text": "Get Started",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/docs",
+          "text": "Documentation",
+          "is_internal": true
+        }
+      ],
+      "nav_link_texts": [
+        "Home",
+        "Pricing & Plans",
+        "Documentation",
+        "Contact Sales"
+      ],
+      "images": [
+        {
+          "src": "https://benchmark-acme.internal/assets/prod-26.png",
+          "alt": "Enterprise Solution 26"
+        }
+      ],
+      "visible_text_length": 1842,
+      "visible_text_sample": "Enterprise Solution 26 provides end-to-end automation with guaranteed uptime and compliance.",
+      "last_modified": "2026-01-15T09:00:00Z",
+      "crawled_with_js": false,
+      "js_render_available": true,
+      "raw_html_length": 9306,
+      "raw_text_length": 1842,
+      "rendered_text_length": 1842,
+      "js_dependent_content": false,
+      "content_disparity": 0
+    },
+    {
+      "url": "https://benchmark-acme.internal/products/product-suite-27",
+      "status_code": 200,
+      "final_url": "https://benchmark-acme.internal/products/product-suite-27",
+      "redirect_chain": [],
+      "redirect_loop": false,
+      "canonical": "https://benchmark-acme.internal/products/product-suite-27",
+      "canonical_conflict": false,
+      "meta_robots": "index, follow",
+      "x_robots_tag": "",
+      "page_type": "Product",
+      "classification_confidence": "high",
+      "title": "Acme Product Suite 27 | Acme Global",
+      "meta_description": "Explore Acme Product Suite 27 designed for modern autonomous enterprise workflows.",
+      "h1": [
+        "Acme Product Suite 27"
+      ],
+      "headings": [
+        {
+          "level": 1,
+          "text": "Acme Product Suite 27"
+        },
+        {
+          "level": 2,
+          "text": "Feature Overview"
+        },
+        {
+          "level": 3,
+          "text": "Specifications"
+        }
+      ],
+      "json_ld": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Product",
+          "name": "Acme Product Suite 27",
+          "description": "High performance AI capability module 27.",
+          "offers": {
+            "@type": "Offer",
+            "price": "369",
+            "priceCurrency": "USD",
+            "availability": "https://schema.org/InStock"
+          }
+        }
+      ],
+      "open_graph": {
+        "og:title": "Acme Product Suite 27",
+        "og:description": "Acme Product Suite 27",
+        "og:image": "https://benchmark-acme.internal/assets/prod-27.png"
+      },
+      "twitter_card": {
+        "twitter:card": "summary_large_image"
+      },
+      "links": [
+        {
+          "href": "https://benchmark-acme.internal/",
+          "text": "Home",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/pricing",
+          "text": "Pricing",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/contact",
+          "text": "Get Started",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/docs",
+          "text": "Documentation",
+          "is_internal": true
+        }
+      ],
+      "nav_link_texts": [
+        "Home",
+        "Pricing & Plans",
+        "Documentation",
+        "Contact Sales"
+      ],
+      "images": [
+        {
+          "src": "https://benchmark-acme.internal/assets/prod-27.png",
+          "alt": "Acme Product Suite 27"
+        }
+      ],
+      "visible_text_length": 1859,
+      "visible_text_sample": "Acme Product Suite 27 provides end-to-end automation with guaranteed uptime and compliance.",
+      "last_modified": "2026-01-15T09:00:00Z",
+      "crawled_with_js": false,
+      "js_render_available": true,
+      "raw_html_length": 9337,
+      "raw_text_length": 1859,
+      "rendered_text_length": 1859,
+      "js_dependent_content": false,
+      "content_disparity": 0
+    },
+    {
+      "url": "https://benchmark-acme.internal/blog/ai-trends-article-28",
+      "status_code": 200,
+      "final_url": "https://benchmark-acme.internal/blog/ai-trends-article-28",
+      "redirect_chain": [],
+      "redirect_loop": false,
+      "canonical": "https://benchmark-acme.internal/blog/ai-trends-article-28",
+      "canonical_conflict": false,
+      "meta_robots": "index, follow",
+      "x_robots_tag": "",
+      "page_type": "Blog/article",
+      "classification_confidence": "high",
+      "title": "AI Trends and Best Practices Part 28 | Acme Global",
+      "meta_description": "Explore AI Trends and Best Practices Part 28 designed for modern autonomous enterprise workflows.",
+      "h1": [
+        "AI Trends and Best Practices Part 28"
+      ],
+      "headings": [
+        {
+          "level": 1,
+          "text": "AI Trends and Best Practices Part 28"
+        },
+        {
+          "level": 2,
+          "text": "Feature Overview"
+        },
+        {
+          "level": 3,
+          "text": "Specifications"
+        }
+      ],
+      "json_ld": [
+        {
+          "@context": "https://schema.org",
+          "@type": "BlogPosting",
+          "headline": "AI Trends and Best Practices Part 28",
+          "datePublished": "2025-11-20T08:00:00Z",
+          "dateModified": "2026-01-10T11:00:00Z",
+          "author": {
+            "@type": "Person",
+            "name": "Jane Doe"
+          }
+        }
+      ],
+      "open_graph": {
+        "og:title": "AI Trends and Best Practices Part 28",
+        "og:description": "AI Trends and Best Practices Part 28",
+        "og:image": "https://benchmark-acme.internal/assets/prod-28.png"
+      },
+      "twitter_card": {
+        "twitter:card": "summary_large_image"
+      },
+      "links": [
+        {
+          "href": "https://benchmark-acme.internal/",
+          "text": "Home",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/pricing",
+          "text": "Pricing",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/contact",
+          "text": "Get Started",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/docs",
+          "text": "Documentation",
+          "is_internal": true
+        }
+      ],
+      "nav_link_texts": [
+        "Home",
+        "Pricing & Plans",
+        "Documentation",
+        "Contact Sales"
+      ],
+      "images": [
+        {
+          "src": "https://benchmark-acme.internal/assets/prod-28.png",
+          "alt": "AI Trends and Best Practices Part 28"
+        }
+      ],
+      "visible_text_length": 1876,
+      "visible_text_sample": "AI Trends and Best Practices Part 28 provides end-to-end automation with guaranteed uptime and compliance.",
+      "last_modified": "2026-01-15T09:00:00Z",
+      "crawled_with_js": false,
+      "js_render_available": true,
+      "raw_html_length": 9368,
+      "raw_text_length": 1876,
+      "rendered_text_length": 1876,
+      "js_dependent_content": false,
+      "content_disparity": 0
+    },
+    {
+      "url": "https://benchmark-acme.internal/solutions/enterprise-solution-29",
+      "status_code": 200,
+      "final_url": "https://benchmark-acme.internal/solutions/enterprise-solution-29",
+      "redirect_chain": [],
+      "redirect_loop": false,
+      "canonical": "https://benchmark-acme.internal/solutions/enterprise-solution-29",
+      "canonical_conflict": false,
+      "meta_robots": "index, follow",
+      "x_robots_tag": "",
+      "page_type": "Service",
+      "classification_confidence": "high",
+      "title": "Enterprise Solution 29 | Acme Global",
+      "meta_description": "Explore Enterprise Solution 29 designed for modern autonomous enterprise workflows.",
+      "h1": [
+        "Enterprise Solution 29"
+      ],
+      "headings": [
+        {
+          "level": 1,
+          "text": "Enterprise Solution 29"
+        },
+        {
+          "level": 2,
+          "text": "Feature Overview"
+        },
+        {
+          "level": 3,
+          "text": "Specifications"
+        }
+      ],
+      "json_ld": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Service",
+          "name": "Enterprise Solution 29",
+          "serviceType": "Cloud AI Solution"
+        }
+      ],
+      "open_graph": {
+        "og:title": "Enterprise Solution 29",
+        "og:description": "Enterprise Solution 29",
+        "og:image": "https://benchmark-acme.internal/assets/prod-29.png"
+      },
+      "twitter_card": {
+        "twitter:card": "summary_large_image"
+      },
+      "links": [
+        {
+          "href": "https://benchmark-acme.internal/",
+          "text": "Home",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/pricing",
+          "text": "Pricing",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/contact",
+          "text": "Get Started",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/docs",
+          "text": "Documentation",
+          "is_internal": true
+        }
+      ],
+      "nav_link_texts": [
+        "Home",
+        "Pricing & Plans",
+        "Documentation",
+        "Contact Sales"
+      ],
+      "images": [
+        {
+          "src": "https://benchmark-acme.internal/assets/prod-29.png",
+          "alt": "Enterprise Solution 29"
+        }
+      ],
+      "visible_text_length": 1893,
+      "visible_text_sample": "Enterprise Solution 29 provides end-to-end automation with guaranteed uptime and compliance.",
+      "last_modified": "2026-01-15T09:00:00Z",
+      "crawled_with_js": false,
+      "js_render_available": true,
+      "raw_html_length": 9399,
+      "raw_text_length": 1893,
+      "rendered_text_length": 1893,
+      "js_dependent_content": false,
+      "content_disparity": 0
+    },
+    {
+      "url": "https://benchmark-acme.internal/products/product-suite-30",
+      "status_code": 200,
+      "final_url": "https://benchmark-acme.internal/products/product-suite-30",
+      "redirect_chain": [],
+      "redirect_loop": false,
+      "canonical": "https://benchmark-acme.internal/products/product-suite-30",
+      "canonical_conflict": false,
+      "meta_robots": "index, follow",
+      "x_robots_tag": "",
+      "page_type": "Product",
+      "classification_confidence": "high",
+      "title": "Acme Product Suite 30 | Acme Global",
+      "meta_description": "Explore Acme Product Suite 30 designed for modern autonomous enterprise workflows.",
+      "h1": [
+        "Acme Product Suite 30"
+      ],
+      "headings": [
+        {
+          "level": 1,
+          "text": "Acme Product Suite 30"
+        },
+        {
+          "level": 2,
+          "text": "Feature Overview"
+        },
+        {
+          "level": 3,
+          "text": "Specifications"
+        }
+      ],
+      "json_ld": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Product",
+          "name": "Acme Product Suite 30",
+          "description": "High performance AI capability module 30.",
+          "offers": {
+            "@type": "Offer",
+            "price": "399",
+            "priceCurrency": "USD",
+            "availability": "https://schema.org/InStock"
+          }
+        }
+      ],
+      "open_graph": {
+        "og:title": "Acme Product Suite 30",
+        "og:description": "Acme Product Suite 30",
+        "og:image": "https://benchmark-acme.internal/assets/prod-30.png"
+      },
+      "twitter_card": {
+        "twitter:card": "summary_large_image"
+      },
+      "links": [
+        {
+          "href": "https://benchmark-acme.internal/",
+          "text": "Home",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/pricing",
+          "text": "Pricing",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/contact",
+          "text": "Get Started",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/docs",
+          "text": "Documentation",
+          "is_internal": true
+        }
+      ],
+      "nav_link_texts": [
+        "Home",
+        "Pricing & Plans",
+        "Documentation",
+        "Contact Sales"
+      ],
+      "images": [
+        {
+          "src": "https://benchmark-acme.internal/assets/prod-30.png",
+          "alt": "Acme Product Suite 30"
+        }
+      ],
+      "visible_text_length": 1910,
+      "visible_text_sample": "Acme Product Suite 30 provides end-to-end automation with guaranteed uptime and compliance.",
+      "last_modified": "2026-01-15T09:00:00Z",
+      "crawled_with_js": false,
+      "js_render_available": true,
+      "raw_html_length": 9430,
+      "raw_text_length": 1910,
+      "rendered_text_length": 1910,
+      "js_dependent_content": false,
+      "content_disparity": 0
+    },
+    {
+      "url": "https://benchmark-acme.internal/blog/ai-trends-article-31",
+      "status_code": 200,
+      "final_url": "https://benchmark-acme.internal/blog/ai-trends-article-31",
+      "redirect_chain": [],
+      "redirect_loop": false,
+      "canonical": "https://benchmark-acme.internal/blog/ai-trends-article-31",
+      "canonical_conflict": false,
+      "meta_robots": "index, follow",
+      "x_robots_tag": "",
+      "page_type": "Blog/article",
+      "classification_confidence": "high",
+      "title": "AI Trends and Best Practices Part 31 | Acme Global",
+      "meta_description": "Explore AI Trends and Best Practices Part 31 designed for modern autonomous enterprise workflows.",
+      "h1": [
+        "AI Trends and Best Practices Part 31"
+      ],
+      "headings": [
+        {
+          "level": 1,
+          "text": "AI Trends and Best Practices Part 31"
+        },
+        {
+          "level": 2,
+          "text": "Feature Overview"
+        },
+        {
+          "level": 3,
+          "text": "Specifications"
+        }
+      ],
+      "json_ld": [
+        {
+          "@context": "https://schema.org",
+          "@type": "BlogPosting",
+          "headline": "AI Trends and Best Practices Part 31",
+          "datePublished": "2025-11-20T08:00:00Z",
+          "dateModified": "2026-01-10T11:00:00Z",
+          "author": {
+            "@type": "Person",
+            "name": "Jane Doe"
+          }
+        }
+      ],
+      "open_graph": {
+        "og:title": "AI Trends and Best Practices Part 31",
+        "og:description": "AI Trends and Best Practices Part 31",
+        "og:image": "https://benchmark-acme.internal/assets/prod-31.png"
+      },
+      "twitter_card": {
+        "twitter:card": "summary_large_image"
+      },
+      "links": [
+        {
+          "href": "https://benchmark-acme.internal/",
+          "text": "Home",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/pricing",
+          "text": "Pricing",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/contact",
+          "text": "Get Started",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/docs",
+          "text": "Documentation",
+          "is_internal": true
+        }
+      ],
+      "nav_link_texts": [
+        "Home",
+        "Pricing & Plans",
+        "Documentation",
+        "Contact Sales"
+      ],
+      "images": [
+        {
+          "src": "https://benchmark-acme.internal/assets/prod-31.png",
+          "alt": "AI Trends and Best Practices Part 31"
+        }
+      ],
+      "visible_text_length": 1927,
+      "visible_text_sample": "AI Trends and Best Practices Part 31 provides end-to-end automation with guaranteed uptime and compliance.",
+      "last_modified": "2026-01-15T09:00:00Z",
+      "crawled_with_js": false,
+      "js_render_available": true,
+      "raw_html_length": 9461,
+      "raw_text_length": 1927,
+      "rendered_text_length": 1927,
+      "js_dependent_content": false,
+      "content_disparity": 0
+    },
+    {
+      "url": "https://benchmark-acme.internal/solutions/enterprise-solution-32",
+      "status_code": 200,
+      "final_url": "https://benchmark-acme.internal/solutions/enterprise-solution-32",
+      "redirect_chain": [],
+      "redirect_loop": false,
+      "canonical": "https://benchmark-acme.internal/solutions/enterprise-solution-32",
+      "canonical_conflict": false,
+      "meta_robots": "index, follow",
+      "x_robots_tag": "",
+      "page_type": "Service",
+      "classification_confidence": "high",
+      "title": "Enterprise Solution 32 | Acme Global",
+      "meta_description": "Explore Enterprise Solution 32 designed for modern autonomous enterprise workflows.",
+      "h1": [
+        "Enterprise Solution 32"
+      ],
+      "headings": [
+        {
+          "level": 1,
+          "text": "Enterprise Solution 32"
+        },
+        {
+          "level": 2,
+          "text": "Feature Overview"
+        },
+        {
+          "level": 3,
+          "text": "Specifications"
+        }
+      ],
+      "json_ld": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Service",
+          "name": "Enterprise Solution 32",
+          "serviceType": "Cloud AI Solution"
+        }
+      ],
+      "open_graph": {
+        "og:title": "Enterprise Solution 32",
+        "og:description": "Enterprise Solution 32",
+        "og:image": "https://benchmark-acme.internal/assets/prod-32.png"
+      },
+      "twitter_card": {
+        "twitter:card": "summary_large_image"
+      },
+      "links": [
+        {
+          "href": "https://benchmark-acme.internal/",
+          "text": "Home",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/pricing",
+          "text": "Pricing",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/contact",
+          "text": "Get Started",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/docs",
+          "text": "Documentation",
+          "is_internal": true
+        }
+      ],
+      "nav_link_texts": [
+        "Home",
+        "Pricing & Plans",
+        "Documentation",
+        "Contact Sales"
+      ],
+      "images": [
+        {
+          "src": "https://benchmark-acme.internal/assets/prod-32.png",
+          "alt": "Enterprise Solution 32"
+        }
+      ],
+      "visible_text_length": 1944,
+      "visible_text_sample": "Enterprise Solution 32 provides end-to-end automation with guaranteed uptime and compliance.",
+      "last_modified": "2026-01-15T09:00:00Z",
+      "crawled_with_js": false,
+      "js_render_available": true,
+      "raw_html_length": 9492,
+      "raw_text_length": 1944,
+      "rendered_text_length": 1944,
+      "js_dependent_content": false,
+      "content_disparity": 0
+    },
+    {
+      "url": "https://benchmark-acme.internal/products/product-suite-33",
+      "status_code": 200,
+      "final_url": "https://benchmark-acme.internal/products/product-suite-33",
+      "redirect_chain": [],
+      "redirect_loop": false,
+      "canonical": "https://benchmark-acme.internal/products/product-suite-33",
+      "canonical_conflict": false,
+      "meta_robots": "index, follow",
+      "x_robots_tag": "",
+      "page_type": "Product",
+      "classification_confidence": "high",
+      "title": "Acme Product Suite 33 | Acme Global",
+      "meta_description": "Explore Acme Product Suite 33 designed for modern autonomous enterprise workflows.",
+      "h1": [
+        "Acme Product Suite 33"
+      ],
+      "headings": [
+        {
+          "level": 1,
+          "text": "Acme Product Suite 33"
+        },
+        {
+          "level": 2,
+          "text": "Feature Overview"
+        },
+        {
+          "level": 3,
+          "text": "Specifications"
+        }
+      ],
+      "json_ld": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Product",
+          "name": "Acme Product Suite 33",
+          "description": "High performance AI capability module 33.",
+          "offers": {
+            "@type": "Offer",
+            "price": "429",
+            "priceCurrency": "USD",
+            "availability": "https://schema.org/InStock"
+          }
+        }
+      ],
+      "open_graph": {
+        "og:title": "Acme Product Suite 33",
+        "og:description": "Acme Product Suite 33",
+        "og:image": "https://benchmark-acme.internal/assets/prod-33.png"
+      },
+      "twitter_card": {
+        "twitter:card": "summary_large_image"
+      },
+      "links": [
+        {
+          "href": "https://benchmark-acme.internal/",
+          "text": "Home",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/pricing",
+          "text": "Pricing",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/contact",
+          "text": "Get Started",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/docs",
+          "text": "Documentation",
+          "is_internal": true
+        }
+      ],
+      "nav_link_texts": [
+        "Home",
+        "Pricing & Plans",
+        "Documentation",
+        "Contact Sales"
+      ],
+      "images": [
+        {
+          "src": "https://benchmark-acme.internal/assets/prod-33.png",
+          "alt": "Acme Product Suite 33"
+        }
+      ],
+      "visible_text_length": 1961,
+      "visible_text_sample": "Acme Product Suite 33 provides end-to-end automation with guaranteed uptime and compliance.",
+      "last_modified": "2026-01-15T09:00:00Z",
+      "crawled_with_js": false,
+      "js_render_available": true,
+      "raw_html_length": 9523,
+      "raw_text_length": 1961,
+      "rendered_text_length": 1961,
+      "js_dependent_content": false,
+      "content_disparity": 0
+    },
+    {
+      "url": "https://benchmark-acme.internal/blog/ai-trends-article-34",
+      "status_code": 200,
+      "final_url": "https://benchmark-acme.internal/blog/ai-trends-article-34",
+      "redirect_chain": [],
+      "redirect_loop": false,
+      "canonical": "https://benchmark-acme.internal/blog/ai-trends-article-34",
+      "canonical_conflict": false,
+      "meta_robots": "index, follow",
+      "x_robots_tag": "",
+      "page_type": "Blog/article",
+      "classification_confidence": "high",
+      "title": "AI Trends and Best Practices Part 34 | Acme Global",
+      "meta_description": "Explore AI Trends and Best Practices Part 34 designed for modern autonomous enterprise workflows.",
+      "h1": [
+        "AI Trends and Best Practices Part 34"
+      ],
+      "headings": [
+        {
+          "level": 1,
+          "text": "AI Trends and Best Practices Part 34"
+        },
+        {
+          "level": 2,
+          "text": "Feature Overview"
+        },
+        {
+          "level": 3,
+          "text": "Specifications"
+        }
+      ],
+      "json_ld": [
+        {
+          "@context": "https://schema.org",
+          "@type": "BlogPosting",
+          "headline": "AI Trends and Best Practices Part 34",
+          "datePublished": "2025-11-20T08:00:00Z",
+          "dateModified": "2026-01-10T11:00:00Z",
+          "author": {
+            "@type": "Person",
+            "name": "Jane Doe"
+          }
+        }
+      ],
+      "open_graph": {
+        "og:title": "AI Trends and Best Practices Part 34",
+        "og:description": "AI Trends and Best Practices Part 34",
+        "og:image": "https://benchmark-acme.internal/assets/prod-34.png"
+      },
+      "twitter_card": {
+        "twitter:card": "summary_large_image"
+      },
+      "links": [
+        {
+          "href": "https://benchmark-acme.internal/",
+          "text": "Home",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/pricing",
+          "text": "Pricing",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/contact",
+          "text": "Get Started",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/docs",
+          "text": "Documentation",
+          "is_internal": true
+        }
+      ],
+      "nav_link_texts": [
+        "Home",
+        "Pricing & Plans",
+        "Documentation",
+        "Contact Sales"
+      ],
+      "images": [
+        {
+          "src": "https://benchmark-acme.internal/assets/prod-34.png",
+          "alt": "AI Trends and Best Practices Part 34"
+        }
+      ],
+      "visible_text_length": 1978,
+      "visible_text_sample": "AI Trends and Best Practices Part 34 provides end-to-end automation with guaranteed uptime and compliance.",
+      "last_modified": "2026-01-15T09:00:00Z",
+      "crawled_with_js": false,
+      "js_render_available": true,
+      "raw_html_length": 9554,
+      "raw_text_length": 1978,
+      "rendered_text_length": 1978,
+      "js_dependent_content": false,
+      "content_disparity": 0
+    },
+    {
+      "url": "https://benchmark-acme.internal/solutions/enterprise-solution-35",
+      "status_code": 200,
+      "final_url": "https://benchmark-acme.internal/solutions/enterprise-solution-35",
+      "redirect_chain": [],
+      "redirect_loop": false,
+      "canonical": "https://benchmark-acme.internal/solutions/enterprise-solution-35",
+      "canonical_conflict": false,
+      "meta_robots": "index, follow",
+      "x_robots_tag": "",
+      "page_type": "Service",
+      "classification_confidence": "high",
+      "title": "Enterprise Solution 35 | Acme Global",
+      "meta_description": "Explore Enterprise Solution 35 designed for modern autonomous enterprise workflows.",
+      "h1": [
+        "Enterprise Solution 35"
+      ],
+      "headings": [
+        {
+          "level": 1,
+          "text": "Enterprise Solution 35"
+        },
+        {
+          "level": 2,
+          "text": "Feature Overview"
+        },
+        {
+          "level": 3,
+          "text": "Specifications"
+        }
+      ],
+      "json_ld": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Service",
+          "name": "Enterprise Solution 35",
+          "serviceType": "Cloud AI Solution"
+        }
+      ],
+      "open_graph": {
+        "og:title": "Enterprise Solution 35",
+        "og:description": "Enterprise Solution 35",
+        "og:image": "https://benchmark-acme.internal/assets/prod-35.png"
+      },
+      "twitter_card": {
+        "twitter:card": "summary_large_image"
+      },
+      "links": [
+        {
+          "href": "https://benchmark-acme.internal/",
+          "text": "Home",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/pricing",
+          "text": "Pricing",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/contact",
+          "text": "Get Started",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/docs",
+          "text": "Documentation",
+          "is_internal": true
+        }
+      ],
+      "nav_link_texts": [
+        "Home",
+        "Pricing & Plans",
+        "Documentation",
+        "Contact Sales"
+      ],
+      "images": [
+        {
+          "src": "https://benchmark-acme.internal/assets/prod-35.png",
+          "alt": "Enterprise Solution 35"
+        }
+      ],
+      "visible_text_length": 1995,
+      "visible_text_sample": "Enterprise Solution 35 provides end-to-end automation with guaranteed uptime and compliance.",
+      "last_modified": "2026-01-15T09:00:00Z",
+      "crawled_with_js": false,
+      "js_render_available": true,
+      "raw_html_length": 9585,
+      "raw_text_length": 1995,
+      "rendered_text_length": 1995,
+      "js_dependent_content": false,
+      "content_disparity": 0
+    },
+    {
+      "url": "https://benchmark-acme.internal/products/product-suite-36",
+      "status_code": 200,
+      "final_url": "https://benchmark-acme.internal/products/product-suite-36",
+      "redirect_chain": [],
+      "redirect_loop": false,
+      "canonical": "https://benchmark-acme.internal/products/product-suite-36",
+      "canonical_conflict": false,
+      "meta_robots": "index, follow",
+      "x_robots_tag": "",
+      "page_type": "Product",
+      "classification_confidence": "high",
+      "title": "Acme Product Suite 36 | Acme Global",
+      "meta_description": "Explore Acme Product Suite 36 designed for modern autonomous enterprise workflows.",
+      "h1": [
+        "Acme Product Suite 36"
+      ],
+      "headings": [
+        {
+          "level": 1,
+          "text": "Acme Product Suite 36"
+        },
+        {
+          "level": 2,
+          "text": "Feature Overview"
+        },
+        {
+          "level": 3,
+          "text": "Specifications"
+        }
+      ],
+      "json_ld": [],
+      "open_graph": {
+        "og:title": "Acme Product Suite 36",
+        "og:description": "Acme Product Suite 36",
+        "og:image": "https://benchmark-acme.internal/assets/prod-36.png"
+      },
+      "twitter_card": {
+        "twitter:card": "summary_large_image"
+      },
+      "links": [
+        {
+          "href": "https://benchmark-acme.internal/",
+          "text": "Home",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/pricing",
+          "text": "Pricing",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/contact",
+          "text": "Get Started",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/docs",
+          "text": "Documentation",
+          "is_internal": true
+        }
+      ],
+      "nav_link_texts": [
+        "Home",
+        "Pricing & Plans",
+        "Documentation",
+        "Contact Sales"
+      ],
+      "images": [
+        {
+          "src": "https://benchmark-acme.internal/assets/prod-36.png",
+          "alt": "Acme Product Suite 36"
+        }
+      ],
+      "visible_text_length": 2012,
+      "visible_text_sample": "Acme Product Suite 36 provides end-to-end automation with guaranteed uptime and compliance.",
+      "last_modified": "2026-01-15T09:00:00Z",
+      "crawled_with_js": false,
+      "js_render_available": true,
+      "raw_html_length": 9616,
+      "raw_text_length": 2012,
+      "rendered_text_length": 2012,
+      "js_dependent_content": false,
+      "content_disparity": 0
+    },
+    {
+      "url": "https://benchmark-acme.internal/blog/ai-trends-article-37",
+      "status_code": 200,
+      "final_url": "https://benchmark-acme.internal/blog/ai-trends-article-37",
+      "redirect_chain": [],
+      "redirect_loop": false,
+      "canonical": "https://benchmark-acme.internal/blog/ai-trends-article-37",
+      "canonical_conflict": false,
+      "meta_robots": "index, follow",
+      "x_robots_tag": "",
+      "page_type": "Blog/article",
+      "classification_confidence": "high",
+      "title": "AI Trends and Best Practices Part 37 | Acme Global",
+      "meta_description": "Explore AI Trends and Best Practices Part 37 designed for modern autonomous enterprise workflows.",
+      "h1": [
+        "AI Trends and Best Practices Part 37"
+      ],
+      "headings": [
+        {
+          "level": 1,
+          "text": "AI Trends and Best Practices Part 37"
+        },
+        {
+          "level": 2,
+          "text": "Feature Overview"
+        },
+        {
+          "level": 3,
+          "text": "Specifications"
+        }
+      ],
+      "json_ld": [
+        {
+          "@context": "https://schema.org",
+          "@type": "BlogPosting",
+          "headline": "AI Trends and Best Practices Part 37",
+          "datePublished": "2025-11-20T08:00:00Z",
+          "dateModified": "2026-01-10T11:00:00Z",
+          "author": {
+            "@type": "Person",
+            "name": "Jane Doe"
+          }
+        }
+      ],
+      "open_graph": {
+        "og:title": "AI Trends and Best Practices Part 37",
+        "og:description": "AI Trends and Best Practices Part 37",
+        "og:image": "https://benchmark-acme.internal/assets/prod-37.png"
+      },
+      "twitter_card": {
+        "twitter:card": "summary_large_image"
+      },
+      "links": [
+        {
+          "href": "https://benchmark-acme.internal/",
+          "text": "Home",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/pricing",
+          "text": "Pricing",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/contact",
+          "text": "Get Started",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/docs",
+          "text": "Documentation",
+          "is_internal": true
+        }
+      ],
+      "nav_link_texts": [
+        "Home",
+        "Pricing & Plans",
+        "Documentation",
+        "Contact Sales"
+      ],
+      "images": [
+        {
+          "src": "https://benchmark-acme.internal/assets/prod-37.png",
+          "alt": "AI Trends and Best Practices Part 37"
+        }
+      ],
+      "visible_text_length": 2029,
+      "visible_text_sample": "AI Trends and Best Practices Part 37 provides end-to-end automation with guaranteed uptime and compliance.",
+      "last_modified": "2026-01-15T09:00:00Z",
+      "crawled_with_js": false,
+      "js_render_available": true,
+      "raw_html_length": 9647,
+      "raw_text_length": 2029,
+      "rendered_text_length": 2029,
+      "js_dependent_content": false,
+      "content_disparity": 0
+    },
+    {
+      "url": "https://benchmark-acme.internal/solutions/enterprise-solution-38",
+      "status_code": 200,
+      "final_url": "https://benchmark-acme.internal/solutions/enterprise-solution-38",
+      "redirect_chain": [],
+      "redirect_loop": false,
+      "canonical": "https://benchmark-acme.internal/solutions/enterprise-solution-38",
+      "canonical_conflict": false,
+      "meta_robots": "index, follow",
+      "x_robots_tag": "",
+      "page_type": "Service",
+      "classification_confidence": "high",
+      "title": "Enterprise Solution 38 | Acme Global",
+      "meta_description": "Explore Enterprise Solution 38 designed for modern autonomous enterprise workflows.",
+      "h1": [
+        "Enterprise Solution 38"
+      ],
+      "headings": [
+        {
+          "level": 1,
+          "text": "Enterprise Solution 38"
+        },
+        {
+          "level": 2,
+          "text": "Feature Overview"
+        },
+        {
+          "level": 3,
+          "text": "Specifications"
+        }
+      ],
+      "json_ld": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Service",
+          "name": "Enterprise Solution 38",
+          "serviceType": "Cloud AI Solution"
+        }
+      ],
+      "open_graph": {
+        "og:title": "Enterprise Solution 38",
+        "og:description": "Enterprise Solution 38",
+        "og:image": "https://benchmark-acme.internal/assets/prod-38.png"
+      },
+      "twitter_card": {
+        "twitter:card": "summary_large_image"
+      },
+      "links": [
+        {
+          "href": "https://benchmark-acme.internal/",
+          "text": "Home",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/pricing",
+          "text": "Pricing",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/contact",
+          "text": "Get Started",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/docs",
+          "text": "Documentation",
+          "is_internal": true
+        }
+      ],
+      "nav_link_texts": [
+        "Home",
+        "Pricing & Plans",
+        "Documentation",
+        "Contact Sales"
+      ],
+      "images": [
+        {
+          "src": "https://benchmark-acme.internal/assets/prod-38.png",
+          "alt": "Enterprise Solution 38"
+        }
+      ],
+      "visible_text_length": 2046,
+      "visible_text_sample": "Enterprise Solution 38 provides end-to-end automation with guaranteed uptime and compliance.",
+      "last_modified": "2026-01-15T09:00:00Z",
+      "crawled_with_js": false,
+      "js_render_available": true,
+      "raw_html_length": 9678,
+      "raw_text_length": 2046,
+      "rendered_text_length": 2046,
+      "js_dependent_content": false,
+      "content_disparity": 0
+    },
+    {
+      "url": "https://benchmark-acme.internal/products/product-suite-39",
+      "status_code": 200,
+      "final_url": "https://benchmark-acme.internal/products/product-suite-39",
+      "redirect_chain": [],
+      "redirect_loop": false,
+      "canonical": "https://benchmark-acme.internal/products/product-suite-39",
+      "canonical_conflict": false,
+      "meta_robots": "index, follow",
+      "x_robots_tag": "",
+      "page_type": "Product",
+      "classification_confidence": "high",
+      "title": "Acme Product Suite 39 | Acme Global",
+      "meta_description": "Explore Acme Product Suite 39 designed for modern autonomous enterprise workflows.",
+      "h1": [
+        "Acme Product Suite 39"
+      ],
+      "headings": [
+        {
+          "level": 1,
+          "text": "Acme Product Suite 39"
+        },
+        {
+          "level": 2,
+          "text": "Feature Overview"
+        },
+        {
+          "level": 3,
+          "text": "Specifications"
+        }
+      ],
+      "json_ld": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Product",
+          "name": "Acme Product Suite 39",
+          "description": "High performance AI capability module 39.",
+          "offers": {
+            "@type": "Offer",
+            "price": "489",
+            "priceCurrency": "USD",
+            "availability": "https://schema.org/InStock"
+          }
+        }
+      ],
+      "open_graph": {
+        "og:title": "Acme Product Suite 39",
+        "og:description": "Acme Product Suite 39",
+        "og:image": "https://benchmark-acme.internal/assets/prod-39.png"
+      },
+      "twitter_card": {
+        "twitter:card": "summary_large_image"
+      },
+      "links": [
+        {
+          "href": "https://benchmark-acme.internal/",
+          "text": "Home",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/pricing",
+          "text": "Pricing",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/contact",
+          "text": "Get Started",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/docs",
+          "text": "Documentation",
+          "is_internal": true
+        }
+      ],
+      "nav_link_texts": [
+        "Home",
+        "Pricing & Plans",
+        "Documentation",
+        "Contact Sales"
+      ],
+      "images": [
+        {
+          "src": "https://benchmark-acme.internal/assets/prod-39.png",
+          "alt": "Acme Product Suite 39"
+        }
+      ],
+      "visible_text_length": 2063,
+      "visible_text_sample": "Acme Product Suite 39 provides end-to-end automation with guaranteed uptime and compliance.",
+      "last_modified": "2026-01-15T09:00:00Z",
+      "crawled_with_js": false,
+      "js_render_available": true,
+      "raw_html_length": 9709,
+      "raw_text_length": 2063,
+      "rendered_text_length": 2063,
+      "js_dependent_content": false,
+      "content_disparity": 0
+    },
+    {
+      "url": "https://benchmark-acme.internal/blog/ai-trends-article-40",
+      "status_code": 200,
+      "final_url": "https://benchmark-acme.internal/blog/ai-trends-article-40",
+      "redirect_chain": [],
+      "redirect_loop": false,
+      "canonical": "https://benchmark-acme.internal/blog/ai-trends-article-40",
+      "canonical_conflict": false,
+      "meta_robots": "index, follow",
+      "x_robots_tag": "",
+      "page_type": "Blog/article",
+      "classification_confidence": "high",
+      "title": "AI Trends and Best Practices Part 40 | Acme Global",
+      "meta_description": "Explore AI Trends and Best Practices Part 40 designed for modern autonomous enterprise workflows.",
+      "h1": [
+        "AI Trends and Best Practices Part 40"
+      ],
+      "headings": [
+        {
+          "level": 1,
+          "text": "AI Trends and Best Practices Part 40"
+        },
+        {
+          "level": 2,
+          "text": "Feature Overview"
+        },
+        {
+          "level": 3,
+          "text": "Specifications"
+        }
+      ],
+      "json_ld": [
+        {
+          "@context": "https://schema.org",
+          "@type": "BlogPosting",
+          "headline": "AI Trends and Best Practices Part 40",
+          "datePublished": "2025-11-20T08:00:00Z",
+          "dateModified": "2026-01-10T11:00:00Z",
+          "author": {
+            "@type": "Person",
+            "name": "Jane Doe"
+          }
+        }
+      ],
+      "open_graph": {
+        "og:title": "AI Trends and Best Practices Part 40",
+        "og:description": "AI Trends and Best Practices Part 40",
+        "og:image": "https://benchmark-acme.internal/assets/prod-40.png"
+      },
+      "twitter_card": {
+        "twitter:card": "summary_large_image"
+      },
+      "links": [
+        {
+          "href": "https://benchmark-acme.internal/",
+          "text": "Home",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/pricing",
+          "text": "Pricing",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/contact",
+          "text": "Get Started",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/docs",
+          "text": "Documentation",
+          "is_internal": true
+        }
+      ],
+      "nav_link_texts": [
+        "Home",
+        "Pricing & Plans",
+        "Documentation",
+        "Contact Sales"
+      ],
+      "images": [
+        {
+          "src": "https://benchmark-acme.internal/assets/prod-40.png",
+          "alt": "AI Trends and Best Practices Part 40"
+        }
+      ],
+      "visible_text_length": 2080,
+      "visible_text_sample": "AI Trends and Best Practices Part 40 provides end-to-end automation with guaranteed uptime and compliance.",
+      "last_modified": "2026-01-15T09:00:00Z",
+      "crawled_with_js": false,
+      "js_render_available": true,
+      "raw_html_length": 9740,
+      "raw_text_length": 2080,
+      "rendered_text_length": 2080,
+      "js_dependent_content": false,
+      "content_disparity": 0
+    },
+    {
+      "url": "https://benchmark-acme.internal/solutions/enterprise-solution-41",
+      "status_code": 200,
+      "final_url": "https://benchmark-acme.internal/solutions/enterprise-solution-41",
+      "redirect_chain": [],
+      "redirect_loop": false,
+      "canonical": "https://benchmark-acme.internal/solutions/enterprise-solution-41",
+      "canonical_conflict": false,
+      "meta_robots": "index, follow",
+      "x_robots_tag": "",
+      "page_type": "Service",
+      "classification_confidence": "high",
+      "title": "Enterprise Solution 41 | Acme Global",
+      "meta_description": "Explore Enterprise Solution 41 designed for modern autonomous enterprise workflows.",
+      "h1": [
+        "Enterprise Solution 41"
+      ],
+      "headings": [
+        {
+          "level": 1,
+          "text": "Enterprise Solution 41"
+        },
+        {
+          "level": 2,
+          "text": "Feature Overview"
+        },
+        {
+          "level": 3,
+          "text": "Specifications"
+        }
+      ],
+      "json_ld": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Service",
+          "name": "Enterprise Solution 41",
+          "serviceType": "Cloud AI Solution"
+        }
+      ],
+      "open_graph": {
+        "og:title": "Enterprise Solution 41",
+        "og:description": "Enterprise Solution 41",
+        "og:image": "https://benchmark-acme.internal/assets/prod-41.png"
+      },
+      "twitter_card": {
+        "twitter:card": "summary_large_image"
+      },
+      "links": [
+        {
+          "href": "https://benchmark-acme.internal/",
+          "text": "Home",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/pricing",
+          "text": "Pricing",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/contact",
+          "text": "Get Started",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/docs",
+          "text": "Documentation",
+          "is_internal": true
+        }
+      ],
+      "nav_link_texts": [
+        "Home",
+        "Pricing & Plans",
+        "Documentation",
+        "Contact Sales"
+      ],
+      "images": [
+        {
+          "src": "https://benchmark-acme.internal/assets/prod-41.png",
+          "alt": "Enterprise Solution 41"
+        }
+      ],
+      "visible_text_length": 2097,
+      "visible_text_sample": "Enterprise Solution 41 provides end-to-end automation with guaranteed uptime and compliance.",
+      "last_modified": "2026-01-15T09:00:00Z",
+      "crawled_with_js": false,
+      "js_render_available": true,
+      "raw_html_length": 9771,
+      "raw_text_length": 2097,
+      "rendered_text_length": 2097,
+      "js_dependent_content": false,
+      "content_disparity": 0
+    },
+    {
+      "url": "https://benchmark-acme.internal/products/product-suite-42",
+      "status_code": 200,
+      "final_url": "https://benchmark-acme.internal/products/product-suite-42",
+      "redirect_chain": [],
+      "redirect_loop": false,
+      "canonical": "https://benchmark-acme.internal/products/product-suite-42",
+      "canonical_conflict": false,
+      "meta_robots": "index, follow",
+      "x_robots_tag": "",
+      "page_type": "Product",
+      "classification_confidence": "high",
+      "title": "Acme Product Suite 42 | Acme Global",
+      "meta_description": "Explore Acme Product Suite 42 designed for modern autonomous enterprise workflows.",
+      "h1": [
+        "Acme Product Suite 42"
+      ],
+      "headings": [
+        {
+          "level": 1,
+          "text": "Acme Product Suite 42"
+        },
+        {
+          "level": 2,
+          "text": "Feature Overview"
+        },
+        {
+          "level": 3,
+          "text": "Specifications"
+        }
+      ],
+      "json_ld": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Product",
+          "name": "Acme Product Suite 42",
+          "description": "High performance AI capability module 42.",
+          "offers": {
+            "@type": "Offer",
+            "price": "519",
+            "priceCurrency": "USD",
+            "availability": "https://schema.org/InStock"
+          }
+        }
+      ],
+      "open_graph": {
+        "og:title": "Acme Product Suite 42",
+        "og:description": "Acme Product Suite 42",
+        "og:image": "https://benchmark-acme.internal/assets/prod-42.png"
+      },
+      "twitter_card": {
+        "twitter:card": "summary_large_image"
+      },
+      "links": [
+        {
+          "href": "https://benchmark-acme.internal/",
+          "text": "Home",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/pricing",
+          "text": "Pricing",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/contact",
+          "text": "Get Started",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/docs",
+          "text": "Documentation",
+          "is_internal": true
+        }
+      ],
+      "nav_link_texts": [
+        "Home",
+        "Pricing & Plans",
+        "Documentation",
+        "Contact Sales"
+      ],
+      "images": [
+        {
+          "src": "https://benchmark-acme.internal/assets/prod-42.png",
+          "alt": "Acme Product Suite 42"
+        }
+      ],
+      "visible_text_length": 2114,
+      "visible_text_sample": "Acme Product Suite 42 provides end-to-end automation with guaranteed uptime and compliance.",
+      "last_modified": "2026-01-15T09:00:00Z",
+      "crawled_with_js": false,
+      "js_render_available": true,
+      "raw_html_length": 9802,
+      "raw_text_length": 2114,
+      "rendered_text_length": 2114,
+      "js_dependent_content": false,
+      "content_disparity": 0
+    },
+    {
+      "url": "https://benchmark-acme.internal/blog/ai-trends-article-43",
+      "status_code": 200,
+      "final_url": "https://benchmark-acme.internal/blog/ai-trends-article-43",
+      "redirect_chain": [],
+      "redirect_loop": false,
+      "canonical": "https://benchmark-acme.internal/blog/ai-trends-article-43",
+      "canonical_conflict": false,
+      "meta_robots": "index, follow",
+      "x_robots_tag": "",
+      "page_type": "Blog/article",
+      "classification_confidence": "high",
+      "title": "AI Trends and Best Practices Part 43 | Acme Global",
+      "meta_description": "Explore AI Trends and Best Practices Part 43 designed for modern autonomous enterprise workflows.",
+      "h1": [
+        "AI Trends and Best Practices Part 43"
+      ],
+      "headings": [
+        {
+          "level": 1,
+          "text": "AI Trends and Best Practices Part 43"
+        },
+        {
+          "level": 2,
+          "text": "Feature Overview"
+        },
+        {
+          "level": 3,
+          "text": "Specifications"
+        }
+      ],
+      "json_ld": [
+        {
+          "@context": "https://schema.org",
+          "@type": "BlogPosting",
+          "headline": "AI Trends and Best Practices Part 43",
+          "datePublished": "2025-11-20T08:00:00Z",
+          "dateModified": "2026-01-10T11:00:00Z",
+          "author": {
+            "@type": "Person",
+            "name": "Jane Doe"
+          }
+        }
+      ],
+      "open_graph": {
+        "og:title": "AI Trends and Best Practices Part 43",
+        "og:description": "AI Trends and Best Practices Part 43",
+        "og:image": "https://benchmark-acme.internal/assets/prod-43.png"
+      },
+      "twitter_card": {
+        "twitter:card": "summary_large_image"
+      },
+      "links": [
+        {
+          "href": "https://benchmark-acme.internal/",
+          "text": "Home",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/pricing",
+          "text": "Pricing",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/contact",
+          "text": "Get Started",
+          "is_internal": true
+        },
+        {
+          "href": "https://benchmark-acme.internal/docs",
+          "text": "Documentation",
+          "is_internal": true
+        }
+      ],
+      "nav_link_texts": [
+        "Home",
+        "Pricing & Plans",
+        "Documentation",
+        "Contact Sales"
+      ],
+      "images": [
+        {
+          "src": "https://benchmark-acme.internal/assets/prod-43.png",
+          "alt": "AI Trends and Best Practices Part 43"
+        }
+      ],
+      "visible_text_length": 2131,
+      "visible_text_sample": "AI Trends and Best Practices Part 43 provides end-to-end automation with guaranteed uptime and compliance.",
+      "last_modified": "2026-01-15T09:00:00Z",
+      "crawled_with_js": false,
+      "js_render_available": true,
+      "raw_html_length": 9833,
+      "raw_text_length": 2131,
+      "rendered_text_length": 2131,
+      "js_dependent_content": false,
+      "content_disparity": 0
+    }
+  ]
+}

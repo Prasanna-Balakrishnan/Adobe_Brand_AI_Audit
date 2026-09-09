@@ -43,6 +43,45 @@ def is_org_homepage_type(t: str) -> bool:
     )
 
 
+MONTH_MAP = {
+    "jan": 1, "january": 1, "feb": 2, "february": 2, "mar": 3, "march": 3,
+    "apr": 4, "april": 4, "may": 5, "jun": 6, "june": 6, "jul": 7, "july": 7,
+    "aug": 8, "august": 8, "sep": 9, "september": 9, "oct": 10, "october": 10,
+    "nov": 11, "november": 11, "dec": 12, "december": 12
+}
+
+
+def parse_date_tuple(d_str: str) -> tuple[int, int, int] | None:
+    """Parse string into (year, month, day) tuple if possible."""
+    if not isinstance(d_str, str):
+        return None
+    iso_m = re.search(r'(\d{4})-(\d{1,2})-(\d{1,2})', d_str)
+    if iso_m:
+        try:
+            return (int(iso_m.group(1)), int(iso_m.group(2)), int(iso_m.group(3)))
+        except ValueError:
+            pass
+
+    text_m = re.search(r'([a-zA-Z]{3,})\s+(\d{1,2}),?\s+(\d{4})', d_str)
+    if text_m:
+        m_name = text_m.group(1).lower()
+        if m_name in MONTH_MAP:
+            try:
+                return (int(text_m.group(3)), MONTH_MAP[m_name], int(text_m.group(2)))
+            except ValueError:
+                pass
+
+    text_m2 = re.search(r'(\d{1,2})\s+([a-zA-Z]{3,})\s+(\d{4})', d_str)
+    if text_m2:
+        m_name = text_m2.group(2).lower()
+        if m_name in MONTH_MAP:
+            try:
+                return (int(text_m2.group(3)), MONTH_MAP[m_name], int(text_m2.group(1)))
+            except ValueError:
+                pass
+    return None
+
+
 def parse_args():
     p = argparse.ArgumentParser()
     p.add_argument("--snapshot", default="snapshot.json")
@@ -62,30 +101,58 @@ def url_matches(url: str, patterns: list) -> bool:
 
 
 def get_schema_types(json_ld_blocks: list) -> set:
-    """Extract all @type values from JSON-LD blocks (handles arrays and nested)."""
+    """Extract all @type values from JSON-LD blocks recursively (handles @graph, arrays, and nested schemas)."""
     types = set()
-    for block in json_ld_blocks:
-        if isinstance(block, dict):
-            t = block.get("@type")
+
+    def _extract(val):
+        if isinstance(val, dict):
+            t = val.get("@type")
             if isinstance(t, str):
                 types.add(t)
             elif isinstance(t, list):
-                types.update(t)
-            # Check @graph
-            graph = block.get("@graph", [])
-            if isinstance(graph, list):
-                for node in graph:
-                    if isinstance(node, dict):
-                        nt = node.get("@type")
-                        if isinstance(nt, str):
-                            types.add(nt)
-                        elif isinstance(nt, list):
-                            types.update(nt)
+                types.update(x for x in t if isinstance(x, str))
+            for v in val.values():
+                _extract(v)
+        elif isinstance(val, list):
+            for item in val:
+                _extract(item)
+
+    _extract(json_ld_blocks)
     return types
 
 
+def get_schema_nodes(json_ld_blocks: list) -> list[dict]:
+    """Recursively extract all schema object dictionaries that declare a @type."""
+    nodes = []
+
+    def _extract(val):
+        if isinstance(val, dict):
+            if "@type" in val:
+                nodes.append(val)
+            for v in val.values():
+                _extract(v)
+        elif isinstance(val, list):
+            for item in val:
+                _extract(item)
+
+    _extract(json_ld_blocks)
+    return nodes
+
+
 def has_valid_jsonld(block: dict) -> bool:
-    return bool(block.get("@type")) and bool(block.get("@context"))
+    if not isinstance(block, (dict, list)):
+        return False
+    if isinstance(block, list):
+        return any(has_valid_jsonld(item) for item in block)
+    ctx = block.get("@context")
+    if not ctx:
+        return False
+    if block.get("@type"):
+        return True
+    graph = block.get("@graph")
+    if isinstance(graph, list) and any(isinstance(node, dict) and node.get("@type") for node in graph):
+        return True
+    return False
 
 
 def heading_has_gaps(headings: list) -> bool:
@@ -101,8 +168,10 @@ def heading_has_gaps(headings: list) -> bool:
 
 
 def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
-    meta = snapshot.get("crawl_meta", {})
-    pages = snapshot.get("pages", [])
+    if not isinstance(snapshot, dict):
+        return [], []
+    meta = snapshot.get("crawl_meta") or {}
+    pages = [p for p in (snapshot.get("pages") or []) if isinstance(p, dict)]
     findings = []
     strengths = []
 
@@ -121,7 +190,7 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
             "category": "discoverability",
             "severity": "high",
             "confidence": "high",
-            "affected_urls": [p["url"] for p in pages[:5]],
+            "affected_urls": [p.get("url") or p.get("final_url") or "" for p in pages[:5]],
             "evidence": (
                 f"Crawled {total} pages; 0/{total} contain JSON-LD structured data. "
                 "AI assistants cannot extract machine-readable facts about this site."
@@ -148,7 +217,7 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
     product_pages = [
         p for p in pages
         if p.get("page_type") in ("Product", "Service", "Pricing") or
-           (url_matches(p["url"], PRODUCT_URL_PATTERNS) and p.get("page_type") not in ("About", "Contact", "Careers", "Documentation", "Blog/article", "Homepage"))
+           (url_matches(p.get("url") or p.get("final_url") or "", PRODUCT_URL_PATTERNS) and p.get("page_type") not in ("About", "Contact", "Careers", "Documentation", "Blog/article", "Homepage"))
     ]
     if product_pages:
         product_pages_no_jsonld = [p for p in product_pages if not p.get("json_ld")]
@@ -162,7 +231,7 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
                 "category": "discoverability",
                 "severity": "high",
                 "confidence": "high",
-                "affected_urls": [p["url"] for p in product_pages_no_jsonld[:5]],
+                "affected_urls": [p.get("url") or p.get("final_url") or "" for p in product_pages_no_jsonld[:5]],
                 "evidence": (
                     f"{len(product_pages_no_jsonld)} of {len(product_pages)} product/service "
                     "pages contain no JSON-LD. AI cannot extract product details, prices, or specs."
@@ -177,7 +246,7 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
 
     # --- SDC-003: Missing Organization or WebSite schema on homepage ---
     homepage = next(
-        (p for p in pages if p["url"] == start_url or p.get("final_url") == start_url),
+        (p for p in pages if (p.get("url") or p.get("final_url") or "") == start_url or p.get("final_url") == start_url),
         pages[0] if pages else None
     )
     if homepage:
@@ -190,9 +259,9 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
                 "category": "discoverability",
                 "severity": "high",
                 "confidence": "high",
-                "affected_urls": [homepage["url"]],
+                "affected_urls": [homepage.get("url") or homepage.get("final_url") or ""],
                 "evidence": (
-                    f"Homepage ({homepage['url']}) has no JSON-LD with an Organization, "
+                    f"Homepage ({homepage.get('url', '')}) has no JSON-LD with an Organization, "
                     f"WebSite, or brand entity type. Found types: {hp_types or 'none'}. "
                     "AI assistants cannot reliably identify and describe this brand."
                 ),
@@ -208,15 +277,23 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
             })
         else:
             strengths.append({
-                "title": f"Homepage has Organization/WebSite schema ({', '.join(matched_org_types)})",
+                "title": f"Homepage has Organization/WebSite schema ({', '.join(sorted(matched_org_types))})",
                 "category": "discoverability"
             })
 
     # --- SDC-004: Invalid JSON-LD blocks ---
     invalid_jsonld_pages = []
     for p in pages:
-        for block in p.get("json_ld", []):
-            if isinstance(block, dict) and not has_valid_jsonld(block):
+        for block in (p.get("json_ld") or []):
+            if isinstance(block, list):
+                if not any(has_valid_jsonld(item) for item in block):
+                    invalid_jsonld_pages.append(p)
+                    break
+            elif isinstance(block, dict):
+                if not has_valid_jsonld(block):
+                    invalid_jsonld_pages.append(p)
+                    break
+            else:
                 invalid_jsonld_pages.append(p)
                 break
     if invalid_jsonld_pages:
@@ -226,7 +303,7 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
             "category": "discoverability",
             "severity": "medium",
             "confidence": "high",
-            "affected_urls": [p["url"] for p in invalid_jsonld_pages[:5]],
+            "affected_urls": [p.get("url") or p.get("final_url") or "" for p in invalid_jsonld_pages[:5]],
             "evidence": (
                 f"{len(invalid_jsonld_pages)} page(s) contain JSON-LD blocks missing @type "
                 "or @context. These blocks are invalid and will be ignored by search engines."
@@ -250,8 +327,8 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
             "category": "discoverability",
             "severity": "high",
             "confidence": "high",
-            "affected_urls": [homepage["url"]],
-            "evidence": f"Homepage ({homepage['url']}) has h1: []. No primary topic signal for crawlers.",
+            "affected_urls": [homepage.get("url") or homepage.get("final_url") or ""],
+            "evidence": f"Homepage ({homepage.get('url', '')}) has h1: []. No primary topic signal for crawlers.",
             "tags": ["heading-structure"],
             "suggested_action": {
                 "summary": "Add a single, descriptive H1 to the homepage stating the brand name and value proposition.",
@@ -261,7 +338,7 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
         })
 
     # --- SDC-006: Multiple H1 on pages ---
-    multi_h1_pages = [p for p in pages if len(p.get("h1", [])) > 1]
+    multi_h1_pages = [p for p in pages if len((p.get("h1") or [])) > 1]
     multi_h1_ratio = len(multi_h1_pages) / total
     if multi_h1_ratio > 0.25:
         findings.append({
@@ -270,11 +347,11 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
             "category": "discoverability",
             "severity": "medium",
             "confidence": "high",
-            "affected_urls": [p["url"] for p in multi_h1_pages[:5]],
+            "affected_urls": [p.get("url") or p.get("final_url") or "" for p in multi_h1_pages[:5]],
             "evidence": (
                 f"{len(multi_h1_pages)} of {total} pages have more than one H1 tag. "
                 "Example: " + (
-                    f"{multi_h1_pages[0]['url']} has H1s: {multi_h1_pages[0]['h1'][:3]}"
+                    f"{multi_h1_pages[0].get('url') or multi_h1_pages[0].get('final_url') or ''} has H1s: {multi_h1_pages[0]['h1'][:3]}"
                     if multi_h1_pages else ""
                 )
             ),
@@ -287,7 +364,7 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
         })
 
     # --- SDC-007: Heading hierarchy gaps ---
-    gap_pages = [p for p in pages if heading_has_gaps(p.get("headings", []))]
+    gap_pages = [p for p in pages if heading_has_gaps((p.get("headings") or []))]
     if gap_pages:
         findings.append({
             "check_id": "SDC-007",
@@ -295,11 +372,11 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
             "category": "discoverability",
             "severity": "low",
             "confidence": "medium",
-            "affected_urls": [p["url"] for p in gap_pages[:5]],
+            "affected_urls": [p.get("url") or p.get("final_url") or "" for p in gap_pages[:5]],
             "evidence": (
                 f"{len(gap_pages)} page(s) skip heading levels (e.g. H1 → H3 without H2). "
                 "Example: " + (
-                    f"{gap_pages[0]['url']} headings: "
+                    f"{gap_pages[0].get('url') or gap_pages[0].get('final_url') or ''} headings: "
                     f"{['H' + str(h.get('level')) for h in gap_pages[0].get('headings', [])[:5]]}"
                     if gap_pages else ""
                 )
@@ -313,11 +390,11 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
         })
 
     # --- SDC-008: No JSON-LD on blog/article pages ---
-    blog_pages = [p for p in pages if url_matches(p["url"], BLOG_URL_PATTERNS)]
+    blog_pages = [p for p in pages if url_matches(p.get("url") or p.get("final_url") or "", BLOG_URL_PATTERNS)]
     if blog_pages:
         blog_no_article_schema = []
         for p in blog_pages:
-            types = get_schema_types(p.get("json_ld", []))
+            types = get_schema_types((p.get("json_ld") or []))
             if not types.intersection({"Article", "BlogPosting", "NewsArticle"}):
                 blog_no_article_schema.append(p)
         if blog_no_article_schema:
@@ -330,7 +407,7 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
                 "category": "discoverability",
                 "severity": "medium",
                 "confidence": "high",
-                "affected_urls": [p["url"] for p in blog_no_article_schema[:5]],
+                "affected_urls": [p.get("url") or p.get("final_url") or "" for p in blog_no_article_schema[:5]],
                 "evidence": (
                     f"{len(blog_no_article_schema)} blog/article pages lack Article or "
                     "BlogPosting JSON-LD. Authors and publication dates are not machine-readable."
@@ -346,7 +423,7 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
     # --- SDC-009: Sub-optimal schema types ---
     generic_type_pages = []
     for p in pages:
-        types = get_schema_types(p.get("json_ld", []))
+        types = get_schema_types((p.get("json_ld") or []))
         generic_found = types.intersection(GENERIC_SCHEMA_TYPES)
         if generic_found:
             generic_type_pages.append((p, generic_found))
@@ -357,7 +434,7 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
             "category": "discoverability",
             "severity": "low",
             "confidence": "medium",
-            "affected_urls": [p["url"] for p, _ in generic_type_pages[:5]],
+            "affected_urls": [p.get("url") or p.get("final_url") or "" for p, _ in generic_type_pages[:5]],
             "evidence": (
                 f"{len(generic_type_pages)} page(s) use generic types "
                 f"({', '.join(set(t for _, ts in generic_type_pages for t in ts))}). "
@@ -388,7 +465,7 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
             "category": "discoverability",
             "severity": "high",
             "confidence": "medium",
-            "affected_urls": [p["url"] for p in problematic_pages[:5]],
+            "affected_urls": [p.get("url") or p.get("final_url") or "" for p in problematic_pages[:5]],
             "evidence": (
                 f"{len(problematic_pages)} page(s) have >5 images with >50% missing alt text "
                 "AND visible text < 500 characters, suggesting content is image-locked."
@@ -404,7 +481,7 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
     # --- SDC-202: Thin text on non-homepage content pages ---
     content_pages = [
         p for p in pages
-        if p["url"] != start_url and p.get("visible_text_length", 9999) < 300
+        if (p.get("url") or p.get("final_url") or "") != start_url and p.get("visible_text_length", 9999) < 300
         and p.get("status_code", 200) == 200
     ]
     if content_pages and len(content_pages) / max(total - 1, 1) > 0.25:
@@ -414,7 +491,7 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
             "category": "discoverability",
             "severity": "medium",
             "confidence": "high",
-            "affected_urls": [p["url"] for p in content_pages[:5]],
+            "affected_urls": [p.get("url") or p.get("final_url") or "" for p in content_pages[:5]],
             "evidence": (
                 f"{len(content_pages)} non-homepage pages have fewer than 300 visible "
                 "characters. AI assistants have little extractable text to cite."
@@ -432,7 +509,7 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
     if total_images > 0:
         alt_missing_ratio = len(images_no_alt) / total_images
         if alt_missing_ratio > 0.5:
-            pages_with_alt_issues = list({p["url"] for _, p in images_no_alt})
+            pages_with_alt_issues = sorted({p.get("url") or p.get("final_url") or "" for _, p in images_no_alt if p.get("url") or p.get("final_url")})
             findings.append({
                 "check_id": "SDC-203",
                 "title": f"Alt text missing on {len(images_no_alt)}/{total_images} images ({alt_missing_ratio*100:.0f}%)",
@@ -472,7 +549,7 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
             "category": "discoverability",
             "severity": "high",
             "confidence": "medium",
-            "affected_urls": [p["url"] for p in no_content_product_pages[:5]],
+            "affected_urls": [p.get("url") or p.get("final_url") or "" for p in no_content_product_pages[:5]],
             "evidence": (
                 f"{len(no_content_product_pages)} product/service pages have <300 visible "
                 "characters AND no JSON-LD. Both content extraction channels are absent."
@@ -495,7 +572,7 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
             "category": "discoverability",
             "severity": "medium",
             "confidence": "high",
-            "affected_urls": [p["url"] for p in short_title_pages[:5]],
+            "affected_urls": [p.get("url") or p.get("final_url") or "" for p in short_title_pages[:5]],
             "evidence": (
                 f"{len(short_title_pages)} pages have titles shorter than 10 characters or empty. "
                 f"Examples: {[p.get('title', '') for p in short_title_pages[:3]]}."
@@ -512,23 +589,27 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
     price_conflict_pages = []
     price_pattern = re.compile(r'[\$€£]\s*(\d+(?:\.\d{2})?)|\b(\d+(?:\.\d{2})?)\s*(?:USD|EUR|GBP)\b', re.IGNORECASE)
     for p in pages:
-        # Extract structured data price
+        # Extract structured data price recursively
         ld_prices = []
-        for block in p.get("json_ld", []):
-            if isinstance(block, dict):
-                offers = block.get("offers")
-                if isinstance(offers, dict) and "price" in offers:
-                    try:
-                        ld_prices.append(float(str(offers["price"]).replace(",", "")))
-                    except ValueError:
-                        pass
-                elif isinstance(offers, list):
-                    for off in offers:
-                        if isinstance(off, dict) and "price" in off:
-                            try:
-                                ld_prices.append(float(str(off["price"]).replace(",", "")))
-                            except ValueError:
-                                pass
+        for node in get_schema_nodes((p.get("json_ld") or [])):
+            nt = node.get("@type", "")
+            nt_types = [nt] if isinstance(nt, str) else (nt if isinstance(nt, list) else [])
+            candidates = []
+            if any("Offer" in t for t in nt_types):
+                candidates.append(node)
+            raw_offers = node.get("offers")
+            if isinstance(raw_offers, dict):
+                candidates.append(raw_offers)
+            elif isinstance(raw_offers, list):
+                candidates.extend([o for o in raw_offers if isinstance(o, dict)])
+
+            for off in candidates:
+                for p_key in ("price", "lowPrice", "highPrice"):
+                    if p_key in off and off[p_key] is not None:
+                        try:
+                            ld_prices.append(float(str(off[p_key]).replace(",", "")))
+                        except (ValueError, TypeError):
+                            pass
         if not ld_prices:
             continue
 
@@ -540,7 +621,7 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
             val_str = m[0] or m[1]
             try:
                 visible_prices.append(float(val_str))
-            except ValueError:
+            except (ValueError, TypeError):
                 pass
 
         if visible_prices and ld_prices:
@@ -548,16 +629,17 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
                 price_conflict_pages.append((p, visible_prices[0], ld_prices[0]))
 
     if price_conflict_pages:
+        target_p, v_price, s_price = price_conflict_pages[0]
         findings.append({
             "check_id": "SDC-013",
             "title": f"Visible price conflicts with structured data price on {len(price_conflict_pages)} page(s)",
             "category": "discoverability",
             "severity": "high",
             "confidence": "high",
-            "affected_urls": [p[0]["url"] for p in price_conflict_pages[:5]],
+            "affected_urls": [item[0].get("url") or item[0].get("final_url") or "" for item in price_conflict_pages[:5]],
             "evidence": (
-                f"Page {price_conflict_pages[0][0]['url']} displays visible price ${price_conflict_pages[0][1]} "
-                f"but JSON-LD schema declares ${price_conflict_pages[0][2]}. "
+                f"Page {target_p.get('url') or target_p.get('final_url') or ''} displays visible price ${v_price} "
+                f"but JSON-LD schema declares ${s_price}. "
                 "Conflicting facts cause AI agents to hallucinate or distrust pricing data."
             ),
             "tags": ["json-ld", "price-conflict", "contradiction", "structured-data"],
@@ -576,23 +658,25 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
         if t in boilerplate_names or t.startswith("untitled") or t.startswith("default title"):
             boilerplate_pages.append(p)
     if boilerplate_pages:
-        sample_bp = [f"{p['url']} (title: \"{p.get('title')}\")" for p in boilerplate_pages[:3]]
+        sample_bp = [f"{p.get('url', '')} (title: \"{p.get('title')}\")" for p in boilerplate_pages[:3]]
+        high_imp = [p for p in boilerplate_pages if p.get("page_importance_score", 0) >= 70]
+        imp_note = f" (affects {len(high_imp)} high-importance page(s))" if high_imp else ""
         findings.append({
             "check_id": "SDC-206",
             "title": f"Boilerplate or generic page title on {len(boilerplate_pages)} page(s)",
             "category": "discoverability",
-            "severity": "medium",
+            "severity": "high" if high_imp else "medium",
             "confidence": "high",
-            "affected_urls": [p["url"] for p in boilerplate_pages[:5]],
+            "affected_urls": [p.get("url") or p.get("final_url") or "" for p in boilerplate_pages[:5]],
             "evidence": (
                 f"{len(boilerplate_pages)} page(s) use placeholder or boilerplate titles: "
-                f"{', '.join(sample_bp)}. "
+                f"{', '.join(sample_bp)}{imp_note}. "
                 "Generic titles prevent AI assistants from indexing distinct page topics."
             ),
             "tags": ["page-title", "heading-structure"],
             "suggested_action": {
                 "summary": "Replace generic titles with distinct, descriptive titles containing brand and topic keywords.",
-                "priority": "medium",
+                "priority": "high" if high_imp else "medium",
                 "effort": "low"
             }
         })
@@ -602,28 +686,30 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
     content_pages_no_h1 = [
         p for p in pages
         if p.get("page_type") in core_content_types and
-        p["url"] != start_url and
-        len(p.get("h1", [])) == 0 and
+        (p.get("url") or p.get("final_url") or "") != start_url and
+        len((p.get("h1") or [])) == 0 and
         p.get("visible_text_length", 0) >= 200
     ]
     if content_pages_no_h1:
-        sample_h1 = [f"{p['url']} (type: {p.get('page_type')})" for p in content_pages_no_h1[:3]]
+        sample_h1 = [f"{p.get('url', '')} (type: {p.get('page_type')})" for p in content_pages_no_h1[:3]]
+        high_imp = [p for p in content_pages_no_h1 if p.get("page_importance_score", 0) >= 70]
+        imp_note = f" (including {len(high_imp)} high-importance orientation page(s))" if high_imp else ""
         findings.append({
             "check_id": "SDC-207",
             "title": f"Missing H1 heading on {len(content_pages_no_h1)} core content page(s)",
             "category": "discoverability",
-            "severity": "medium",
+            "severity": "high" if high_imp else "medium",
             "confidence": "high",
-            "affected_urls": [p["url"] for p in content_pages_no_h1[:5]],
+            "affected_urls": [p.get("url") or p.get("final_url") or "" for p in content_pages_no_h1[:5]],
             "evidence": (
                 f"{len(content_pages_no_h1)} content page(s) lack an <h1> heading: "
-                f"{', '.join(sample_h1)}. "
+                f"{', '.join(sample_h1)}{imp_note}. "
                 "The H1 heading is the primary topic signal for AI content extraction."
             ),
             "tags": ["heading-structure", "h1-tag"],
             "suggested_action": {
                 "summary": "Add a descriptive <h1> heading identifying the core topic or entity on each content page.",
-                "priority": "medium",
+                "priority": "high" if high_imp else "medium",
                 "effort": "low"
             }
         })
@@ -631,47 +717,55 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
     # --- SDC-208: Incomplete core Schema.org entity declarations ---
     incomplete_schema_pages = []
     for p in pages:
-        for block in p.get("json_ld", []):
-            if not isinstance(block, dict):
-                continue
-            nodes = [block] + (block.get("@graph", []) if isinstance(block.get("@graph"), list) else [])
-            for node in nodes:
-                if not isinstance(node, dict):
-                    continue
-                nt = node.get("@type", "")
-                nt_types = [nt] if isinstance(nt, str) else (nt if isinstance(nt, list) else [])
-                # Organization
-                if any(is_org_homepage_type(t) for t in nt_types):
-                    if not node.get("name") and not node.get("legalName"):
-                        incomplete_schema_pages.append((p, "Organization missing 'name'", node))
-                        break
-                # Product
-                elif any("Product" in t for t in nt_types):
-                    if not node.get("name"):
-                        incomplete_schema_pages.append((p, "Product missing 'name'", node))
-                        break
-                    elif not node.get("offers") and not node.get("description"):
-                        incomplete_schema_pages.append((p, "Product missing 'offers' or 'description'", node))
-                        break
-                # Article / BlogPosting
-                elif any(t in ("Article", "BlogPosting", "NewsArticle") for t in nt_types):
-                    if not node.get("headline"):
-                        incomplete_schema_pages.append((p, "Article missing 'headline'", node))
-                        break
-                    elif not node.get("datePublished") and not node.get("dateModified"):
-                        incomplete_schema_pages.append((p, "Article missing 'datePublished'", node))
-                        break
+        nodes = get_schema_nodes((p.get("json_ld") or []))
+        for node in nodes:
+            nt = node.get("@type", "")
+            nt_types = [nt] if isinstance(nt, str) else (nt if isinstance(nt, list) else [])
+            # Event
+            if any("Event" in t for t in nt_types):
+                if not node.get("name"):
+                    incomplete_schema_pages.append((p, "Event missing 'name'", node))
+                    break
+                elif not node.get("startDate"):
+                    incomplete_schema_pages.append((p, "Event missing 'startDate'", node))
+                    break
+            # Product
+            elif any("Product" in t for t in nt_types):
+                if not node.get("name"):
+                    incomplete_schema_pages.append((p, "Product missing 'name'", node))
+                    break
+                elif not node.get("offers") and not node.get("description"):
+                    incomplete_schema_pages.append((p, "Product missing 'offers' or 'description'", node))
+                    break
+            # Article / BlogPosting
+            elif any(t in ("Article", "BlogPosting", "NewsArticle") for t in nt_types):
+                if not node.get("headline"):
+                    incomplete_schema_pages.append((p, "Article missing 'headline'", node))
+                    break
+                elif not node.get("datePublished") and not node.get("dateModified"):
+                    incomplete_schema_pages.append((p, "Article missing 'datePublished'", node))
+                    break
+            # Service
+            elif any("Service" in t for t in nt_types):
+                if not node.get("name"):
+                    incomplete_schema_pages.append((p, "Service missing 'name'", node))
+                    break
+            # Organization / Business
+            elif any(is_org_homepage_type(t) for t in nt_types):
+                if not node.get("name") and not node.get("legalName"):
+                    incomplete_schema_pages.append((p, "Organization missing 'name'", node))
+                    break
 
     if incomplete_schema_pages:
-        distinct_incomplete = list({item[0]["url"]: item for item in incomplete_schema_pages}.values())
-        sample_incomplete = [f"{item[0]['url']} ({item[1]})" for item in distinct_incomplete[:3]]
+        distinct_incomplete = list({(item[0].get("url") or item[0].get("final_url") or ""): item for item in incomplete_schema_pages}.values())
+        sample_incomplete = [f"{item[0].get('url', '')} ({item[1]})" for item in distinct_incomplete[:3]]
         findings.append({
             "check_id": "SDC-208",
             "title": f"Incomplete Schema.org entity declarations on {len(distinct_incomplete)} page(s)",
             "category": "discoverability",
             "severity": "medium",
             "confidence": "high",
-            "affected_urls": [item[0]["url"] for item in distinct_incomplete[:5]],
+            "affected_urls": [item[0].get("url") or item[0].get("final_url") or "" for item in distinct_incomplete[:5]],
             "evidence": (
                 f"{len(distinct_incomplete)} page(s) define Schema.org objects missing required properties: "
                 f"{', '.join(sample_incomplete)}. "
@@ -686,42 +780,33 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
         })
 
     # --- SDC-209: Semantic contradiction between Schema and visible heading ---
-    # Guardrail: No rigid '0 word overlap' rule. Tokenize and normalize semantic entities.
     def extract_semantic_tokens(text: str) -> set[str]:
         stopwords = {"the", "and", "for", "with", "this", "that", "from", "our", "all", "your", "page", "home"}
-        words = re.findall(r'[a-zA-Z]{3,}', text.lower())
+        words = re.findall(r'[\w]{3,}', text.lower(), re.UNICODE)
         return {w for w in words if w not in stopwords}
 
     schema_conflicts = []
     for p in pages:
-        h1_text = " ".join(p.get("h1", []))
+        h1_text = " ".join((p.get("h1") or []))
         title_text = p.get("title", "")
         visible_tokens = extract_semantic_tokens(h1_text + " " + title_text)
         if not visible_tokens:
             continue
 
-        for block in p.get("json_ld", []):
-            if not isinstance(block, dict):
-                continue
-            nodes = [block] + (block.get("@graph", []) if isinstance(block.get("@graph"), list) else [])
-            for node in nodes:
-                if not isinstance(node, dict):
-                    continue
-                schema_name = node.get("name") or node.get("headline")
-                if isinstance(schema_name, str) and len(schema_name.strip()) > 5:
-                    schema_tokens = extract_semantic_tokens(schema_name)
-                    # Only flag if schema_tokens has at least 2 distinct semantic tokens
-                    # and none of them appear in visible tokens or visible text sample
-                    if len(schema_tokens) >= 2:
-                        overlap = schema_tokens & visible_tokens
-                        sample_lower = p.get("visible_text_sample", "").lower()
-                        in_sample = any(tok in sample_lower for tok in schema_tokens)
-                        if not overlap and not in_sample:
-                            schema_conflicts.append((p, schema_name, h1_text or title_text))
-                            break
+        for node in get_schema_nodes((p.get("json_ld") or [])):
+            schema_name = node.get("name") or node.get("headline")
+            if isinstance(schema_name, str) and len(schema_name.strip()) > 5:
+                schema_tokens = extract_semantic_tokens(schema_name)
+                if len(schema_tokens) >= 2:
+                    overlap = schema_tokens & visible_tokens
+                    sample_lower = p.get("visible_text_sample", "").lower()
+                    in_sample = any(tok in sample_lower for tok in schema_tokens)
+                    if not overlap and not in_sample:
+                        schema_conflicts.append((p, schema_name, h1_text or title_text))
+                        break
 
     if schema_conflicts:
-        distinct_conflicts = list({item[0]["url"]: item for item in schema_conflicts}.values())
+        distinct_conflicts = list({(item[0].get("url") or item[0].get("final_url") or ""): item for item in schema_conflicts}.values())
         target_item = distinct_conflicts[0]
         findings.append({
             "check_id": "SDC-209",
@@ -729,10 +814,10 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
             "category": "discoverability",
             "severity": "medium",
             "confidence": "high",
-            "affected_urls": [item[0]["url"] for item in distinct_conflicts[:5]],
+            "affected_urls": [item[0].get("url") or item[0].get("final_url") or "" for item in distinct_conflicts[:5]],
             "evidence": (
                 f"Declared Schema.org entity name/headline contradicts visible page headings: "
-                f"Page {target_item[0]['url']} declares schema entity '{target_item[1]}' "
+                f"Page {target_item[0].get('url', '')} declares schema entity '{target_item[1]}' "
                 f"while visible heading is '{target_item[2]}'. "
                 "Contradictory entity facts cause AI models to discount site reliability."
             ),
@@ -740,6 +825,194 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
             "suggested_action": {
                 "summary": "Ensure Schema.org entity names and headlines correspond to the actual on-page title and headings.",
                 "priority": "medium",
+                "effort": "low"
+            }
+        })
+
+    # --- SDC-210: Contradiction between visible availability and Schema.org availability ---
+    availability_conflict_pages = []
+    out_of_stock_pattern = re.compile(r'\b(out of stock|sold out|currently unavailable|temporarily unavailable|backorder(?:ed)?)\b', re.IGNORECASE)
+    in_stock_pattern = re.compile(r'\b(in stock|available now|ready to ship|add to cart)\b', re.IGNORECASE)
+
+    for p in pages:
+        visible_text = (p.get("visible_text_sample", "") + " " + " ".join((p.get("h1") or []))).lower()
+        if not visible_text.strip():
+            continue
+
+        for node in get_schema_nodes((p.get("json_ld") or [])):
+            nt = node.get("@type", "")
+            nt_types = [nt] if isinstance(nt, str) else (nt if isinstance(nt, list) else [])
+            candidates = []
+            if any("Offer" in t for t in nt_types):
+                candidates.append(node)
+            raw_offers = node.get("offers")
+            if isinstance(raw_offers, dict):
+                candidates.append(raw_offers)
+            elif isinstance(raw_offers, list):
+                candidates.extend([o for o in raw_offers if isinstance(o, dict)])
+
+            for off in candidates:
+                raw_avail = off.get("availability")
+                if not isinstance(raw_avail, str):
+                    continue
+                avail_norm = raw_avail.rstrip("/").split("/")[-1].lower()
+
+                has_oos_text = bool(out_of_stock_pattern.search(visible_text))
+                has_in_stock_text = bool(in_stock_pattern.search(visible_text))
+
+                if "instock" in avail_norm or "preorder" in avail_norm:
+                    if has_oos_text and not has_in_stock_text:
+                        availability_conflict_pages.append((p, "InStock in Schema vs Out of Stock visible", off))
+                        break
+                elif "outofstock" in avail_norm or "discontinued" in avail_norm or "soldout" in avail_norm:
+                    if has_in_stock_text and not has_oos_text:
+                        availability_conflict_pages.append((p, "OutOfStock in Schema vs In Stock visible", off))
+                        break
+            if availability_conflict_pages and availability_conflict_pages[-1][0] == p:
+                break
+
+    if availability_conflict_pages:
+        distinct_avail = list({(item[0].get("url") or item[0].get("final_url") or ""): item for item in availability_conflict_pages}.values())
+        target_p, reason, _ = distinct_avail[0]
+        findings.append({
+            "check_id": "SDC-210",
+            "title": f"Visible product availability contradicts structured data on {len(distinct_avail)} page(s)",
+            "category": "discoverability",
+            "severity": "high",
+            "confidence": "high",
+            "affected_urls": [item[0].get("url") or item[0].get("final_url") or "" for item in distinct_avail[:5]],
+            "evidence": (
+                f"Page {target_p.get('url', '')} contains inventory contradiction ({reason}). "
+                "Conflicting availability signals cause AI assistants to give outdated or incorrect purchasing advice."
+            ),
+            "tags": ["schema-org", "availability", "contradiction", "structured-data"],
+            "suggested_action": {
+                "summary": "Synchronize structured data Offer availability tags with visible inventory status.",
+                "priority": "high",
+                "effort": "low"
+            }
+        })
+
+    # --- SDC-211: Contradiction between visible event date and Schema.org Event startDate ---
+    event_date_conflicts = []
+    month_names = r'(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)'
+    date_regex = re.compile(
+        rf'\b(\d{{4}}-\d{{2}}-\d{{2}})\b|\b({month_names}\s+\d{{1,2}},?\s+\d{{4}})\b|\b(\d{{1,2}}\s+{month_names}\s+\d{{4}})\b',
+        re.IGNORECASE
+    )
+
+    for p in pages:
+        for node in get_schema_nodes((p.get("json_ld") or [])):
+            nt = node.get("@type", "")
+            nt_types = [nt] if isinstance(nt, str) else (nt if isinstance(nt, list) else [])
+            if not any("Event" in t for t in nt_types):
+                continue
+            start_date_raw = node.get("startDate")
+            if not isinstance(start_date_raw, str):
+                continue
+            schema_tuple = parse_date_tuple(start_date_raw)
+            if not schema_tuple:
+                continue
+
+            visible_sample = p.get("visible_text_sample", "") + " " + " ".join((p.get("h1") or []))
+            visible_matches = date_regex.findall(visible_sample)
+            if visible_matches:
+                found_tuples = []
+                found_raw = []
+                for m in visible_matches:
+                    d_str = m[0] or m[1] or m[2]
+                    if d_str:
+                        tup = parse_date_tuple(d_str)
+                        if tup:
+                            found_tuples.append(tup)
+                            found_raw.append(d_str)
+                if found_tuples and schema_tuple not in found_tuples:
+                    event_date_conflicts.append((p, start_date_raw, found_raw[0]))
+                    break
+
+    if event_date_conflicts:
+        distinct_events = list({(item[0].get("url") or item[0].get("final_url") or ""): item for item in event_date_conflicts}.values())
+        target_p, s_date, v_date = distinct_events[0]
+        findings.append({
+            "check_id": "SDC-211",
+            "title": f"Visible event date contradicts Schema.org Event startDate on {len(distinct_events)} page(s)",
+            "category": "discoverability",
+            "severity": "medium",
+            "confidence": "high",
+            "affected_urls": [item[0].get("url") or item[0].get("final_url") or "" for item in distinct_events[:5]],
+            "evidence": (
+                f"Page {target_p.get('url', '')} declares Schema.org Event startDate '{s_date}' "
+                f"while visible text displays '{v_date}'. "
+                "Date contradictions lead AI assistants to misinform users regarding event timing."
+            ),
+            "tags": ["schema-org", "event", "date-conflict", "structured-data"],
+            "suggested_action": {
+                "summary": "Ensure Schema.org Event startDate matches the published on-page schedule.",
+                "priority": "medium",
+                "effort": "low"
+            }
+        })
+
+    # --- SDC-212: Duplicate <title> tags across distinct crawled URLs ---
+    titles_by_text = {}
+    for p in pages:
+        t = (p.get("title") or "").strip()
+        u = p.get("url", "")
+        if len(t) > 5 and p.get("status_code", 200) < 300:
+            titles_by_text.setdefault(t, []).append(u)
+
+    duplicate_title_groups = {t: urls for t, urls in titles_by_text.items() if len(urls) >= 2}
+    if duplicate_title_groups:
+        sample_title, sample_urls = next(iter(duplicate_title_groups.items()))
+        total_dup_pages = sum(len(urls) for urls in duplicate_title_groups.values())
+        findings.append({
+            "check_id": "SDC-212",
+            "title": f"Duplicate page titles detected across {total_dup_pages} crawled pages",
+            "category": "discoverability",
+            "severity": "medium",
+            "confidence": "high",
+            "affected_urls": sample_urls[:5],
+            "evidence": (
+                f"Identical title '{sample_title}' is shared across {len(sample_urls)} distinct pages "
+                f"({', '.join(sample_urls[:3])}). "
+                "Duplicate title tags confuse search engines and AI agents when determining the authoritative page for a query."
+            ),
+            "tags": ["page-title", "duplicate-content", "seo-hygiene"],
+            "suggested_action": {
+                "summary": "Provide unique, topic-specific <title> tags for each distinct URL.",
+                "priority": "medium",
+                "effort": "low"
+            }
+        })
+
+    # --- SDC-213: Duplicate <meta name="description"> tags across distinct crawled URLs ---
+    descs_by_text = {}
+    for p in pages:
+        d = (p.get("meta_description") or "").strip()
+        u = p.get("url", "")
+        if len(d) >= 25 and p.get("status_code", 200) < 300:
+            descs_by_text.setdefault(d, []).append(u)
+
+    duplicate_desc_groups = {d: urls for d, urls in descs_by_text.items() if len(urls) >= 2}
+    if duplicate_desc_groups:
+        sample_desc, sample_urls = next(iter(duplicate_desc_groups.items()))
+        total_dup_pages = sum(len(urls) for urls in duplicate_desc_groups.values())
+        findings.append({
+            "check_id": "SDC-213",
+            "title": f"Duplicate meta descriptions detected across {total_dup_pages} crawled pages",
+            "category": "discoverability",
+            "severity": "low",
+            "confidence": "high",
+            "affected_urls": sample_urls[:5],
+            "evidence": (
+                f"Identical meta description is shared across {len(sample_urls)} pages "
+                f"({', '.join(sample_urls[:3])}). "
+                "Duplicate descriptions degrade search snippet distinctiveness and hinder automated AI summarization."
+            ),
+            "tags": ["meta-description", "duplicate-content", "seo-hygiene"],
+            "suggested_action": {
+                "summary": "Write distinctive meta descriptions reflecting the primary content of each unique page.",
+                "priority": "low",
                 "effort": "low"
             }
         })

@@ -1,0 +1,16 @@
+{
+  "include": [
+    "skills",
+    "tests"
+  ],
+  "extraPaths": [
+    "skills/audit-orchestrator/scripts",
+    "skills/crawlability-render-audit/scripts",
+    "skills/structured-data-content-audit/scripts",
+    "skills/entity-identity-audit/scripts",
+    "skills/freshness-corroboration-audit/scripts",
+    "skills/engagement-audit/scripts",
+    "skills/proactive-opportunities-audit/scripts",
+    "skills/site-crawler/scripts"
+  ]
+}

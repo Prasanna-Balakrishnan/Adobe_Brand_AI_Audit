@@ -1,0 +1,61 @@
+{
+  "benchmarks": [
+    {
+      "pages": 50,
+      "total_time_seconds": 0.393,
+      "crawl_time_seconds": 0.043,
+      "audit_time_seconds": 0.314,
+      "norm_dedup_time_seconds": 0.002,
+      "scoring_time_seconds": 0.026,
+      "proactive_time_seconds": 0.011,
+      "report_time_seconds": 0.009,
+      "findings_count": 5,
+      "recommendations_count": 2,
+      "strengths_count": 19,
+      "ai_readiness_score": 68,
+      "journey_score": 88,
+      "throughput_pages_per_sec": 127.3,
+      "peak_memory_mb": 1.64,
+      "pass_5min": true,
+      "status": "PASS"
+    },
+    {
+      "pages": 100,
+      "total_time_seconds": 0.479,
+      "crawl_time_seconds": 0.098,
+      "audit_time_seconds": 0.339,
+      "norm_dedup_time_seconds": 0.001,
+      "scoring_time_seconds": 0.037,
+      "proactive_time_seconds": 0.012,
+      "report_time_seconds": 0.006,
+      "findings_count": 5,
+      "recommendations_count": 2,
+      "strengths_count": 19,
+      "ai_readiness_score": 68,
+      "journey_score": 88,
+      "throughput_pages_per_sec": 208.9,
+      "peak_memory_mb": 0.64,
+      "pass_5min": true,
+      "status": "PASS"
+    },
+    {
+      "pages": 250,
+      "total_time_seconds": 1.413,
+      "crawl_time_seconds": 0.243,
+      "audit_time_seconds": 1.079,
+      "norm_dedup_time_seconds": 0.001,
+      "scoring_time_seconds": 0.084,
+      "proactive_time_seconds": 0.033,
+      "report_time_seconds": 0.007,
+      "findings_count": 5,
+      "recommendations_count": 2,
+      "strengths_count": 19,
+      "ai_readiness_score": 68,
+      "journey_score": 88,
+      "throughput_pages_per_sec": 176.9,
+      "peak_memory_mb": 1.59,
+      "pass_5min": true,
+      "status": "PASS"
+    }
+  ]
+}

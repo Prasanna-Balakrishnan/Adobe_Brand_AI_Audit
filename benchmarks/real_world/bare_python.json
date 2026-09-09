@@ -1,0 +1,508 @@
+{
+  "site": "www.python.com",
+  "audited_at": "2026-09-08T19:39:43.622810Z",
+  "run_info": {
+    "marketplace_version": "1.0.0",
+    "query_input": "python",
+    "target_url": "https://www.python.com",
+    "skills_invoked": [
+      "crawlability-render-audit",
+      "structured-data-content-audit",
+      "entity-identity-audit",
+      "freshness-corroboration-audit",
+      "engagement-audit",
+      "agent-discoverability-audit",
+      "proactive-opportunities-audit"
+    ],
+    "failed_skills": [],
+    "pages_crawled": 1,
+    "max_pages": 5,
+    "crawl_duration_seconds": 8.6,
+    "robots_txt_respected": true,
+    "crawl_coverage": {
+      "pages_discovered": 2,
+      "pages_crawled": 1,
+      "pages_skipped": 0,
+      "failed_pages": [
+        {
+          "url": "https://www.python.com/",
+          "status_code": 403
+        }
+      ],
+      "crawl_duration_seconds": 8.6,
+      "robots_status": 200,
+      "js_rendering_status": "disabled"
+    }
+  },
+  "summary": {
+    "total_findings": 12,
+    "critical": 1,
+    "high": 7,
+    "medium": 4,
+    "low": 0,
+    "ai_readiness_score": 0,
+    "overall_score": 30,
+    "by_category": {
+      "discoverability": 8,
+      "engagement": 4
+    },
+    "agent_journey_scores": {
+      "reach": 29,
+      "read": 84,
+      "understand": 21,
+      "trust": 100,
+      "navigate": 47,
+      "act": 47,
+      "overall_journey_score": 55
+    }
+  },
+  "agent_journey_scores": {
+    "reach": 29,
+    "read": 84,
+    "understand": 21,
+    "trust": 100,
+    "navigate": 47,
+    "act": 47,
+    "overall_journey_score": 55
+  },
+  "agent_answerability": [
+    {
+      "question": "What does this company do?",
+      "category": "identity",
+      "status": "Not found",
+      "confidence": "low",
+      "evidence": "No clear company summary or description found across crawled pages.",
+      "sources": [],
+      "recommendation": "Consider providing an executive summary or meta description clarifying the organization's purpose."
+    },
+    {
+      "question": "What products/services does it offer?",
+      "category": "offerings",
+      "status": "Not found",
+      "confidence": "low",
+      "evidence": "No dedicated Product or Service pages discovered in snapshot.",
+      "sources": [],
+      "recommendation": "Consider publishing dedicated pages detailing your core products, services, or solutions."
+    },
+    {
+      "question": "Where is it located?",
+      "category": "location",
+      "status": "Not found",
+      "confidence": "low",
+      "evidence": "No physical address or geographic location declared in JSON-LD or contact text.",
+      "sources": [],
+      "recommendation": "Consider adding physical address or service area in structured data and contact pages."
+    },
+    {
+      "question": "What does the product cost?",
+      "category": "pricing",
+      "status": "Not found",
+      "confidence": "low",
+      "evidence": "No clear pricing, price tiers, or pricing model mentioned in crawled pages.",
+      "sources": [],
+      "recommendation": "Consider providing transparent baseline pricing, tiers, or a pricing calculator to assist AI and user evaluation."
+    },
+    {
+      "question": "How can users contact it?",
+      "category": "contact",
+      "status": "Not found",
+      "confidence": "low",
+      "evidence": "No email, telephone number, or dedicated contact page discovered.",
+      "sources": [],
+      "recommendation": "Consider publishing direct contact information such as email or telephone on a dedicated contact page."
+    }
+  ],
+  "top_priorities": [
+    {
+      "id": "F-001",
+      "title": "Homepage returns HTTP 403",
+      "category": "discoverability",
+      "severity": "critical",
+      "confidence": "high",
+      "affected_pages_count": 1,
+      "suggested_action": "Fix the server error on the homepage immediately.",
+      "priority_score": 46.2,
+      "priority_rank": 1
+    },
+    {
+      "id": "F-003",
+      "title": "High rate of broken internal links (1/1 pages)",
+      "category": "discoverability",
+      "severity": "high",
+      "confidence": "high",
+      "affected_pages_count": 1,
+      "suggested_action": "Fix or redirect broken URLs. Audit internal links site-wide.",
+      "priority_score": 28.9,
+      "priority_rank": 2
+    },
+    {
+      "id": "F-002",
+      "title": "No canonical tags on any crawled page",
+      "category": "discoverability",
+      "severity": "high",
+      "confidence": "high",
+      "affected_pages_count": 1,
+      "suggested_action": "Add <link rel='canonical'> to every page pointing to its preferred URL.",
+      "priority_score": 27.5,
+      "priority_rank": 3
+    },
+    {
+      "id": "F-008",
+      "title": "No date signals found on any crawled page",
+      "category": "discoverability",
+      "severity": "high",
+      "confidence": "high",
+      "affected_pages_count": 1,
+      "suggested_action": "Add Last-Modified headers and datePublished/dateModified to JSON-LD on all content pages.",
+      "priority_score": 27.5,
+      "priority_rank": 4
+    },
+    {
+      "id": "F-007",
+      "title": "No contact page or contact information found",
+      "category": "discoverability",
+      "severity": "high",
+      "confidence": "medium",
+      "affected_pages_count": 1,
+      "suggested_action": "Add a Contact page with email, phone, and/or address.",
+      "priority_score": 24.2,
+      "priority_rank": 5
+    }
+  ],
+  "findings": [
+    {
+      "id": "F-001",
+      "title": "Homepage returns HTTP 403",
+      "category": "discoverability",
+      "severity": "critical",
+      "confidence": "high",
+      "source_skill": "crawlability-render-audit",
+      "tags": [
+        "crawlability",
+        "json-ld",
+        "schema-org",
+        "entity-identity",
+        "heading-structure"
+      ],
+      "affected_urls": [
+        "https://www.python.com/"
+      ],
+      "evidence": "The homepage at https://www.python.com/ returned HTTP 403. Crawlers and AI agents cannot retrieve any content. [Also: structured-data-content-audit: Homepage (https://www.python.com/) has no JSON-LD with an Organization, WebSite, or brand entity type. Found types: none. AI assistants cannot reliably identify and describe this brand.] [Also: structured-data-content-audit: Homepage (https://www.python.com/) has h1: []. No primary topic signal for crawlers.]",
+      "root_cause_group": "RC-001",
+      "suggested_action": {
+        "summary": "Fix the server error on the homepage immediately.",
+        "priority": "critical",
+        "effort": "high"
+      },
+      "merged_from_skills": [
+        "crawlability-render-audit",
+        "structured-data-content-audit"
+      ]
+    },
+    {
+      "id": "F-002",
+      "title": "No canonical tags on any crawled page",
+      "category": "discoverability",
+      "severity": "high",
+      "confidence": "high",
+      "source_skill": "crawlability-render-audit",
+      "tags": [
+        "canonical",
+        "crawlability"
+      ],
+      "affected_urls": [
+        "https://www.python.com/"
+      ],
+      "evidence": "0 of 1 crawled pages contain a <link rel='canonical'> tag. Without canonicals, duplicate content dilutes AI citation quality.",
+      "root_cause_group": "RC-002",
+      "suggested_action": {
+        "summary": "Add <link rel='canonical'> to every page pointing to its preferred URL.",
+        "priority": "high",
+        "effort": "medium"
+      }
+    },
+    {
+      "id": "F-003",
+      "title": "High rate of broken internal links (1/1 pages)",
+      "category": "discoverability",
+      "severity": "high",
+      "confidence": "high",
+      "source_skill": "crawlability-render-audit",
+      "tags": [
+        "broken-link",
+        "crawlability"
+      ],
+      "affected_urls": [
+        "https://www.python.com/"
+      ],
+      "evidence": "1 of 1 crawled pages returned HTTP 4xx/5xx errors (100%).",
+      "root_cause_group": "RC-003",
+      "suggested_action": {
+        "summary": "Fix or redirect broken URLs. Audit internal links site-wide.",
+        "priority": "high",
+        "effort": "medium"
+      }
+    },
+    {
+      "id": "F-004",
+      "title": "No primary call-to-action found on homepage",
+      "category": "engagement",
+      "severity": "high",
+      "confidence": "medium",
+      "source_skill": "engagement-audit",
+      "tags": [
+        "cta",
+        "value-proposition"
+      ],
+      "affected_urls": [
+        "https://www.python.com/"
+      ],
+      "evidence": "Homepage (https://www.python.com/) has no link text matching CTA patterns. Actual link texts found: [].",
+      "root_cause_group": "RC-004",
+      "suggested_action": {
+        "summary": "Add a prominent primary CTA button above the fold (e.g. 'Get Started', 'Try Free').",
+        "priority": "high",
+        "effort": "low"
+      }
+    },
+    {
+      "id": "F-005",
+      "title": "Homepage lacks a clear value proposition",
+      "category": "engagement",
+      "severity": "high",
+      "confidence": "medium",
+      "source_skill": "engagement-audit",
+      "tags": [
+        "value-proposition"
+      ],
+      "affected_urls": [
+        "https://www.python.com/"
+      ],
+      "evidence": "Homepage heading text: 'none'. Visible text sample: 'Forbidden'. No clear statement of who the product/service is for or what it does.",
+      "root_cause_group": "RC-005",
+      "suggested_action": {
+        "summary": "Add an H1 stating who you help and how; add a sub-headline with one key benefit.",
+        "priority": "high",
+        "effort": "low"
+      }
+    },
+    {
+      "id": "F-006",
+      "title": "Navigation has fewer than 3 meaningful text labels",
+      "category": "engagement",
+      "severity": "high",
+      "confidence": "medium",
+      "source_skill": "engagement-audit",
+      "tags": [
+        "navigation"
+      ],
+      "affected_urls": [
+        "https://www.python.com/"
+      ],
+      "evidence": "Homepage has only 0 meaningful internal link text(s): []. Navigation may be icon-only or unlabelled.",
+      "root_cause_group": "RC-006",
+      "suggested_action": {
+        "summary": "Add visible text labels to all navigation items; avoid icon-only navigation.",
+        "priority": "high",
+        "effort": "medium"
+      }
+    },
+    {
+      "id": "F-007",
+      "title": "No contact page or contact information found",
+      "category": "discoverability",
+      "severity": "high",
+      "confidence": "medium",
+      "source_skill": "entity-identity-audit",
+      "tags": [
+        "contact-page",
+        "entity-identity",
+        "navigation",
+        "cta"
+      ],
+      "affected_urls": [
+        "https://www.python.com/"
+      ],
+      "evidence": "No URL matches contact-page patterns and no email, phone, or address detected in visible text samples across 1 crawled pages. [Also: engagement-audit: No link text across 1 crawled pages matches contact/support patterns (contact, support, help, chat, ...).]",
+      "root_cause_group": "RC-007",
+      "suggested_action": {
+        "summary": "Add a Contact page with email, phone, and/or address.",
+        "priority": "high",
+        "effort": "low"
+      },
+      "merged_from_skills": [
+        "entity-identity-audit",
+        "engagement-audit"
+      ]
+    },
+    {
+      "id": "F-008",
+      "title": "No date signals found on any crawled page",
+      "category": "discoverability",
+      "severity": "high",
+      "confidence": "high",
+      "source_skill": "freshness-corroboration-audit",
+      "tags": [
+        "stale-content",
+        "json-ld",
+        "schema-org",
+        "structured-data"
+      ],
+      "affected_urls": [
+        "https://www.python.com/"
+      ],
+      "evidence": "Checked 1 pages: no Last-Modified headers, no datePublished, and no dateModified in any JSON-LD block. AI assistants cannot assess content currency. [Also: structured-data-content-audit: Crawled 1 pages; 0/1 contain JSON-LD structured data. AI assistants cannot extract machine-readable facts about this site.]",
+      "root_cause_group": "RC-008",
+      "suggested_action": {
+        "summary": "Add Last-Modified headers and datePublished/dateModified to JSON-LD on all content pages.",
+        "priority": "high",
+        "effort": "medium"
+      },
+      "merged_from_skills": [
+        "freshness-corroboration-audit",
+        "structured-data-content-audit"
+      ]
+    },
+    {
+      "id": "F-009",
+      "title": "Missing title or meta description on 1/1 pages",
+      "category": "discoverability",
+      "severity": "medium",
+      "confidence": "high",
+      "source_skill": "crawlability-render-audit",
+      "tags": [
+        "page-title",
+        "meta-description",
+        "crawlability"
+      ],
+      "affected_urls": [
+        "https://www.python.com/"
+      ],
+      "evidence": "1 of 1 pages (100%) are missing a <title> and/or <meta name='description'>. [Also: structured-data-content-audit: 1 pages have titles shorter than 10 characters or empty. Examples: [''].]",
+      "root_cause_group": "RC-009",
+      "suggested_action": {
+        "summary": "Add unique, descriptive title tags and meta descriptions to every page.",
+        "priority": "medium",
+        "effort": "medium"
+      },
+      "merged_from_skills": [
+        "crawlability-render-audit",
+        "structured-data-content-audit"
+      ]
+    },
+    {
+      "id": "F-010",
+      "title": "Thin content on 1/1 pages (<200 characters)",
+      "category": "discoverability",
+      "severity": "medium",
+      "confidence": "high",
+      "source_skill": "crawlability-render-audit",
+      "tags": [
+        "thin-content",
+        "crawlability"
+      ],
+      "affected_urls": [
+        "https://www.python.com/"
+      ],
+      "evidence": "1 of 1 pages (100%) have fewer than 200 visible characters. AI assistants have little content to cite.",
+      "root_cause_group": "RC-010",
+      "suggested_action": {
+        "summary": "Expand thin pages with substantive content or consolidate them.",
+        "priority": "medium",
+        "effort": "high"
+      }
+    },
+    {
+      "id": "F-011",
+      "title": "No About or team page detected",
+      "category": "engagement",
+      "severity": "medium",
+      "confidence": "medium",
+      "source_skill": "engagement-audit",
+      "tags": [
+        "about-page",
+        "navigation",
+        "value-proposition",
+        "entity-identity",
+        "entity-disambiguation"
+      ],
+      "affected_urls": [
+        "https://www.python.com/"
+      ],
+      "evidence": "None of 1 crawled URLs match about/team page patterns, and no title contains 'About' or 'Our Team'. First-time visitors cannot learn who is behind the site. [Also: entity-identity-audit: None of 1 crawled URLs match about-page patterns (/about, /who-we-are, /our-story, ...) and no page title contains 'About'.]",
+      "root_cause_group": "RC-011",
+      "suggested_action": {
+        "summary": "Create an About page introducing the team/company and mission.",
+        "priority": "medium",
+        "effort": "medium"
+      },
+      "merged_from_skills": [
+        "engagement-audit",
+        "entity-identity-audit"
+      ]
+    },
+    {
+      "id": "F-012",
+      "title": "Brand name 'www' may be ambiguous or generic",
+      "category": "discoverability",
+      "severity": "medium",
+      "confidence": "low",
+      "source_skill": "entity-identity-audit",
+      "tags": [
+        "entity-disambiguation",
+        "entity-name"
+      ],
+      "affected_urls": [
+        "https://www.python.com/"
+      ],
+      "evidence": "Detected brand name 'www' is short (3 chars) or uses only common words, creating disambiguation risk for AI agents.",
+      "root_cause_group": "RC-012",
+      "suggested_action": {
+        "summary": "Add disambiguatingDescription and sameAs to Organisation JSON-LD; use full legal name.",
+        "priority": "high",
+        "effort": "low"
+      }
+    }
+  ],
+  "proactive_recommendations": [
+    {
+      "id": "PRO-001",
+      "title": "Complete OpenGraph tags for richer social sharing previews",
+      "category": "engagement",
+      "rationale": "1 of 1 pages (100%) are missing og:title, og:description, or og:image. Complete OpenGraph tags improve how content appears when shared on social media and in AI-powered link previews, driving referral traffic.",
+      "priority": "low"
+    }
+  ],
+  "strengths": [
+    {
+      "title": "No noindex directives on any crawled page",
+      "category": "discoverability"
+    },
+    {
+      "title": "All crawled pages have content without JS rendering",
+      "category": "discoverability"
+    },
+    {
+      "title": "robots.txt present and permits crawling",
+      "category": "discoverability"
+    },
+    {
+      "title": "No dead-end pages found — all pages have onward navigation",
+      "category": "engagement"
+    },
+    {
+      "title": "All important pages have title and meta description for agent readability",
+      "category": "discoverability"
+    }
+  ],
+  "methodology_and_limitations": {
+    "audit_scope": "Evaluates technical AI discoverability, content extractability, structured data completeness, and citation readiness based on an observable crawl snapshot.",
+    "deterministic_scoring": "All scoring formulas and journey deductions are 100% deterministic and rule-grounded, measuring concrete technical readiness rather than subjective or volatile LLM search rankings.",
+    "read_only_guarantee": "This audit operates purely in read-only analysis mode without modifying site infrastructure, publishing changes, or executing non-idempotent operations.",
+    "limitations": [
+      "Crawl depth is capped at 20 pages per run under standard execution parameters.",
+      "Dynamic Single-Page Application (SPA) content requires headless rendering with Playwright fallback when JavaScript rendering is enabled.",
+      "Content behind authentication, paywalls, or strict CAPTCHA barriers is outside audit scope."
+    ]
+  }
+}

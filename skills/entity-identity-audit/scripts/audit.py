@@ -19,11 +19,14 @@ from urllib.parse import urlparse
 SKILL_NAME = "entity-identity-audit"
 
 ABOUT_URL_PATTERNS = ["/about", "/who-we-are", "/our-story", "/company", "/team",
-                      "/mission", "/history", "/overview"]
+                      "/mission", "/history", "/overview", "/a-propos", "/sobre-nosotros",
+                      "/acerca-de", "/ueber-uns", "/uber-uns", "/chi-siamo"]
 ABOUT_TITLE_PATTERNS = ["about", "who we are", "our story", "our team", "company",
-                         "about us"]
+                         "about us", "à propos", "a propos", "sobre nosotros", "über uns",
+                         "ueber uns", "chi siamo"]
 CONTACT_URL_PATTERNS = ["/contact", "/reach-us", "/get-in-touch", "/contact-us",
-                         "/support", "/help", "/connect"]
+                         "/support", "/help", "/connect", "/contacto", "/kontakt",
+                         "/nous-contacter", "/contatto"]
 CONTACT_TEXT_PATTERNS = [
     r'\b[\w.+-]+@[\w-]+\.[\w.]+\b',          # email
     r'\b\+?[\d][\d\s\-().]{7,}\d\b',          # phone number
@@ -35,7 +38,7 @@ AMBIGUOUS_SHORT_NAMES_STOPWORDS = {
     "it", "is", "was", "be", "an", "on", "of", "to", "up", "do"
 }
 NAME_SUFFIX_STRIP = re.compile(
-    r'\s*(inc\.?|llc\.?|ltd\.?|corp\.?|co\.?|gmbh|plc|s\.a\.|s\.a\.s|pvt\.?)$',
+    r'[,.\s]+(inc\.?|llc\.?|ltd\.?|corp\.?|corporation|company|co\.?|gmbh|plc|s\.a\.|s\.a\.s|pvt\.?|s\.l\.|s\.r\.l\.|ag|bv|nv)$',
     re.IGNORECASE
 )
 SAME_AS_DOMAINS = ["wikipedia.org", "wikidata.org", "linkedin.com", "crunchbase.com",
@@ -55,8 +58,11 @@ def load_snapshot(path: str) -> dict:
 
 
 def normalise_name(name: str) -> str:
-    """Strip legal suffixes, extra whitespace, and lowercase for comparison."""
-    n = NAME_SUFFIX_STRIP.sub("", name.strip()).strip().lower()
+    """Strip legal suffixes, punctuation, extra whitespace, and lowercase for robust comparison."""
+    if not name or not isinstance(name, str):
+        return ""
+    cleaned = name.strip()
+    n = NAME_SUFFIX_STRIP.sub("", cleaned).strip().lower()
     n = re.sub(r'[^\w\s]', '', n)
     return re.sub(r'\s+', ' ', n).strip()
 
@@ -120,40 +126,109 @@ def has_same_as(json_ld_blocks: list) -> bool:
 
 def derive_brand_name(snapshot: dict) -> tuple[str | None, str]:
     """Return (candidate_name, source) from JSON-LD → H1 → domain."""
-    meta = snapshot.get("crawl_meta", {})
-    pages = snapshot.get("pages", [])
+    if not isinstance(snapshot, dict):
+        return None, "none"
+    meta = snapshot.get("crawl_meta") or {}
+    pages = [p for p in (snapshot.get("pages") or []) if isinstance(p, dict)]
     start_url = meta.get("start_url", "")
     homepage = next(
-        (p for p in pages if p["url"] == start_url or p.get("final_url") == start_url),
+        (p for p in pages if p.get("url") == start_url or p.get("final_url") == start_url),
         pages[0] if pages else None
     )
 
     # 1. JSON-LD Organization.name
     if homepage:
-        org_names = get_org_names_from_jsonld(homepage.get("json_ld", []))
+        org_names = get_org_names_from_jsonld((homepage.get("json_ld") or []))
         if org_names:
             return org_names[0], "json-ld"
 
     # 2. Most common H1 text across all pages
     all_h1 = []
     for p in pages:
-        all_h1.extend(p.get("h1", []))
+        all_h1.extend((p.get("h1") or []))
     if all_h1:
         counter = Counter(all_h1)
         return counter.most_common(1)[0][0], "h1"
 
     # 3. Domain name
     if start_url:
-        domain = urlparse(start_url).netloc.split(".")[0]
-        if domain:
+        netloc = urlparse(start_url).netloc
+        domain = netloc.split(".")[0]
+        if domain and not domain.isdigit() and not re.match(r'^\d{1,3}(?:\.\d{1,3}){3}', netloc):
             return domain, "domain"
 
     return None, "none"
 
 
+def compute_entity_confidence(snapshot: dict, findings: list[dict] | None = None) -> tuple[float, str, list[str]]:
+    """
+    Calculate deterministic entity identity confidence (0.0 to 1.0) based on
+    corroborating evidence across crawl snapshot.
+    """
+    if not isinstance(snapshot, dict):
+        return 0.0, "Low", []
+    pages = [p for p in (snapshot.get("pages") or []) if isinstance(p, dict)]
+    meta = snapshot.get("crawl_meta") or {}
+    start_url = meta.get("start_url", "")
+    homepage = next(
+        (p for p in pages if p.get("url") == start_url or p.get("final_url") == start_url),
+        pages[0] if pages else None
+    )
+
+    brand_name, brand_source = derive_brand_name(snapshot)
+    all_urls = [(p.get("url") or p.get("final_url") or "").lower() for p in pages]
+    all_titles = [p.get("title", "").lower() for p in pages]
+    has_about = (
+        any(p.get("page_type") == "About" for p in pages) or
+        any(any(pat in u for pat in ABOUT_URL_PATTERNS) for u in all_urls) or
+        any(any(pat in t for pat in ABOUT_TITLE_PATTERNS) for t in all_titles)
+    )
+    has_contact_page = (
+        any(any(pat in u for pat in CONTACT_URL_PATTERNS) for u in all_urls) or
+        any(p.get("page_type") == "Contact" for p in pages)
+    )
+    has_contact_info = any(
+        any(re.search(pat, p.get("visible_text_sample", "")) for pat in CONTACT_TEXT_PATTERNS)
+        for p in pages
+    )
+
+    confidence_score = 0.0
+    confidence_signals = []
+    if brand_name:
+        confidence_score += 0.25
+        confidence_signals.append(f"brand name identified as '{brand_name}'")
+    if brand_source == "json-ld":
+        confidence_score += 0.25
+        confidence_signals.append("verified by Organization JSON-LD")
+    if has_about:
+        confidence_score += 0.20
+        confidence_signals.append("authoritative About page present")
+    if has_contact_page or has_contact_info:
+        confidence_score += 0.15
+        confidence_signals.append("contact channels available")
+    if homepage and has_same_as((homepage.get("json_ld") or [])):
+        confidence_score += 0.15
+        confidence_signals.append("external sameAs entity links declared")
+
+    if findings:
+        # Deductions for contradictions
+        if any(f.get("check_id") in ("ENT-002", "ENT-008") for f in findings):
+            confidence_score -= 0.30
+        if any(f.get("check_id") in ("ENT-009", "ENT-010", "ENT-011") for f in findings):
+            confidence_score -= 0.20
+        if any(f.get("check_id") == "ENT-006" for f in findings):
+            confidence_score -= 0.15
+
+    confidence_score = max(0.0, min(1.0, round(confidence_score, 2)))
+    conf_level = "High" if confidence_score >= 0.75 else ("Moderate" if confidence_score >= 0.45 else "Low")
+    return confidence_score, conf_level, confidence_signals
+
+
 def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
-    meta = snapshot.get("crawl_meta", {})
-    pages = snapshot.get("pages", [])
+    if not isinstance(snapshot, dict):
+        return [], []
+    meta = snapshot.get("crawl_meta") or {}
+    pages = [p for p in (snapshot.get("pages") or []) if isinstance(p, dict)]
     findings = []
     strengths = []
     total = len(pages)
@@ -163,7 +238,7 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
 
     start_url = meta.get("start_url", "")
     homepage = next(
-        (p for p in pages if p["url"] == start_url or p.get("final_url") == start_url),
+        (p for p in pages if p.get("url") == start_url or p.get("final_url") == start_url),
         pages[0] if pages else None
     )
 
@@ -204,7 +279,7 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
         name_variants = set()
         for p in pages:
             # Collect all org names from this page's JSON-LD
-            page_org_names = get_org_names_from_jsonld(p.get("json_ld", []))
+            page_org_names = get_org_names_from_jsonld((p.get("json_ld") or []))
             for n in page_org_names:
                 norm_n = normalise_name(n)
                 if norm_n and norm_n != norm_brand and norm_n not in norm_brand and norm_brand not in norm_n:
@@ -218,7 +293,7 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
                 "category": "discoverability",
                 "severity": "high",
                 "confidence": "high",
-                "affected_urls": [p["url"] for p in inconsistent_pages[:5]],
+                "affected_urls": [p.get("url") or p.get("final_url") or "" for p in inconsistent_pages[:5]],
                 "evidence": (
                     f"Canonical name '{brand_name}' (from {brand_source}), but {len(name_variants)} variant(s) found: "
                     f"{list(name_variants)[:5]} across {len(inconsistent_pages)}/{total} pages. "
@@ -235,7 +310,7 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
 
     # --- ENT-003: No About page ---
     is_doc_site = any(p.get("page_type") == "Documentation" or "/docs" in p.get("url", "").lower() for p in pages)
-    all_urls = [p["url"].lower() for p in pages]
+    all_urls = [(p.get("url") or p.get("final_url") or "").lower() for p in pages]
     all_titles = [p.get("title", "").lower() for p in pages]
     has_about = (
         any(p.get("page_type") == "About" for p in pages) or
@@ -243,7 +318,7 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
         any(any(pat in t for pat in ABOUT_TITLE_PATTERNS) for t in all_titles)
     )
     if not has_about and not is_doc_site:
-        sev = "medium" if (total <= 3 or (homepage and get_org_names_from_jsonld(homepage.get("json_ld", [])))) else "high"
+        sev = "medium" if (total <= 3 or (homepage and get_org_names_from_jsonld((homepage.get("json_ld") or [])))) else "high"
         conf = "low" if total <= 2 else "medium"
         findings.append({
             "check_id": "ENT-003",
@@ -258,7 +333,7 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
             ),
             "tags": ["about-page", "entity-identity", "entity-disambiguation"],
             "suggested_action": {
-                "summary": "Create an About page with org name, description, founding year, and mission.",
+                "summary": "Consider creating an About page with org name, description, founding year, and mission.",
                 "priority": sev,
                 "effort": "medium"
             }
@@ -270,13 +345,14 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
         })
 
     # --- ENT-004: No Contact page or contact info ---
-    has_contact_page = any(
-        p.get("page_type") == "Contact" or any(pat in u for pat in CONTACT_URL_PATTERNS) for u in all_urls
+    has_contact_page = (
+        any(p.get("page_type") == "Contact" for p in pages) or
+        any(any(pat in u for pat in CONTACT_URL_PATTERNS) for u in all_urls)
     )
     has_contact_info = False
     for p in pages:
         # Check JSON-LD for contactPoint, telephone, email
-        for block in p.get("json_ld", []):
+        for block in (p.get("json_ld") or []):
             if isinstance(block, dict):
                 if block.get("contactPoint") or block.get("telephone") or block.get("email"):
                     has_contact_info = True
@@ -321,7 +397,7 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
     for p in pages:
         if p.get("page_type") == "Homepage":
             continue
-        p_path = urlparse(p["url"]).path.lower().rstrip("/")
+        p_path = urlparse(p.get("url") or p.get("final_url") or "").path.lower().rstrip("/")
         if not p_path:
             continue
         if p.get("page_type") in ("Blog", "Article", "NewsArticle") or any(pat in p_path for pat in BLOG_URL_PATTERNS):
@@ -332,7 +408,7 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
         for p in blog_pages:
             # Check JSON-LD for author
             has_author_jsonld = False
-            for block in p.get("json_ld", []):
+            for block in (p.get("json_ld") or []):
                 if isinstance(block, dict) and block.get("author"):
                     has_author_jsonld = True
                     break
@@ -348,7 +424,7 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
                 "category": "discoverability",
                 "severity": "medium",
                 "confidence": "medium",
-                "affected_urls": [p["url"] for p in no_author_pages[:5]],
+                "affected_urls": [p.get("url") or p.get("final_url") or "" for p in no_author_pages[:5]],
                 "evidence": (
                     f"{len(no_author_pages)} blog/article pages have no author in JSON-LD "
                     "and no visible byline. AI agents cannot attribute content."
@@ -390,7 +466,7 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
 
     # --- ENT-007: Missing sameAs in Organisation JSON-LD ---
     if homepage:
-        hp_jsonld = homepage.get("json_ld", [])
+        hp_jsonld = (homepage.get("json_ld") or [])
         hp_org_names = get_org_names_from_jsonld(hp_jsonld)
         if hp_org_names:  # Has org JSON-LD
             if not has_same_as(hp_jsonld):
@@ -400,7 +476,7 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
                     "category": "discoverability",
                     "severity": "low",
                     "confidence": "high",
-                    "affected_urls": [homepage["url"]],
+                    "affected_urls": [homepage.get("url") or homepage.get("final_url") or ""] if homepage else [start_url],
                     "evidence": (
                         "Homepage Organization JSON-LD has no sameAs property. "
                         "sameAs links to authoritative profiles help AI corroborate entity identity."
@@ -421,7 +497,7 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
     # --- ENT-008: Name inconsistency across title, H1, JSON-LD, About & Contact (Req 7) ---
     declared_names = {}
     if homepage:
-        hp_orgs = get_org_names_from_jsonld(homepage.get("json_ld", []))
+        hp_orgs = get_org_names_from_jsonld((homepage.get("json_ld") or []))
         if hp_orgs:
             declared_names["homepage_jsonld"] = hp_orgs[0].strip()
         if homepage.get("title"):
@@ -431,11 +507,11 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
 
     for p in pages:
         if p.get("page_type") == "About":
-            ab_orgs = get_org_names_from_jsonld(p.get("json_ld", []))
+            ab_orgs = get_org_names_from_jsonld((p.get("json_ld") or []))
             if ab_orgs:
                 declared_names["about_jsonld"] = ab_orgs[0].strip()
         elif p.get("page_type") == "Contact":
-            ct_orgs = get_org_names_from_jsonld(p.get("json_ld", []))
+            ct_orgs = get_org_names_from_jsonld((p.get("json_ld") or []))
             if ct_orgs:
                 declared_names["contact_jsonld"] = ct_orgs[0].strip()
 
@@ -466,7 +542,7 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
             "category": "discoverability",
             "severity": "medium",
             "confidence": "high",
-            "affected_urls": [homepage["url"]] if homepage else [start_url],
+            "affected_urls": [homepage.get("url") or homepage.get("final_url") or ""] if homepage else [start_url],
             "evidence": (
                 f"Disparate identity signals detected vs canonical '{brand_name}': {', '.join(names_summary[:3])}. "
                 "AI search agents cross-reference title, H1, and JSON-LD to ground entity identity."
@@ -484,15 +560,35 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
     founding_years = set()
     locations = set()
     founding_re = re.compile(r'\b(?:founded|established|est\.?)\s+(?:in\s+)?((?:19|20)\d{2})\b', re.IGNORECASE)
+    loc_re = re.compile(r'\b(?:headquarters|based in|located in)\s*:?\s*([A-Za-z\s]{3,25}(?:,\s*[A-Za-z\s]{2,20})?)\b', re.IGNORECASE)
+
+    # Collect contact points
+    page_phones = {}
+    page_emails = {}
+    email_re = re.compile(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b')
+    phone_re = re.compile(r'\b(?:\+?1[-.\s]?)?\(?[2-9]\d{2}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b|\b\+?\d{2,3}[-.\s]?\d{2,4}[-.\s]?\d{3,4}[-.\s]?\d{3,4}\b')
 
     for p in pages:
-        # Check text sample for founding years
         sample = p.get("visible_text_sample", "")
+        # Founding years
         for m in founding_re.finditer(sample):
             founding_years.add(m.group(1))
 
-        # Check JSON-LD foundingDate
-        for block in p.get("json_ld", []):
+        # Visible locations
+        for m in loc_re.finditer(sample):
+            cleaned_loc = m.group(1).strip()
+            if len(cleaned_loc) > 3 and not any(w in cleaned_loc.lower() for w in ("the", "our", "all", "your", "today")):
+                locations.add(cleaned_loc)
+
+        # Visible contact info
+        p_url = p.get("url") or p.get("final_url") or ""
+        for m in email_re.finditer(sample):
+            page_emails.setdefault(p_url, set()).add(m.group(0).lower())
+        for m in phone_re.finditer(sample):
+            page_phones.setdefault(p_url, set()).add(re.sub(r'[^\d+]', '', m.group(0)))
+
+        # JSON-LD foundingDate, address, contactPoint
+        for block in (p.get("json_ld") or []):
             if isinstance(block, dict):
                 fd = str(block.get("foundingDate") or "")
                 if fd and len(fd) >= 4 and fd[:4].isdigit():
@@ -502,6 +598,19 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
                     loc_text = f"{addr.get('addressLocality', '')} {addr.get('addressCountry', '')}".strip()
                     if loc_text:
                         locations.add(loc_text)
+                elif isinstance(addr, str) and len(addr) > 3:
+                    locations.add(addr.strip())
+
+                tel = block.get("telephone")
+                if isinstance(tel, str):
+                    p_url = p.get("url") or p.get("final_url") or ""
+                    clean_tel = re.sub(r'[^\d+]', '', tel)
+                    if len(clean_tel) >= 7:
+                        page_phones.setdefault(p_url, set()).add(clean_tel)
+                em = block.get("email")
+                if isinstance(em, str) and "@" in em:
+                    p_url = p.get("url") or p.get("final_url") or ""
+                    page_emails.setdefault(p_url, set()).add(em.strip().lower())
 
     if len(founding_years) > 1:
         findings.append({
@@ -510,7 +619,7 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
             "category": "discoverability",
             "severity": "high",
             "confidence": "high",
-            "affected_urls": [p["url"] for p in pages[:5]],
+            "affected_urls": [p.get("url") or p.get("final_url") or "" for p in pages[:5]],
             "evidence": (
                 f"Discrepancy in company founding year: {sorted(founding_years)} found across crawled content. "
                 "Factual contradictions severely degrade AI confidence and lead to incorrect answers."
@@ -523,6 +632,97 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
                 "effort": "low"
             }
         })
+
+    # --- ENT-010: Conflicting locations detected across pages or schema ---
+    if len(locations) > 1:
+        norm_locs = {re.sub(r'[^\w\s]', '', loc.lower()).strip() for loc in locations if len(loc.strip()) > 3}
+        clusters = []  # list of sets of locations
+        for l in norm_locs:
+            tokens = {w for w in l.split() if len(w) > 2}
+            matched_cluster = None
+            for cl in clusters:
+                if any(
+                    (tokens and {w for w in other.split() if len(w) > 2} and (tokens & {w for w in other.split() if len(w) > 2}))
+                    or l in other or other in l
+                    for other in cl
+                ):
+                    matched_cluster = cl
+                    break
+            if matched_cluster is not None:
+                matched_cluster.add(l)
+            else:
+                clusters.append({l})
+
+        if len(clusters) > 1:
+            findings.append({
+                "check_id": "ENT-010",
+                "title": f"Conflicting organization locations detected across pages ({', '.join(sorted(locations)[:3])})",
+                "category": "discoverability",
+                "severity": "medium",
+                "confidence": "high",
+                "affected_urls": [p.get("url") or p.get("final_url") or "" for p in pages[:5]],
+                "evidence": (
+                    f"Discrepancy in primary location: {sorted(locations)[:3]} declared across crawled pages and structured data. "
+                    "Inconsistent location facts confuse geographic entity resolution in search and AI assistants."
+                ),
+                "tags": ["entity-location", "entity-identity", "contradiction"],
+                "root_cause_group": "entity_identity_drift",
+                "suggested_action": {
+                    "summary": "Consider establishing a single authoritative primary location across structured data and site copy.",
+                    "priority": "medium",
+                    "effort": "low"
+                }
+            })
+
+    # --- ENT-011: Conflicting contact channels across pages ---
+    all_emails = set()
+    for em_set in page_emails.values():
+        all_emails.update(em_set)
+    # Filter out common false positives and compare distinct domains
+    email_domains = {e.split("@")[1] for e in all_emails if "@" in e}
+    if len(email_domains) > 1 and not any(d in ("gmail.com", "outlook.com", "example.com") for d in email_domains):
+        conflict_urls = [u for u, ems in page_emails.items() if ems]
+        findings.append({
+            "check_id": "ENT-011",
+            "title": f"Conflicting corporate contact emails across pages ({', '.join(sorted(all_emails)[:3])})",
+            "category": "discoverability",
+            "severity": "medium",
+            "confidence": "high",
+            "affected_urls": conflict_urls[:5],
+            "evidence": (
+                f"Different corporate email domains found across site pages: {sorted(all_emails)[:3]}. "
+                "Conflicting contact channels impair AI assistants from routing inquiries to authoritative personnel."
+            ),
+            "tags": ["contact-info", "entity-identity", "contradiction"],
+            "suggested_action": {
+                "summary": "Ensure consistent contact email addresses and support channels across all site pages.",
+                "priority": "medium",
+                "effort": "low"
+            }
+        })
+    elif len(all_emails) >= 1 and len(page_emails) >= 2:
+        strengths.append({
+            "title": "Contact information corroborated across multiple site pages",
+            "category": "discoverability"
+        })
+
+    # Calculate deterministic entity identity confidence
+    confidence_score, conf_level, confidence_signals = compute_entity_confidence(snapshot, findings)
+
+    if confidence_score >= 0.75:
+        strengths.append({
+            "title": f"Entity identity strongly corroborated ({conf_level} confidence: {int(confidence_score * 100)}%)",
+            "category": "discoverability"
+        })
+
+    # Priority adjustment based on page importance (Phase 4 Part 7)
+    url_importance = {(p.get("url") or p.get("final_url") or ""): p.get("page_importance_score", 50) for p in pages}
+    for f in findings:
+        aff = f.get("affected_urls", [])
+        if any(url_importance.get(u, 50) >= 80 or u == start_url for u in aff):
+            if isinstance(f.get("suggested_action"), dict):
+                if f["suggested_action"].get("priority") == "medium":
+                    f["suggested_action"]["priority"] = "high"
 
     return findings, strengths
 

@@ -1,0 +1,495 @@
+{
+  "site": "books.toscrape.com",
+  "audited_at": "2026-09-08T19:38:45.114012Z",
+  "run_info": {
+    "marketplace_version": "1.0.0",
+    "query_input": "https://books.toscrape.com",
+    "target_url": "https://books.toscrape.com",
+    "skills_invoked": [
+      "crawlability-render-audit",
+      "structured-data-content-audit",
+      "entity-identity-audit",
+      "freshness-corroboration-audit",
+      "engagement-audit",
+      "agent-discoverability-audit",
+      "proactive-opportunities-audit"
+    ],
+    "failed_skills": [],
+    "pages_crawled": 20,
+    "max_pages": 20,
+    "crawl_duration_seconds": 15.4,
+    "robots_txt_respected": true,
+    "crawl_coverage": {
+      "pages_discovered": 97,
+      "pages_crawled": 20,
+      "pages_skipped": 0,
+      "failed_pages": [],
+      "crawl_duration_seconds": 15.4,
+      "robots_status": 404,
+      "js_rendering_status": "disabled"
+    }
+  },
+  "summary": {
+    "total_findings": 8,
+    "critical": 0,
+    "high": 7,
+    "medium": 1,
+    "low": 0,
+    "ai_readiness_score": 26,
+    "overall_score": 56,
+    "by_category": {
+      "discoverability": 8,
+      "engagement": 0
+    },
+    "agent_journey_scores": {
+      "reach": 47,
+      "read": 70,
+      "understand": 25,
+      "trust": 70,
+      "navigate": 77,
+      "act": 85,
+      "overall_journey_score": 62
+    }
+  },
+  "agent_journey_scores": {
+    "reach": 47,
+    "read": 70,
+    "understand": 25,
+    "trust": 70,
+    "navigate": 77,
+    "act": 85,
+    "overall_journey_score": 62
+  },
+  "agent_answerability": [
+    {
+      "question": "What does this company do?",
+      "category": "identity",
+      "status": "Conflicting",
+      "confidence": "low",
+      "evidence": "Contradictory entity identity or company descriptions detected across crawled pages.",
+      "sources": [
+        "https://books.toscrape.com/"
+      ],
+      "recommendation": "Consider aligning the company mission and description consistently across the homepage, about pages, and structured data."
+    },
+    {
+      "question": "What products/services does it offer?",
+      "category": "offerings",
+      "status": "Supported",
+      "confidence": "high",
+      "evidence": "Found 18 product/service page(s): All products | Books to Scrape - Sandbox, A Light in the Attic | Books to Scrape - Sandbox.",
+      "sources": [
+        "https://books.toscrape.com/catalogue/page-2.html",
+        "https://books.toscrape.com/catalogue/a-light-in-the-attic_1000/index.html",
+        "https://books.toscrape.com/catalogue/tipping-the-velvet_999/index.html"
+      ],
+      "recommendation": null
+    },
+    {
+      "question": "Where is it located?",
+      "category": "location",
+      "status": "Not found",
+      "confidence": "low",
+      "evidence": "No physical address or geographic location declared in JSON-LD or contact text.",
+      "sources": [],
+      "recommendation": "Consider adding physical address or service area in structured data and contact pages."
+    },
+    {
+      "question": "What does the product cost?",
+      "category": "pricing",
+      "status": "Conflicting",
+      "confidence": "low",
+      "evidence": "Conflicting pricing found between visible content and structured data.",
+      "sources": [
+        "https://books.toscrape.com/catalogue/a-light-in-the-attic_1000/index.html",
+        "https://books.toscrape.com/catalogue/tipping-the-velvet_999/index.html"
+      ],
+      "recommendation": "Consider reconciling conflicting pricing across product, pricing, and checkout pages."
+    },
+    {
+      "question": "How can users contact it?",
+      "category": "contact",
+      "status": "Not found",
+      "confidence": "low",
+      "evidence": "No email, telephone number, or dedicated contact page discovered.",
+      "sources": [],
+      "recommendation": "Consider publishing direct contact information such as email or telephone on a dedicated contact page."
+    }
+  ],
+  "top_priorities": [
+    {
+      "id": "F-001",
+      "title": "Important pages lack machine-readable summary metadata (1 page(s))",
+      "category": "discoverability",
+      "severity": "high",
+      "confidence": "high",
+      "affected_pages_count": 5,
+      "suggested_action": "Ensure every important page has a descriptive <title> (10-70 chars) and <meta name='description'> (50-160 chars) capturing the page's core value.",
+      "priority_score": 64.7,
+      "priority_rank": 1
+    },
+    {
+      "id": "F-002",
+      "title": "Important pages missing agent-actionable structured data (1 page(s))",
+      "category": "discoverability",
+      "severity": "high",
+      "confidence": "high",
+      "affected_pages_count": 5,
+      "suggested_action": "Add appropriate Schema.org JSON-LD to important pages: Product/Offer on product pages, Event on event pages, Organization/WebSite on the homepage. Focus on pages with highest importance scores first.",
+      "priority_score": 61.9,
+      "priority_rank": 2
+    },
+    {
+      "id": "F-003",
+      "title": "No canonical tags on any crawled page",
+      "category": "discoverability",
+      "severity": "high",
+      "confidence": "high",
+      "affected_pages_count": 5,
+      "suggested_action": "Add <link rel='canonical'> to every page pointing to its preferred URL.",
+      "priority_score": 56.2,
+      "priority_rank": 3
+    },
+    {
+      "id": "F-005",
+      "title": "Conflicting pricing information detected across 17 crawled pages",
+      "category": "discoverability",
+      "severity": "high",
+      "confidence": "high",
+      "affected_pages_count": 5,
+      "suggested_action": "Reconcile product pricing across product pages, pricing tables, and structured data.",
+      "priority_score": 41.2,
+      "priority_rank": 4
+    },
+    {
+      "id": "F-006",
+      "title": "No structured data on 18/18 product/service pages",
+      "category": "discoverability",
+      "severity": "high",
+      "confidence": "high",
+      "affected_pages_count": 5,
+      "suggested_action": "Add Product/Offer/Service JSON-LD to every product and service page.",
+      "priority_score": 41.2,
+      "priority_rank": 5
+    }
+  ],
+  "findings": [
+    {
+      "id": "F-001",
+      "title": "Important pages lack machine-readable summary metadata (1 page(s))",
+      "category": "discoverability",
+      "severity": "high",
+      "confidence": "high",
+      "source_skill": "agent-discoverability-audit",
+      "tags": [
+        "meta-description",
+        "page-title",
+        "machine-readable",
+        "discoverability",
+        "stale-content",
+        "freshness",
+        "duplicate-content",
+        "seo-hygiene",
+        "heading-structure"
+      ],
+      "affected_urls": [
+        "https://books.toscrape.com/",
+        "https://books.toscrape.com/catalogue/a-light-in-the-attic_1000/index.html",
+        "https://books.toscrape.com/catalogue/page-2.html",
+        "https://books.toscrape.com/catalogue/tipping-the-velvet_999/index.html",
+        "https://books.toscrape.com/index.html"
+      ],
+      "evidence": "1 of 1 important page(s) (importance >= 60) are missing title or meta description. Sample: https://books.toscrape.com/index.html (no meta description). AI agents use these signals to determine page relevance without full rendering. [Also: freshness-corroboration-audit: 20 of 20 pages with date signals contain stale time-sensitive content (older than 365 days). Oldest page: https://books.toscrape.com/ (2023-02-08).] [Also: structured-data-content-audit: Identical title 'All products | Books to Scrape - Sandbox' is shared across 3 distinct pages (https://books.toscrape.com/, https://books.toscrape.com/index.html, https://books.toscrape.com/catalogue/p] [Also: structured-data-content-audit: 3 page(s) skip heading levels (e.g. H1 → H3 without H2). Example: https://books.toscrape.com/ headings: ['H1', 'H3', 'H3', 'H3', 'H3']] [Also: structured-data-content-audit: Identical title 'All products | Books to Scrape - Sandbox' is shared across 3 distinct pages (https://books.toscrape.com/, https://books.toscrape.com/index.html, https://books.toscrape.com/catalogue/p]",
+      "root_cause_group": "RC-001",
+      "suggested_action": {
+        "summary": "Ensure every important page has a descriptive <title> (10-70 chars) and <meta name='description'> (50-160 chars) capturing the page's core value.",
+        "priority": "high",
+        "effort": "low"
+      },
+      "merged_from_skills": [
+        "agent-discoverability-audit",
+        "freshness-corroboration-audit",
+        "structured-data-content-audit"
+      ]
+    },
+    {
+      "id": "F-002",
+      "title": "Important pages missing agent-actionable structured data (1 page(s))",
+      "category": "discoverability",
+      "severity": "high",
+      "confidence": "high",
+      "source_skill": "agent-discoverability-audit",
+      "tags": [
+        "json-ld",
+        "schema-org",
+        "structured-data",
+        "discoverability",
+        "machine-readable"
+      ],
+      "affected_urls": [
+        "https://books.toscrape.com/",
+        "https://books.toscrape.com/catalogue/a-light-in-the-attic_1000/index.html",
+        "https://books.toscrape.com/catalogue/page-2.html",
+        "https://books.toscrape.com/catalogue/tipping-the-velvet_999/index.html",
+        "https://books.toscrape.com/index.html"
+      ],
+      "evidence": "1 important page(s) of types that benefit from structured data have no actionable JSON-LD: 1 Homepage. Without structured data, AI agents cannot reliably extract offers, schedules, or entity details. [Also: structured-data-content-audit: Crawled 20 pages; 0/20 contain JSON-LD structured data. AI assistants cannot extract machine-readable facts about this site.]",
+      "root_cause_group": "RC-002",
+      "suggested_action": {
+        "summary": "Add appropriate Schema.org JSON-LD to important pages: Product/Offer on product pages, Event on event pages, Organization/WebSite on the homepage. Focus on pages with highest importance scores first.",
+        "priority": "high",
+        "effort": "medium"
+      },
+      "merged_from_skills": [
+        "agent-discoverability-audit",
+        "structured-data-content-audit"
+      ]
+    },
+    {
+      "id": "F-003",
+      "title": "No canonical tags on any crawled page",
+      "category": "discoverability",
+      "severity": "high",
+      "confidence": "high",
+      "source_skill": "crawlability-render-audit",
+      "tags": [
+        "canonical",
+        "crawlability"
+      ],
+      "affected_urls": [
+        "https://books.toscrape.com/",
+        "https://books.toscrape.com/catalogue/a-light-in-the-attic_1000/index.html",
+        "https://books.toscrape.com/catalogue/page-2.html",
+        "https://books.toscrape.com/catalogue/tipping-the-velvet_999/index.html",
+        "https://books.toscrape.com/index.html"
+      ],
+      "evidence": "0 of 20 crawled pages contain a <link rel='canonical'> tag. Without canonicals, duplicate content dilutes AI citation quality.",
+      "root_cause_group": "RC-003",
+      "suggested_action": {
+        "summary": "Add <link rel='canonical'> to every page pointing to its preferred URL.",
+        "priority": "high",
+        "effort": "medium"
+      }
+    },
+    {
+      "id": "F-004",
+      "title": "No About page detected",
+      "category": "discoverability",
+      "severity": "high",
+      "confidence": "medium",
+      "source_skill": "entity-identity-audit",
+      "tags": [
+        "about-page",
+        "entity-identity",
+        "entity-disambiguation",
+        "navigation",
+        "value-proposition"
+      ],
+      "affected_urls": [
+        "https://books.toscrape.com/"
+      ],
+      "evidence": "None of 20 crawled URLs match about-page patterns (/about, /who-we-are, /our-story, ...) and no page title contains 'About'. [Also: engagement-audit: None of 20 crawled URLs match about/team page patterns, and no title contains 'About' or 'Our Team'. First-time visitors cannot learn who is behind the site.]",
+      "root_cause_group": "RC-004",
+      "suggested_action": {
+        "summary": "Consider creating an About page with org name, description, founding year, and mission.",
+        "priority": "high",
+        "effort": "medium"
+      },
+      "merged_from_skills": [
+        "entity-identity-audit",
+        "engagement-audit"
+      ]
+    },
+    {
+      "id": "F-005",
+      "title": "Conflicting pricing information detected across 17 crawled pages",
+      "category": "discoverability",
+      "severity": "high",
+      "confidence": "high",
+      "source_skill": "freshness-corroboration-audit",
+      "tags": [
+        "pricing",
+        "corroboration",
+        "contradiction"
+      ],
+      "affected_urls": [
+        "https://books.toscrape.com/catalogue/a-light-in-the-attic_1000/index.html",
+        "https://books.toscrape.com/catalogue/olio_984/index.html",
+        "https://books.toscrape.com/catalogue/our-band-could-be-your-life-scenes-from-the-american-indie-underground-1981-1991_985/index.html",
+        "https://books.toscrape.com/catalogue/rip-it-up-and-start-again_986/index.html",
+        "https://books.toscrape.com/catalogue/sapiens-a-brief-history-of-humankind_996/index.html"
+      ],
+      "evidence": "Contradicting price figures discovered: https://books.toscrape.com/catalogue/a-light-in-the-attic_1000/index.html declares $51.77 while https://books.toscrape.com/catalogue/tipping-the-velvet_999/index.html declares $53.74 for 'A Light in the Attic'. Discrepancies in published pricing confuse AI assistants and undermine transactional trust.",
+      "root_cause_group": "RC-005",
+      "suggested_action": {
+        "summary": "Reconcile product pricing across product pages, pricing tables, and structured data.",
+        "priority": "high",
+        "effort": "low"
+      }
+    },
+    {
+      "id": "F-006",
+      "title": "No structured data on 18/18 product/service pages",
+      "category": "discoverability",
+      "severity": "high",
+      "confidence": "high",
+      "source_skill": "structured-data-content-audit",
+      "tags": [
+        "json-ld",
+        "schema-org",
+        "structured-data"
+      ],
+      "affected_urls": [
+        "https://books.toscrape.com/catalogue/a-light-in-the-attic_1000/index.html",
+        "https://books.toscrape.com/catalogue/page-2.html",
+        "https://books.toscrape.com/catalogue/sharp-objects_997/index.html",
+        "https://books.toscrape.com/catalogue/soumission_998/index.html",
+        "https://books.toscrape.com/catalogue/tipping-the-velvet_999/index.html"
+      ],
+      "evidence": "18 of 18 product/service pages contain no JSON-LD. AI cannot extract product details, prices, or specs.",
+      "root_cause_group": "RC-006",
+      "suggested_action": {
+        "summary": "Add Product/Offer/Service JSON-LD to every product and service page.",
+        "priority": "high",
+        "effort": "medium"
+      }
+    },
+    {
+      "id": "F-007",
+      "title": "Missing Organization or WebSite schema on homepage",
+      "category": "discoverability",
+      "severity": "high",
+      "confidence": "high",
+      "source_skill": "structured-data-content-audit",
+      "tags": [
+        "json-ld",
+        "schema-org",
+        "entity-identity"
+      ],
+      "affected_urls": [
+        "https://books.toscrape.com/"
+      ],
+      "evidence": "Homepage (https://books.toscrape.com/) has no JSON-LD with an Organization, WebSite, or brand entity type. Found types: none. AI assistants cannot reliably identify and describe this brand.",
+      "root_cause_group": "RC-007",
+      "suggested_action": {
+        "summary": "Add Organization and WebSite JSON-LD to the homepage with name, url, logo, description, and sameAs properties.",
+        "priority": "high",
+        "effort": "low"
+      }
+    },
+    {
+      "id": "F-008",
+      "title": "No sitemap signal detected — bulk agent discovery may be impaired",
+      "category": "discoverability",
+      "severity": "medium",
+      "confidence": "medium",
+      "source_skill": "agent-discoverability-audit",
+      "tags": [
+        "discoverability",
+        "crawlability",
+        "indexability",
+        "sitemap"
+      ],
+      "affected_urls": [
+        "https://books.toscrape.com/"
+      ],
+      "evidence": "No sitemap.xml reference found in robots.txt, crawl metadata, or any of the 20 crawled pages. AI indexing systems rely on sitemaps for efficient bulk content discovery, especially for sites with many pages.",
+      "root_cause_group": "RC-008",
+      "suggested_action": {
+        "summary": "Consider publishing an XML sitemap at /sitemap.xml and referencing it in robots.txt (Sitemap: https://yourdomain.com/sitemap.xml). Include all important pages with <lastmod> dates.",
+        "priority": "medium",
+        "effort": "low"
+      }
+    }
+  ],
+  "proactive_recommendations": [
+    {
+      "id": "PRO-001",
+      "title": "Add BreadcrumbList structured data to reflect site hierarchy",
+      "category": "discoverability",
+      "rationale": "17 crawled pages are at depth > 2, suggesting a hierarchical structure, but no BreadcrumbList JSON-LD was found. Breadcrumbs help AI agents understand content context and navigation paths.",
+      "priority": "low"
+    },
+    {
+      "id": "PRO-002",
+      "title": "Add VideoObject JSON-LD to pages featuring video content",
+      "category": "discoverability",
+      "rationale": "17 page(s) appear to feature video content based on text signals, but no VideoObject schema was detected. VideoObject markup with transcript or description dramatically increases AI discoverability of multimedia content.",
+      "priority": "medium"
+    },
+    {
+      "id": "PRO-003",
+      "title": "Add HowTo structured data to guide and tutorial pages",
+      "category": "discoverability",
+      "rationale": "1 page(s) have headings suggesting step-by-step guides, but no HowTo JSON-LD was found. HowTo schema is among the highest-ROI types for 'how do I' AI assistant queries.",
+      "priority": "medium"
+    },
+    {
+      "id": "PRO-004",
+      "title": "Complete OpenGraph tags for richer social sharing previews",
+      "category": "engagement",
+      "rationale": "20 of 20 pages (100%) are missing og:title, og:description, or og:image. Complete OpenGraph tags improve how content appears when shared on social media and in AI-powered link previews, driving referral traffic.",
+      "priority": "low"
+    }
+  ],
+  "strengths": [
+    {
+      "title": "No noindex directives on any crawled page",
+      "category": "discoverability"
+    },
+    {
+      "title": "Homepage returns HTTP 200",
+      "category": "discoverability"
+    },
+    {
+      "title": "All crawled pages return HTTP 200",
+      "category": "discoverability"
+    },
+    {
+      "title": "All crawled pages have content without JS rendering",
+      "category": "discoverability"
+    },
+    {
+      "title": "All images have alt text across crawled pages",
+      "category": "discoverability"
+    },
+    {
+      "title": "Contact information accessible",
+      "category": "discoverability"
+    },
+    {
+      "title": "All crawled pages have date signals",
+      "category": "discoverability"
+    },
+    {
+      "title": "Homepage has a clear primary call-to-action",
+      "category": "engagement"
+    },
+    {
+      "title": "Site navigation has descriptive text labels",
+      "category": "engagement"
+    },
+    {
+      "title": "No dead-end pages found — all pages have onward navigation",
+      "category": "engagement"
+    },
+    {
+      "title": "All high-importance pages are reachable from homepage within 3 hops",
+      "category": "discoverability"
+    },
+    {
+      "title": "All important pages use canonical URL patterns",
+      "category": "discoverability"
+    }
+  ],
+  "methodology_and_limitations": {
+    "audit_scope": "Evaluates technical AI discoverability, content extractability, structured data completeness, and citation readiness based on an observable crawl snapshot.",
+    "deterministic_scoring": "All scoring formulas and journey deductions are 100% deterministic and rule-grounded, measuring concrete technical readiness rather than subjective or volatile LLM search rankings.",
+    "read_only_guarantee": "This audit operates purely in read-only analysis mode without modifying site infrastructure, publishing changes, or executing non-idempotent operations.",
+    "limitations": [
+      "Crawl depth is capped at 20 pages per run under standard execution parameters.",
+      "Dynamic Single-Page Application (SPA) content requires headless rendering with Playwright fallback when JavaScript rendering is enabled.",
+      "Content behind authentication, paywalls, or strict CAPTCHA barriers is outside audit scope."
+    ]
+  }
+}

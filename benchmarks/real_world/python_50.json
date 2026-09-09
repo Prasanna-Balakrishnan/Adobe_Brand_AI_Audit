@@ -1,0 +1,429 @@
+{
+  "site": "www.python.org",
+  "audited_at": "2026-09-08T19:10:39.221494Z",
+  "run_info": {
+    "marketplace_version": "1.0.0",
+    "query_input": "https://www.python.org",
+    "target_url": "https://www.python.org",
+    "skills_invoked": [
+      "crawlability-render-audit",
+      "structured-data-content-audit",
+      "entity-identity-audit",
+      "freshness-corroboration-audit",
+      "engagement-audit",
+      "agent-discoverability-audit",
+      "proactive-opportunities-audit"
+    ],
+    "failed_skills": [],
+    "pages_crawled": 49,
+    "max_pages": 50,
+    "crawl_duration_seconds": 49.3,
+    "robots_txt_respected": true,
+    "crawl_coverage": {
+      "pages_discovered": 205,
+      "pages_crawled": 49,
+      "pages_skipped": 0,
+      "failed_pages": [],
+      "crawl_duration_seconds": 49.3,
+      "robots_status": 200,
+      "js_rendering_status": "disabled"
+    }
+  },
+  "summary": {
+    "total_findings": 6,
+    "critical": 0,
+    "high": 2,
+    "medium": 4,
+    "low": 0,
+    "ai_readiness_score": 64,
+    "overall_score": 94,
+    "by_category": {
+      "discoverability": 5,
+      "engagement": 1
+    },
+    "agent_journey_scores": {
+      "reach": 54,
+      "read": 92,
+      "understand": 84,
+      "trust": 92,
+      "navigate": 84,
+      "act": 100,
+      "overall_journey_score": 84
+    }
+  },
+  "agent_journey_scores": {
+    "reach": 54,
+    "read": 92,
+    "understand": 84,
+    "trust": 92,
+    "navigate": 84,
+    "act": 100,
+    "overall_journey_score": 84
+  },
+  "agent_answerability": [
+    {
+      "question": "What does this company do?",
+      "category": "identity",
+      "status": "Conflicting",
+      "confidence": "low",
+      "evidence": "Contradictory entity identity or company descriptions detected across crawled pages.",
+      "sources": [
+        "https://www.python.org/",
+        "https://www.python.org/about/"
+      ],
+      "recommendation": "Consider aligning the company mission and description consistently across the homepage, about pages, and structured data."
+    },
+    {
+      "question": "What products/services does it offer?",
+      "category": "offerings",
+      "status": "Supported",
+      "confidence": "high",
+      "evidence": "Found 1 product/service page(s): PSF Board Resolutions | Python Software Foundation.",
+      "sources": [
+        "https://www.python.org/psf/records/board/resolutions"
+      ],
+      "recommendation": null
+    },
+    {
+      "question": "Where is it located?",
+      "category": "location",
+      "status": "Not found",
+      "confidence": "low",
+      "evidence": "No physical address or geographic location declared in JSON-LD or contact text.",
+      "sources": [],
+      "recommendation": "Consider adding physical address or service area in structured data and contact pages."
+    },
+    {
+      "question": "What does the product cost?",
+      "category": "pricing",
+      "status": "Not found",
+      "confidence": "low",
+      "evidence": "No clear pricing, price tiers, or pricing model mentioned in crawled pages.",
+      "sources": [],
+      "recommendation": "Consider providing transparent baseline pricing, tiers, or a pricing calculator to assist AI and user evaluation."
+    },
+    {
+      "question": "How can users contact it?",
+      "category": "contact",
+      "status": "Weakly supported",
+      "confidence": "medium",
+      "evidence": "Contact page detected at https://www.python.org/psf/membership/supporting/ (form or support portal).",
+      "sources": [
+        "https://www.python.org/psf/membership/supporting/"
+      ],
+      "recommendation": "Consider publishing direct support email or telephone contact channels alongside web forms."
+    }
+  ],
+  "top_priorities": [
+    {
+      "id": "F-001",
+      "title": "No canonical tags on any crawled page",
+      "category": "discoverability",
+      "severity": "high",
+      "confidence": "high",
+      "affected_pages_count": 5,
+      "suggested_action": "Add <link rel='canonical'> to every page pointing to its preferred URL.",
+      "priority_score": 56.2,
+      "priority_rank": 1
+    },
+    {
+      "id": "F-002",
+      "title": "No date signals found on any crawled page",
+      "category": "discoverability",
+      "severity": "high",
+      "confidence": "high",
+      "affected_pages_count": 5,
+      "suggested_action": "Add Last-Modified headers and datePublished/dateModified to JSON-LD on all content pages.",
+      "priority_score": 56.2,
+      "priority_rank": 2
+    },
+    {
+      "id": "F-004",
+      "title": "Duplicate URL variants crawled on 1 page(s)",
+      "category": "discoverability",
+      "severity": "medium",
+      "confidence": "high",
+      "affected_pages_count": 7,
+      "suggested_action": "Enforce consistent URL normalization (casing, trailing slashes) and declare canonical tags.",
+      "priority_score": 28.1,
+      "priority_rank": 3
+    },
+    {
+      "id": "F-006",
+      "title": "Inconsistent organization identity across key page elements (5 variations)",
+      "category": "discoverability",
+      "severity": "medium",
+      "confidence": "high",
+      "affected_pages_count": 1,
+      "suggested_action": "Align organization name consistently across Title, H1 headings, and JSON-LD schema.",
+      "priority_score": 17.3,
+      "priority_rank": 4
+    },
+    {
+      "id": "F-005",
+      "title": "Core orientation page(s) isolated from homepage navigation (4 page(s))",
+      "category": "engagement",
+      "severity": "medium",
+      "confidence": "high",
+      "affected_pages_count": 4,
+      "suggested_action": "Add clear header or footer navigation links on the homepage to all core orientation pages.",
+      "priority_score": 16.8,
+      "priority_rank": 5
+    }
+  ],
+  "findings": [
+    {
+      "id": "F-001",
+      "title": "No canonical tags on any crawled page",
+      "category": "discoverability",
+      "severity": "high",
+      "confidence": "high",
+      "source_skill": "crawlability-render-audit",
+      "tags": [
+        "canonical",
+        "crawlability"
+      ],
+      "affected_urls": [
+        "https://www.python.org/",
+        "https://www.python.org/about/",
+        "https://www.python.org/about/apps/",
+        "https://www.python.org/about/quotes/",
+        "https://www.python.org/about/gettingstarted/"
+      ],
+      "evidence": "0 of 49 crawled pages contain a <link rel='canonical'> tag. Without canonicals, duplicate content dilutes AI citation quality.",
+      "root_cause_group": "RC-001",
+      "suggested_action": {
+        "summary": "Add <link rel='canonical'> to every page pointing to its preferred URL.",
+        "priority": "high",
+        "effort": "medium"
+      }
+    },
+    {
+      "id": "F-002",
+      "title": "No date signals found on any crawled page",
+      "category": "discoverability",
+      "severity": "high",
+      "confidence": "high",
+      "source_skill": "freshness-corroboration-audit",
+      "tags": [
+        "stale-content"
+      ],
+      "affected_urls": [
+        "https://www.python.org/",
+        "https://www.python.org/about/",
+        "https://www.python.org/about/apps/",
+        "https://www.python.org/about/quotes/",
+        "https://www.python.org/about/gettingstarted/"
+      ],
+      "evidence": "Checked 49 pages: no Last-Modified headers, no datePublished, and no dateModified in any JSON-LD block. AI assistants cannot assess content currency.",
+      "root_cause_group": "RC-002",
+      "suggested_action": {
+        "summary": "Add Last-Modified headers and datePublished/dateModified to JSON-LD on all content pages.",
+        "priority": "high",
+        "effort": "medium"
+      }
+    },
+    {
+      "id": "F-003",
+      "title": "No sitemap signal detected — bulk agent discovery may be impaired",
+      "category": "discoverability",
+      "severity": "medium",
+      "confidence": "medium",
+      "source_skill": "agent-discoverability-audit",
+      "tags": [
+        "discoverability",
+        "crawlability",
+        "indexability",
+        "sitemap"
+      ],
+      "affected_urls": [
+        "https://www.python.org/"
+      ],
+      "evidence": "No sitemap.xml reference found in robots.txt, crawl metadata, or any of the 49 crawled pages. AI indexing systems rely on sitemaps for efficient bulk content discovery, especially for sites with many pages.",
+      "root_cause_group": "RC-003",
+      "suggested_action": {
+        "summary": "Consider publishing an XML sitemap at /sitemap.xml and referencing it in robots.txt (Sitemap: https://yourdomain.com/sitemap.xml). Include all important pages with <lastmod> dates.",
+        "priority": "medium",
+        "effort": "low"
+      }
+    },
+    {
+      "id": "F-004",
+      "title": "Duplicate URL variants crawled on 1 page(s)",
+      "category": "discoverability",
+      "severity": "medium",
+      "confidence": "high",
+      "source_skill": "crawlability-render-audit",
+      "tags": [
+        "url-hygiene",
+        "canonical",
+        "crawlability",
+        "json-ld",
+        "schema-org",
+        "structured-data",
+        "page-title",
+        "duplicate-content",
+        "seo-hygiene",
+        "heading-structure",
+        "meta-description"
+      ],
+      "affected_urls": [
+        "https://www.python.org/about/apps",
+        "https://www.python.org/",
+        "https://www.python.org/about/",
+        "https://www.python.org/about/apps/",
+        "https://www.python.org/about/quotes/",
+        "https://www.python.org/about/gettingstarted/",
+        "https://www.python.org/about/help/"
+      ],
+      "evidence": "Crawler discovered duplicate URL variations resolving to the same resource (e.g. https://www.python.org/about/apps vs https://www.python.org/about/apps/). Duplicate URL variants dilute page authority and waste crawl budget for search and AI crawlers. [Also: structured-data-content-audit: 49 page(s) define Schema.org objects missing required properties: https://www.python.org/ (Organization missing 'name'), https://www.python.org/about/ (Organization missing 'name'), https://www.python] [Also: structured-data-content-audit: Identical title 'Applications for Python | Python.org' is shared across 2 distinct pages (https://www.python.org/about/apps/, https://www.python.org/about/apps). Duplicate title tags confuse search en] [Also: structured-data-content-audit: 13 page(s) skip heading levels (e.g. H1 → H3 without H2). Example: https://www.python.org/about/apps/ headings: ['H1', 'H1', 'H1', 'H1', 'H1']] [Also: structured-data-content-audit: Identical meta description is shared across 49 pages (https://www.python.org/, https://www.python.org/about/, https://www.python.org/about/apps/). Duplicate descriptions degrade search snippet distinc] [Also: structured-data-content-audit: 49 page(s) define Schema.org objects missing required properties: https://www.python.org/ (Organization missing 'name'), https://www.python.org/about/ (Organization missing 'name'), https://www.python] [Also: structured-data-content-audit: Identical title 'Applications for Python | Python.org' is shared across 2 distinct pages (https://www.python.org/about/apps/, https://www.python.org/about/apps). Duplicate title tags confuse search en] [Also: structured-data-content-audit: Identical meta description is shared across 49 pages (https://www.python.org/, https://www.python.org/about/, https://www.python.org/about/apps/). Duplicate descriptions degrade search snippet distinc]",
+      "root_cause_group": "RC-004",
+      "suggested_action": {
+        "summary": "Enforce consistent URL normalization (casing, trailing slashes) and declare canonical tags.",
+        "priority": "medium",
+        "effort": "low"
+      },
+      "merged_from_skills": [
+        "crawlability-render-audit",
+        "structured-data-content-audit"
+      ]
+    },
+    {
+      "id": "F-005",
+      "title": "Core orientation page(s) isolated from homepage navigation (4 page(s))",
+      "category": "engagement",
+      "severity": "medium",
+      "confidence": "high",
+      "source_skill": "engagement-audit",
+      "tags": [
+        "navigation",
+        "internal-linking"
+      ],
+      "affected_urls": [
+        "https://www.python.org/about/website/",
+        "https://www.python.org/psf/about/",
+        "https://www.python.org/psf/mission/",
+        "https://www.python.org/psf/membership/supporting/"
+      ],
+      "evidence": "4 orientation page(s) exist in the site crawl but are not directly linked from the homepage: https://www.python.org/about/website/ (About), https://www.python.org/psf/about/ (About), https://www.python.org/psf/mission/ (About). Key brand identity and contactability pages should be reachable from top-level site navigation.",
+      "root_cause_group": "RC-005",
+      "suggested_action": {
+        "summary": "Add clear header or footer navigation links on the homepage to all core orientation pages.",
+        "priority": "medium",
+        "effort": "low"
+      }
+    },
+    {
+      "id": "F-006",
+      "title": "Inconsistent organization identity across key page elements (5 variations)",
+      "category": "discoverability",
+      "severity": "medium",
+      "confidence": "high",
+      "source_skill": "entity-identity-audit",
+      "tags": [
+        "entity-name",
+        "entity-identity",
+        "identity-drift"
+      ],
+      "affected_urls": [
+        "https://www.python.org/"
+      ],
+      "evidence": "Disparate identity signals detected vs canonical 'Applications for Python': homepage_title ('Welcome to Python.org'), homepage_h1 ('Intuitive Interpretation'), about_h1 ('Mission'). AI search agents cross-reference title, H1, and JSON-LD to ground entity identity.",
+      "root_cause_group": "RC-006",
+      "suggested_action": {
+        "summary": "Align organization name consistently across Title, H1 headings, and JSON-LD schema.",
+        "priority": "high",
+        "effort": "low"
+      }
+    }
+  ],
+  "proactive_recommendations": [
+    {
+      "id": "PRO-001",
+      "title": "Add BreadcrumbList structured data to reflect site hierarchy",
+      "category": "discoverability",
+      "rationale": "31 crawled pages are at depth > 2, suggesting a hierarchical structure, but no BreadcrumbList JSON-LD was found. Breadcrumbs help AI agents understand content context and navigation paths.",
+      "priority": "low"
+    }
+  ],
+  "strengths": [
+    {
+      "title": "No noindex directives on any crawled page",
+      "category": "discoverability"
+    },
+    {
+      "title": "Homepage returns HTTP 200",
+      "category": "discoverability"
+    },
+    {
+      "title": "All crawled pages return HTTP 200",
+      "category": "discoverability"
+    },
+    {
+      "title": "All crawled pages have content without JS rendering",
+      "category": "discoverability"
+    },
+    {
+      "title": "robots.txt present and permits crawling",
+      "category": "discoverability"
+    },
+    {
+      "title": "JSON-LD structured data present on all crawled pages",
+      "category": "discoverability"
+    },
+    {
+      "title": "Homepage has Organization/WebSite schema (WebSite)",
+      "category": "discoverability"
+    },
+    {
+      "title": "All images have alt text across crawled pages",
+      "category": "discoverability"
+    },
+    {
+      "title": "About page present for entity context",
+      "category": "discoverability"
+    },
+    {
+      "title": "Contact information accessible",
+      "category": "discoverability"
+    },
+    {
+      "title": "Homepage has a clear primary call-to-action",
+      "category": "engagement"
+    },
+    {
+      "title": "Site navigation has descriptive text labels",
+      "category": "engagement"
+    },
+    {
+      "title": "No dead-end pages found — all pages have onward navigation",
+      "category": "engagement"
+    },
+    {
+      "title": "All important pages have title and meta description for agent readability",
+      "category": "discoverability"
+    },
+    {
+      "title": "All high-importance pages are reachable from homepage within 3 hops",
+      "category": "discoverability"
+    },
+    {
+      "title": "Important content pages have actionable Schema.org structured data",
+      "category": "discoverability"
+    },
+    {
+      "title": "All important pages use canonical URL patterns",
+      "category": "discoverability"
+    }
+  ],
+  "methodology_and_limitations": {
+    "audit_scope": "Evaluates technical AI discoverability, content extractability, structured data completeness, and citation readiness based on an observable crawl snapshot.",
+    "deterministic_scoring": "All scoring formulas and journey deductions are 100% deterministic and rule-grounded, measuring concrete technical readiness rather than subjective or volatile LLM search rankings.",
+    "read_only_guarantee": "This audit operates purely in read-only analysis mode without modifying site infrastructure, publishing changes, or executing non-idempotent operations.",
+    "limitations": [
+      "Crawl depth is capped at 20 pages per run under standard execution parameters.",
+      "Dynamic Single-Page Application (SPA) content requires headless rendering with Playwright fallback when JavaScript rendering is enabled.",
+      "Content behind authentication, paywalls, or strict CAPTCHA barriers is outside audit scope."
+    ]
+  }
+}

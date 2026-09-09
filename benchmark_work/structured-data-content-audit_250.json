@@ -1,0 +1,66 @@
+{
+  "skill": "structured-data-content-audit",
+  "findings": [
+    {
+      "check_id": "SDC-002",
+      "title": "No structured data on 20/163 product/service pages",
+      "category": "discoverability",
+      "severity": "high",
+      "confidence": "high",
+      "affected_urls": [
+        "https://benchmark-acme.internal/products/product-suite-12",
+        "https://benchmark-acme.internal/products/product-suite-24",
+        "https://benchmark-acme.internal/products/product-suite-36",
+        "https://benchmark-acme.internal/products/product-suite-48",
+        "https://benchmark-acme.internal/products/product-suite-60"
+      ],
+      "evidence": "20 of 163 product/service pages contain no JSON-LD. AI cannot extract product details, prices, or specs.",
+      "tags": [
+        "json-ld",
+        "schema-org",
+        "structured-data"
+      ],
+      "suggested_action": {
+        "summary": "Add Product/Offer/Service JSON-LD to every product and service page.",
+        "priority": "high",
+        "effort": "medium"
+      }
+    },
+    {
+      "check_id": "SDC-209",
+      "title": "Semantic contradiction between Schema.org and visible headings on 81 page(s)",
+      "category": "discoverability",
+      "severity": "medium",
+      "confidence": "high",
+      "affected_urls": [
+        "https://benchmark-acme.internal/blog/ai-trends-article-1",
+        "https://benchmark-acme.internal/blog/ai-trends-article-4",
+        "https://benchmark-acme.internal/blog/ai-trends-article-7",
+        "https://benchmark-acme.internal/blog/ai-trends-article-10",
+        "https://benchmark-acme.internal/blog/ai-trends-article-13"
+      ],
+      "evidence": "Declared Schema.org entity name/headline contradicts visible page headings: Page https://benchmark-acme.internal/blog/ai-trends-article-1 declares schema entity 'Jane Doe' while visible heading is 'AI Trends and Best Practices Part 1'. Contradictory entity facts cause AI models to discount site reliability.",
+      "tags": [
+        "schema-org",
+        "trust",
+        "contradiction",
+        "structured-data"
+      ],
+      "suggested_action": {
+        "summary": "Ensure Schema.org entity names and headlines correspond to the actual on-page title and headings.",
+        "priority": "medium",
+        "effort": "low"
+      }
+    }
+  ],
+  "strengths": [
+    {
+      "title": "Homepage has Organization/WebSite schema (Organization, WebSite)",
+      "category": "discoverability"
+    },
+    {
+      "title": "All images have alt text across crawled pages",
+      "category": "discoverability"
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "findings": [
+    {
+      "title": "Homepage failed to load — no pages crawled",
+      "category": "discoverability",
+      "severity": "critical",
+      "confidence": "high",
+      "source_skill": "crawlability-render-audit",
+      "check_id": "CRA-003",
+      "tags": [
+        "crawlability"
+      ],
+      "affected_urls": [
+        "https://books.toscrape.com/"
+      ],
+      "evidence": "The crawler returned 0 pages. The start URL may be unreachable.",
+      "root_cause_group": "RC-001",
+      "suggested_action": {
+        "summary": "Verify the site is accessible and the URL is correct.",
+        "priority": "critical",
+        "effort": "low"
+      },
+      "id": "F-001"
+    }
+  ]
+}

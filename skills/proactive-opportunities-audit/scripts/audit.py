@@ -125,9 +125,9 @@ def run_opportunities(snapshot: dict, findings: list) -> list[dict]:
         return r
 
     # --- PRO-001: FAQ/Q&A Content ---
-    has_faq_page = any(url_matches_any(p["url"], FAQ_URL_PATTERNS) for p in pages)
+    has_faq_page = any(url_matches_any(p.get("url") or p.get("final_url") or "", FAQ_URL_PATTERNS) for p in pages)
     has_faq_schema = "FAQPage" in all_types
-    has_product_pages = any(url_matches_any(p["url"], PRODUCT_URL_PATTERNS) for p in pages)
+    has_product_pages = any(url_matches_any(p.get("url") or p.get("final_url") or "", PRODUCT_URL_PATTERNS) for p in pages)
     if not has_faq_page and not has_faq_schema and has_product_pages:
         if not already_covered("faq"):
             recs.append(make_rec(
@@ -143,7 +143,7 @@ def run_opportunities(snapshot: dict, findings: list) -> list[dict]:
 
     # --- PRO-002: BreadcrumbList ---
     has_breadcrumb = "BreadcrumbList" in all_types
-    deep_pages = [p for p in pages if len(urlparse(p["url"]).path.rstrip("/").split("/")) > 3]
+    deep_pages = [p for p in pages if len(urlparse(p.get("url") or p.get("final_url") or "").path.rstrip("/").split("/")) > 3]
     if not has_breadcrumb and deep_pages:
         if not already_covered("breadcrumb"):
             recs.append(make_rec(
@@ -226,7 +226,7 @@ def run_opportunities(snapshot: dict, findings: list) -> list[dict]:
     review_pages = [
         p for p in pages
         if (text_contains_any(p.get("visible_text_sample", ""), REVIEW_KEYWORDS) or
-            url_matches_any(p["url"], ["/review", "/testimonial", "/case-study"]))
+            url_matches_any(p.get("url") or p.get("final_url") or "", ["/review", "/testimonial", "/case-study"]))
     ]
     has_review_schema = bool({"Review", "AggregateRating"}.intersection(all_types))
     if review_pages and not has_review_schema and not high_severity_jsonld_missing:
@@ -243,7 +243,7 @@ def run_opportunities(snapshot: dict, findings: list) -> list[dict]:
             ))
 
     # --- PRO-007: Author expertise (E-E-A-T) ---
-    blog_pages = [p for p in pages if url_matches_any(p["url"], BLOG_URL_PATTERNS)]
+    blog_pages = [p for p in pages if url_matches_any(p.get("url") or p.get("final_url") or "", BLOG_URL_PATTERNS)]
     ent005_fired = any(f.get("check_id") == "ENT-005" for f in findings)
     if blog_pages and not ent005_fired:
         has_person_with_expertise = any(
@@ -266,7 +266,7 @@ def run_opportunities(snapshot: dict, findings: list) -> list[dict]:
 
     # --- PRO-008: hreflang / multilingual ---
     multilingual_pages = [
-        p for p in pages if url_matches_any(p["url"], MULTILINGUAL_PATTERNS)
+        p for p in pages if url_matches_any(p.get("url") or p.get("final_url") or "", MULTILINGUAL_PATTERNS)
     ]
     has_hreflang = any(
         any("hreflang" in str(lnk) for lnk in p.get("links", []))
@@ -290,7 +290,7 @@ def run_opportunities(snapshot: dict, findings: list) -> list[dict]:
         p for p in pages
         if (p.get("page_type") == "Event" or
             text_contains_any(p.get("visible_text_sample", ""), EVENT_KEYWORDS) or
-            url_matches_any(p["url"], ["/event", "/conference", "/webinar", "/summit"]))
+            url_matches_any(p.get("url") or p.get("final_url") or "", ["/event", "/conference", "/webinar", "/summit"]))
     ]
     has_event_schema = "Event" in all_types
     if event_pages and not has_event_schema:

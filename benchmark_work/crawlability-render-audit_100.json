@@ -1,0 +1,30 @@
+{
+  "skill": "crawlability-render-audit",
+  "findings": [],
+  "strengths": [
+    {
+      "title": "No noindex directives on any crawled page",
+      "category": "discoverability"
+    },
+    {
+      "title": "Homepage returns HTTP 200",
+      "category": "discoverability"
+    },
+    {
+      "title": "Consistent canonical tags across all crawled pages",
+      "category": "discoverability"
+    },
+    {
+      "title": "All crawled pages return HTTP 200",
+      "category": "discoverability"
+    },
+    {
+      "title": "All crawled pages have content without JS rendering",
+      "category": "discoverability"
+    },
+    {
+      "title": "robots.txt present and permits crawling",
+      "category": "discoverability"
+    }
+  ]
+}

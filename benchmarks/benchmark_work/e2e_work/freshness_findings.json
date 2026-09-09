@@ -1,0 +1,60 @@
+{
+  "skill": "freshness-corroboration-audit",
+  "findings": [
+    {
+      "check_id": "FRS-004",
+      "title": "Article JSON-LD missing datePublished/dateModified on 1 page(s)",
+      "category": "discoverability",
+      "severity": "medium",
+      "confidence": "high",
+      "affected_urls": [
+        "https://benchmark-acme.internal/docs"
+      ],
+      "evidence": "1 page(s) have Article/BlogPosting JSON-LD but no datePublished or dateModified. AI cannot assess content currency.",
+      "tags": [
+        "stale-content",
+        "schema-org"
+      ],
+      "suggested_action": {
+        "summary": "Add datePublished and dateModified to all Article JSON-LD blocks.",
+        "priority": "medium",
+        "effort": "low"
+      }
+    },
+    {
+      "check_id": "FRS-006",
+      "title": "Conflicting pricing information detected across 11 crawled pages",
+      "category": "discoverability",
+      "severity": "high",
+      "confidence": "high",
+      "affected_urls": [
+        "https://benchmark-acme.internal/products/product-suite-9",
+        "https://benchmark-acme.internal/products/product-suite-15",
+        "https://benchmark-acme.internal/products/product-suite-6",
+        "https://benchmark-acme.internal/products/product-suite-18",
+        "https://benchmark-acme.internal/products/product-suite-21"
+      ],
+      "evidence": "Contradicting price figures discovered: https://benchmark-acme.internal/products/product-suite-3 declares $129.0 while https://benchmark-acme.internal/products/product-suite-6 declares $159.0 for 'Acme Product Suite 3'. Discrepancies in published pricing confuse AI assistants and undermine transactional trust.",
+      "tags": [
+        "pricing",
+        "corroboration",
+        "contradiction"
+      ],
+      "suggested_action": {
+        "summary": "Reconcile product pricing across product pages, pricing tables, and structured data.",
+        "priority": "high",
+        "effort": "low"
+      }
+    }
+  ],
+  "strengths": [
+    {
+      "title": "Content appears fresh (recent modification dates on time-sensitive pages)",
+      "category": "discoverability"
+    },
+    {
+      "title": "All crawled pages have date signals",
+      "category": "discoverability"
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "skill": "proactive-opportunities-audit",
+  "recommendations": [
+    {
+      "id": "PRO-001",
+      "title": "Add HowTo structured data to guide and tutorial pages",
+      "category": "discoverability",
+      "rationale": "1 page(s) have headings suggesting step-by-step guides, but no HowTo JSON-LD was found. HowTo schema is among the highest-ROI types for 'how do I' AI assistant queries.",
+      "priority": "medium"
+    },
+    {
+      "id": "PRO-002",
+      "title": "Add expertise fields to author Person JSON-LD (jobTitle, knowsAbout)",
+      "category": "discoverability",
+      "rationale": "The site has 31 article/blog page(s) with author attribution, but no Person JSON-LD includes expertise fields (jobTitle, knowsAbout, alumniOf). AI agents use these to assess content authority and E-E-A-T signals.",
+      "priority": "medium"
+    }
+  ]
+}

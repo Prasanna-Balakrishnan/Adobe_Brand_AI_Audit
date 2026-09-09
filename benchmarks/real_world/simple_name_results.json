@@ -1,0 +1,27 @@
+{
+  "amazon": {
+    "returncode": 0,
+    "stdout": "benchmarks/real_world/amazon_test.json\n",
+    "stderr": "[INFO] Marketplace root: D:\\COLLEGE\\Adobe_Hackathon\\brand-ai-auditor\n[INFO] Auditing: https://amazon (input query: 'amazon')\n[INFO] Work dir: D:\\COLLEGE\\Adobe_Hackathon\\brand-ai-auditor\\benchmarks\\real_world\\work_amazon\n\n[STEP 1] Running site-crawler...\n  [site-crawler] [WARN] Could not fetch robots.txt: <urlopen error [Errno 11001] getaddrinfo failed>; treating as no restrictions\n  [site-crawler] [INFO] Crawling (1/5): https://amazon/\n  [site-crawler] [INFO] Playwright not installed; JS renderi"
+  },
+  "flipkart": {
+    "returncode": 0,
+    "stdout": "benchmarks/real_world/flipkart_test.json\n",
+    "stderr": "[INFO] Marketplace root: D:\\COLLEGE\\Adobe_Hackathon\\brand-ai-auditor\n[INFO] Auditing: https://flipkart (input query: 'flipkart')\n[INFO] Work dir: D:\\COLLEGE\\Adobe_Hackathon\\brand-ai-auditor\\benchmarks\\real_world\\work_flipkart\n\n[STEP 1] Running site-crawler...\n  [site-crawler] [WARN] Could not fetch robots.txt: <urlopen error [Errno 11001] getaddrinfo failed>; treating as no restrictions\n  [site-crawler] [INFO] Crawling (1/5): https://flipkart/\n  [site-crawler] [INFO] Playwright not installed; JS"
+  },
+  "microsoft": {
+    "returncode": 0,
+    "stdout": "benchmarks/real_world/microsoft_test.json\n",
+    "stderr": "[INFO] Marketplace root: D:\\COLLEGE\\Adobe_Hackathon\\brand-ai-auditor\n[INFO] Auditing: https://microsoft (input query: 'microsoft')\n[INFO] Work dir: D:\\COLLEGE\\Adobe_Hackathon\\brand-ai-auditor\\benchmarks\\real_world\\work_microsoft\n\n[STEP 1] Running site-crawler...\n  [site-crawler] [WARN] Could not fetch robots.txt: <urlopen error [Errno 11001] getaddrinfo failed>; treating as no restrictions\n  [site-crawler] [INFO] Crawling (1/5): https://microsoft/\n  [site-crawler] [INFO] Playwright not installed"
+  },
+  "github": {
+    "returncode": 0,
+    "stdout": "benchmarks/real_world/github_test.json\n",
+    "stderr": "[INFO] Marketplace root: D:\\COLLEGE\\Adobe_Hackathon\\brand-ai-auditor\n[INFO] Auditing: https://github (input query: 'github')\n[INFO] Work dir: D:\\COLLEGE\\Adobe_Hackathon\\brand-ai-auditor\\benchmarks\\real_world\\work_github\n\n[STEP 1] Running site-crawler...\n  [site-crawler] [WARN] Could not fetch robots.txt: <urlopen error [Errno 11001] getaddrinfo failed>; treating as no restrictions\n  [site-crawler] [INFO] Crawling (1/5): https://github/\n  [site-crawler] [INFO] Playwright not installed; JS renderi"
+  },
+  "adobe": {
+    "returncode": 0,
+    "stdout": "benchmarks/real_world/adobe_test.json\n",
+    "stderr": "[INFO] Marketplace root: D:\\COLLEGE\\Adobe_Hackathon\\brand-ai-auditor\n[INFO] Auditing: https://adobe (input query: 'adobe')\n[INFO] Work dir: D:\\COLLEGE\\Adobe_Hackathon\\brand-ai-auditor\\benchmarks\\real_world\\work_adobe\n\n[STEP 1] Running site-crawler...\n  [site-crawler] [WARN] Could not fetch robots.txt: <urlopen error [Errno 11001] getaddrinfo failed>; treating as no restrictions\n  [site-crawler] [INFO] Crawling (1/5): https://adobe/\n  [site-crawler] [INFO] Playwright not installed; JS rendering d"
+  }
+}

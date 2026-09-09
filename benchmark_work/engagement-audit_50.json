@@ -1,0 +1,18 @@
+{
+  "skill": "engagement-audit",
+  "findings": [],
+  "strengths": [
+    {
+      "title": "Homepage has a clear primary call-to-action",
+      "category": "engagement"
+    },
+    {
+      "title": "Site navigation has descriptive text labels",
+      "category": "engagement"
+    },
+    {
+      "title": "No dead-end pages found — all pages have onward navigation",
+      "category": "engagement"
+    }
+  ]
+}

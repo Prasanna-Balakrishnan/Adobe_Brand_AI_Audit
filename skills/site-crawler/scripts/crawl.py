@@ -36,95 +36,284 @@ PAGE_TYPES = [
     "Blog/article", "Documentation", "Event", "Careers", "Other/unknown"
 ]
 
+PAGE_TYPE_SIGNALS = {
+    "About": {
+        "priority": 90,
+        "url_patterns": ("/about", "/who-we-are", "/our-story", "/company", "/team", "/mission", "/overview",
+                        "/a-propos", "/a-propos-de-nous", "/sobre-nosotros", "/acerca-de", "/ueber-uns", "/uber-uns", "/chi-siamo"),
+        "title_keywords": ("about us", "about", "who we are", "our story", "our company", "our mission", "leadership team", "meet the team",
+                          "à propos", "a propos", "sobre nosotros", "acerca de nosotros", "über uns", "ueber uns", "chi siamo"),
+        "h1_keywords": ("about us", "who we are", "our mission", "our story", "about",
+                       "à propos", "a propos", "sobre nosotros", "über uns", "chi siamo"),
+        "schema_types": ("AboutPage",),
+        "content_keywords": ("founded in", "our mission", "our vision", "our team", "leadership", "headquarters", "core values", "who we are", "our story", "company history"),
+        "nav_keywords": ("about", "about us", "who we are", "company", "our story", "our team", "company info",
+                        "à propos", "a propos", "sobre nosotros", "über uns", "chi siamo"),
+    },
+    "Contact": {
+        "priority": 85,
+        "url_patterns": ("/contact", "/contact-us", "/reach-us", "/get-in-touch", "/support", "/help-center",
+                        "/contacto", "/kontakt", "/nous-contacter", "/contatto"),
+        "title_keywords": ("contact us", "contact", "reach us", "get in touch", "support", "help center",
+                          "contacto", "kontakt", "contactez-nous", "contatti"),
+        "h1_keywords": ("contact us", "contact", "get in touch", "reach us",
+                       "contacto", "kontakt", "contactez-nous", "contatti"),
+        "schema_types": ("ContactPage",),
+        "content_keywords": ("contact us", "send a message", "phone:", "email:", "get in touch", "office location", "headquarters", "support team", "customer support"),
+        "nav_keywords": ("contact", "contact us", "reach us", "get in touch", "support",
+                        "contacto", "kontakt", "contactez-nous"),
+    },
+    "Product": {
+        "priority": 80,
+        "url_patterns": ("/product", "/products", "/item", "/shop", "/catalog", "/store", "/platform", "/features",
+                        "/produits", "/produkte", "/productos", "/prodotti"),
+        "title_keywords": ("product", "products", "item", "catalog", "store", "shop",
+                          "produits", "produkte", "productos"),
+        "h1_keywords": ("products", "product", "features", "our products", "catalog",
+                       "produits", "produkte", "productos"),
+        "schema_types": ("Product", "IndividualProduct"),
+        "content_keywords": ("add to cart", "in stock", "sku", "specifications", "product details", "buy now", "features & specs"),
+        "nav_keywords": ("products", "platform", "features", "shop", "catalog", "store"),
+    },
+    "Service": {
+        "priority": 80,
+        "url_patterns": ("/service", "/services", "/solutions", "/offerings", "/capabilities",
+                        "/servicios", "/dienstleistungen", "/prestations"),
+        "title_keywords": ("service", "services", "solutions", "what we do", "offerings", "capabilities",
+                          "servicios", "dienstleistungen", "prestations"),
+        "h1_keywords": ("services", "solutions", "what we do", "our services"),
+        "schema_types": ("Service",),
+        "content_keywords": ("our services", "consulting", "managed services", "tailored solutions", "how we help", "client engagement"),
+        "nav_keywords": ("services", "solutions", "offerings", "capabilities"),
+    },
+    "Pricing": {
+        "priority": 75,
+        "url_patterns": ("/pricing", "/plans", "/cost", "/subscription", "/pricing-plans",
+                        "/preise", "/precios", "/tarifs", "/prezzi"),
+        "title_keywords": ("pricing", "plans", "pricing & plans", "cost", "subscription",
+                          "tarifs", "preise", "precios"),
+        "h1_keywords": ("pricing", "plans", "pricing plans", "subscription"),
+        "schema_types": ("PriceSpecification", "Offer"),
+        "content_keywords": ("per month", "/mo", "/month", "/year", "billed annually", "billed monthly", "free trial", "tier", "subscription plan", "pricing plans", "$", "€", "£"),
+        "nav_keywords": ("pricing", "plans", "pricing & plans", "cost", "subscription"),
+    },
+    "Documentation": {
+        "priority": 70,
+        "url_patterns": ("/docs", "/documentation", "/api", "/developers", "/guide", "/reference", "/quickstart", "/sdk"),
+        "title_keywords": ("documentation", "docs", "api reference", "developer docs", "user guide", "quickstart"),
+        "h1_keywords": ("documentation", "api reference", "developer guide", "api docs", "getting started"),
+        "schema_types": ("TechArticle", "APIReference"),
+        "content_keywords": ("api", "endpoint", "curl", "request body", "parameters", "sdk", "code example", "authentication", "api key", "json response"),
+        "nav_keywords": ("documentation", "docs", "api reference", "developer docs", "quickstart"),
+    },
+    "Careers": {
+        "priority": 65,
+        "url_patterns": ("/careers", "/jobs", "/work-with-us", "/join-us", "/openings", "/job-openings",
+                        "/karriere", "/empleo", "/recrutement", "/carriere"),
+        "title_keywords": ("careers", "jobs", "join our team", "open positions", "work with us", "job openings",
+                          "karriere", "empleo", "recrutement"),
+        "h1_keywords": ("careers", "jobs", "open positions", "join our team", "work with us"),
+        "schema_types": ("JobPosting",),
+        "content_keywords": ("open positions", "apply now", "job openings", "we're hiring", "benefits", "competitive salary", "equal opportunity", "career opportunities"),
+        "nav_keywords": ("careers", "jobs", "join our team", "open positions", "work with us"),
+    },
+    "Event": {
+        "priority": 60,
+        "url_patterns": ("/event", "/events", "/webinar", "/webinars", "/conference", "/summit"),
+        "title_keywords": ("events", "conferences", "webinars", "upcoming events", "summit", "event", "webinar"),
+        "h1_keywords": ("event", "events", "webinar", "conference", "summit"),
+        "schema_types": ("Event",),
+        "content_keywords": ("register now", "rsvp", "speakers", "agenda", "keynote", "virtual event", "date & time", "save your spot"),
+        "nav_keywords": ("events", "conferences", "webinars", "upcoming events"),
+    },
+    "Blog/article": {
+        "priority": 50,
+        "url_patterns": ("/blog", "/article", "/articles", "/news", "/posts", "/insights", "/stories"),
+        "title_keywords": ("blog", "insights", "latest news", "articles", "news", "posts"),
+        "h1_keywords": ("blog", "insights", "latest news", "articles"),
+        "schema_types": ("BlogPosting", "Article", "NewsArticle"),
+        "content_keywords": ("min read", "published on", "author:", "reading time", "share this article", "related posts", "posted on"),
+        "nav_keywords": ("blog", "news", "articles", "insights"),
+    },
+}
+
+
+def _collect_schema_types(json_ld_blocks: list) -> set:
+    """Recursively collect all Schema.org @type values from JSON-LD blocks."""
+    types = set()
+
+    def _extract_from_obj(obj):
+        if isinstance(obj, dict):
+            t = obj.get("@type")
+            if isinstance(t, str):
+                types.add(t)
+            elif isinstance(t, list):
+                for item in t:
+                    if isinstance(item, str):
+                        types.add(item)
+            for v in obj.values():
+                _extract_from_obj(v)
+        elif isinstance(obj, list):
+            for item in obj:
+                _extract_from_obj(item)
+
+    for block in (json_ld_blocks or []):
+        _extract_from_obj(block)
+    return types
+
+
+def _score_content_signals(text: str) -> dict:
+    """Score semantic content keyword density for various page types."""
+    if not text:
+        return {}
+    text_lower = text.lower()
+    scores = {}
+    for ptype, cfg in PAGE_TYPE_SIGNALS.items():
+        kw_list = cfg.get("content_keywords", ())
+        cnt = sum(1 for kw in kw_list if kw in text_lower)
+        if cnt > 0:
+            scores[ptype] = cnt
+    return scores
+
+
+def _extract_nav_link_texts(soup: BeautifulSoup) -> list:
+    """Extract navigation link anchor texts from nav and header elements."""
+    if not soup:
+        return []
+    nav_texts = []
+    nav_elements = soup.find_all(["nav", "header"])
+    nav_elements.extend(soup.find_all(attrs={"role": lambda r: r in ("navigation", "menubar")}))
+    for elem in nav_elements:
+        for a in elem.find_all("a"):
+            txt = a.get_text(strip=True)
+            if txt and len(txt) <= 60 and txt not in nav_texts:
+                nav_texts.append(txt)
+    return nav_texts
+
+
+def classify_page_type(url: str, start_url: str = "", title: str = "",
+                       h1_list: list = None, headings: list = None,
+                       json_ld_blocks: list = None, soup: BeautifulSoup = None,
+                       visible_text: str = "", nav_anchors: list = None) -> tuple:
+    """
+    Contextually and generally classify the page into one of the 11 designated PAGE_TYPES.
+    Combines:
+      1. Structural URL patterns and homepage detection
+      2. Exhaustive Schema.org @type signals
+      3. Title and H1 heading semantics
+      4. Navigation link anchor text
+      5. Observable content keywords and density
+    Returns (page_type, confidence) where confidence is 'high', 'medium', or 'low'.
+    """
+    p_url = urlparse(url)
+    path = p_url.path.lower().rstrip("/")
+    start_path = urlparse(start_url).path.lower().rstrip("/") if start_url else ""
+    title_lower = (title or "").lower()
+    h1_combined = " ".join((h or "").lower() for h in (h1_list or []))
+    schema_types = _collect_schema_types(json_ld_blocks or [])
+
+    # 1. Homepage
+    if path == "" or path == "/" or (start_path and path == start_path) or path in ("/index.html", "/index.php", "/home"):
+        return "Homepage", "high"
+
+    # 2. Strong Schema.org type associations (definitive)
+    schema_map = {
+        "JobPosting": "Careers",
+        "Event": "Event",
+        "BlogPosting": "Blog/article",
+        "Article": "Blog/article",
+        "NewsArticle": "Blog/article",
+        "Product": "Product",
+        "IndividualProduct": "Product",
+        "SoftwareApplication": "Product",
+        "MenuItem": "Product",
+        "Service": "Service",
+        "Course": "Service",
+        "MedicalProcedure": "Service",
+        "AboutPage": "About",
+        "ContactPage": "Contact",
+        "TechArticle": "Documentation",
+        "APIReference": "Documentation"
+    }
+    for st, ptype in schema_map.items():
+        if st in schema_types:
+            return ptype, "high"
+
+    # 3. Multi-signal scoring across categories
+    nav_text_combined = " ".join(t.lower() for t in (nav_anchors or []))
+    content_scores = _score_content_signals(visible_text)
+
+    scores = {}
+    for ptype, cfg in PAGE_TYPE_SIGNALS.items():
+        s = 0
+        patterns = cfg.get("url_patterns", ())
+        title_keys = cfg.get("title_keywords", ())
+        h1_keys = cfg.get("h1_keywords", ())
+        nav_keys = cfg.get("nav_keywords", ())
+
+        # Exact path or path segment match
+        if any(p == path or path.startswith(p + "/") or path.endswith(p) or f"{p}/" in path for p in patterns):
+            s += 45
+        elif any(p.lstrip("/") in path for p in patterns if len(p) > 4):
+            s += 25
+
+        # Title keyword match
+        if any(k in title_lower for k in title_keys):
+            s += 35
+
+        # H1 keyword match
+        if any(k in h1_combined for k in h1_keys):
+            s += 30
+
+        # Nav anchor text matching
+        if any(k in nav_text_combined for k in nav_keys):
+            s += 15
+
+        # Content keyword signal
+        c_count = content_scores.get(ptype, 0)
+        if c_count >= 3:
+            s += 25
+        elif c_count >= 1:
+            s += 12
+
+        if s > 0:
+            scores[ptype] = s
+
+    if scores:
+        best_type, best_score = max(scores.items(), key=lambda x: x[1])
+        if best_score >= 45:
+            return best_type, "high"
+        elif best_score >= 20:
+            return best_type, "medium"
+
+    return "Other/unknown", "low"
+
 
 def detect_page_type(url: str, start_url: str, title: str, h1_list: list,
                      headings: list, json_ld_blocks: list, soup: BeautifulSoup) -> str:
     """
     Contextually classify the page type into one of the 11 designated types.
-    Uses URL paths, page titles, H1 headings, and Schema.org types.
+    Delegates to classify_page_type, retaining 100% backward compatibility with
+    the existing signature and return type.
     """
-    p_url = urlparse(url)
-    path = p_url.path.lower().rstrip("/")
-    start_path = urlparse(start_url).path.lower().rstrip("/")
-    title_lower = (title or "").lower()
-    h1_combined = " ".join((h or "").lower() for h in h1_list)
+    visible_text = ""
+    nav_anchors = []
+    if soup:
+        nav_anchors = _extract_nav_link_texts(soup)
+        visible_text = soup.get_text(separator=" ", strip=True)
 
-    # 1. Homepage
-    if path == "" or path == "/" or path == start_path or path in ("/index.html", "/index.php", "/home"):
-        return "Homepage"
-
-    # Schema types helper
-    schema_types = set()
-    for block in json_ld_blocks:
-        if isinstance(block, dict):
-            t = block.get("@type")
-            if isinstance(t, str):
-                schema_types.add(t)
-            elif isinstance(t, list):
-                schema_types.update(t)
-            for node in block.get("@graph", []):
-                if isinstance(node, dict):
-                    nt = node.get("@type")
-                    if isinstance(nt, str):
-                        schema_types.add(nt)
-                    elif isinstance(nt, list):
-                        schema_types.update(nt)
-
-    # 2. Contact
-    if any(k in path for k in ("/contact", "/reach-us", "/get-in-touch", "/support", "/help-center")):
-        return "Contact"
-    if "contact" in title_lower or "contact us" in h1_combined:
-        return "Contact"
-
-    # 3. About
-    if any(k in path for k in ("/about", "/who-we-are", "/our-story", "/company", "/team", "/mission")):
-        return "About"
-    if "about us" in title_lower or "about" in title_lower or "who we are" in h1_combined:
-        return "About"
-
-    # 4. Pricing
-    if any(k in path for k in ("/pricing", "/plans", "/cost", "/subscription")):
-        return "Pricing"
-    if "pricing" in title_lower or "pricing" in h1_combined or "plans" in h1_combined:
-        return "Pricing"
-
-    # 5. Careers
-    if any(k in path for k in ("/careers", "/jobs", "/work-with-us", "/join-us", "/openings")):
-        return "Careers"
-    if "careers" in title_lower or "jobs" in title_lower or "open positions" in h1_combined:
-        return "Careers"
-
-    # 6. Documentation
-    if any(k in path for k in ("/docs", "/documentation", "/api", "/developers", "/guide", "/reference")):
-        return "Documentation"
-    if "documentation" in title_lower or "api reference" in title_lower or "user guide" in title_lower:
-        return "Documentation"
-
-    # 7. Event
-    if any(k in path for k in ("/event", "/events", "/webinar", "/webinars", "/conference")):
-        return "Event"
-    if "Event" in schema_types or "webinar" in title_lower:
-        return "Event"
-
-    # 8. Blog / article
-    if any(k in path for k in ("/blog", "/article", "/articles", "/news", "/posts", "/insights")):
-        return "Blog/article"
-    if any(st in schema_types for st in ("BlogPosting", "Article", "NewsArticle")):
-        return "Blog/article"
-
-    # 9. Product
-    if any(k in path for k in ("/product", "/products", "/item", "/shop", "/catalog", "/store")):
-        return "Product"
-    if any(st in schema_types for st in ("Product", "IndividualProduct")):
-        return "Product"
-
-    # 10. Service
-    if any(k in path for k in ("/service", "/services", "/solutions", "/offerings")):
-        return "Service"
-    if "Service" in schema_types:
-        return "Service"
-
-    return "Other/unknown"
+    ptype, _ = classify_page_type(
+        url=url,
+        start_url=start_url,
+        title=title,
+        h1_list=h1_list,
+        headings=headings,
+        json_ld_blocks=json_ld_blocks,
+        soup=soup,
+        visible_text=visible_text,
+        nav_anchors=nav_anchors
+    )
+    return ptype
 
 
 def parse_args():
@@ -225,50 +414,29 @@ def score_url_priority(url: str, link_text: str = "", depth: int = 1) -> tuple[i
     if not path or depth == 0 or path in ("/index.html", "/index.php", "/home"):
         return 100, "Homepage"
 
-    # 2. About (Score 90)
-    about_patterns = ("/about", "/who-we-are", "/our-story", "/company", "/team", "/mission", "/overview")
-    if (any(p == path or path.startswith(p + "/") or path.endswith(p) for p in about_patterns) or \
-       any(w in link_lower for w in ("about", "about us", "who we are", "our story", "our team", "company info"))) and \
-       not any(cw in link_lower for cw in ("join", "careers", "jobs", "hiring")):
-        return 90, "About"
-
-    # 3. Contact (Score 85)
-    contact_patterns = ("/contact", "/contact-us", "/reach-us", "/get-in-touch", "/support", "/help-center")
-    if any(p == path or path.startswith(p + "/") or path.endswith(p) for p in contact_patterns) or \
-       any(w in link_lower for w in ("contact", "contact us", "reach us", "get in touch", "support")):
-        return 85, "Contact"
-
-    # 4. Products / Services (Score 80)
     is_leaf, leaf_type = is_repetitive_leaf(url)
-    if not is_leaf:
-        prod_patterns = ("/products", "/services", "/solutions", "/platform", "/features", "/offerings")
-        if any(p == path or path.startswith(p + "/") for p in prod_patterns) or \
-           any(w in link_lower for w in ("products", "services", "solutions", "platform", "features", "offerings")):
-            return 80, "Products/Services"
 
-    # 5. Pricing (Score 75)
-    pricing_patterns = ("/pricing", "/plans", "/cost", "/subscription", "/pricing-plans")
-    if any(p == path or path.startswith(p + "/") for p in pricing_patterns) or \
-       any(w in link_lower for w in ("pricing", "plans", "pricing & plans", "cost", "subscription")):
-        return 75, "Pricing"
+    # 2-8. High priority categories driven by PAGE_TYPE_SIGNALS
+    priority_order = ["About", "Contact", "Product", "Service", "Pricing", "Documentation", "Careers", "Event"]
+    for cat in priority_order:
+        cfg = PAGE_TYPE_SIGNALS.get(cat, {})
+        patterns = cfg.get("url_patterns", ())
+        nav_keys = cfg.get("nav_keywords", ())
+        title_keys = cfg.get("title_keywords", ())
+        h1_keys = cfg.get("h1_keywords", ())
 
-    # 6. Documentation (Score 70)
-    doc_patterns = ("/docs", "/documentation", "/api", "/developers", "/guide", "/reference", "/quickstart")
-    if any(p == path or path.startswith(p + "/") for p in doc_patterns) or \
-       any(w in link_lower for w in ("documentation", "docs", "api reference", "developer docs", "quickstart")):
-        return 70, "Documentation"
+        if is_leaf and cat in ("Product", "Service"):
+            continue
 
-    # 7. Careers (Score 65)
-    career_patterns = ("/careers", "/jobs", "/work-with-us", "/join-us", "/openings")
-    if any(p == path or path.startswith(p + "/") for p in career_patterns) or \
-       any(w in link_lower for w in ("careers", "jobs", "join our team", "open positions", "work with us")):
-        return 65, "Careers"
+        path_match = any(p == path or path.startswith(p + "/") or path.endswith(p) for p in patterns)
+        link_match = any(w in link_lower for w in nav_keys) or any(w in link_lower for w in title_keys) or any(w in link_lower for w in h1_keys)
 
-    # 8. Events (Score 60)
-    event_patterns = ("/event", "/events", "/webinar", "/webinars", "/conference", "/summit")
-    if any(p == path or path.startswith(p + "/") for p in event_patterns) or \
-       any(w in link_lower for w in ("events", "conferences", "webinars", "upcoming events")):
-        return 60, "Events"
+        if cat == "About" and any(cw in link_lower for cw in ("join", "careers", "jobs", "hiring")):
+            continue
+
+        if path_match or link_match:
+            display_cat = "Products/Services" if cat in ("Product", "Service") else ("Events" if cat == "Event" else cat)
+            return cfg.get("priority", 50), display_cat
 
     # Check repetitive leaf before category hubs so /blog/post-1 gets Score 30, not Score 50
     if is_leaf:
@@ -358,8 +526,10 @@ def extract_page_data(url: str, html: str, http_status: int,
     json_ld_blocks = []
     for script in soup.find_all("script", type="application/ld+json"):
         try:
-            data = json.loads(script.string or "")
-            json_ld_blocks.append(data)
+            raw = (script.string or script.get_text() or "").strip()
+            if raw:
+                data = json.loads(raw)
+                json_ld_blocks.append(data)
         except (json.JSONDecodeError, TypeError):
             pass
 
@@ -410,6 +580,8 @@ def extract_page_data(url: str, html: str, http_status: int,
             "height": img.get("height")
         })
 
+    nav_link_texts = _extract_nav_link_texts(soup)
+
     # Visible text
     for tag in soup(["script", "style", "noscript", "head"]):
         tag.decompose()
@@ -418,7 +590,17 @@ def extract_page_data(url: str, html: str, http_status: int,
     visible_text_sample = visible_text[:500]
 
     # Page type classification (Req 5)
-    page_type = detect_page_type(url, start_url or url, title, h1_tags, headings, json_ld_blocks, soup)
+    page_type, classification_confidence = classify_page_type(
+        url=url,
+        start_url=start_url or url,
+        title=title,
+        h1_list=h1_tags,
+        headings=headings,
+        json_ld_blocks=json_ld_blocks,
+        soup=soup,
+        visible_text=visible_text,
+        nav_anchors=nav_link_texts
+    )
 
     # Last-Modified
     last_modified = response_headers.get("Last-Modified") or response_headers.get("last-modified")
@@ -445,6 +627,7 @@ def extract_page_data(url: str, html: str, http_status: int,
         "meta_robots": meta_robots,
         "x_robots_tag": x_robots_tag,
         "page_type": page_type,
+        "classification_confidence": classification_confidence,
         "title": title,
         "meta_description": meta_description,
         "h1": h1_tags,
@@ -453,6 +636,7 @@ def extract_page_data(url: str, html: str, http_status: int,
         "open_graph": open_graph,
         "twitter_card": twitter_card,
         "links": links,
+        "nav_link_texts": nav_link_texts[:30],
         "images": images,
         "visible_text_length": visible_text_length,
         "visible_text_sample": visible_text_sample,
@@ -486,11 +670,8 @@ def fetch_page(url: str, session: requests.Session, use_js: bool) -> tuple:
         headers = dict(resp.headers)
         crawled_with_js = False
         raw_html_len = len(raw_html)
-        raw_soup = BeautifulSoup(raw_html, "html.parser")
-        for tag in raw_soup(["script", "style", "noscript", "head"]):
-            tag.decompose()
-        raw_text_len = len(raw_soup.get_text(separator=" ", strip=True))
-        rendered_text_len = raw_text_len
+        raw_text_len = 0
+        rendered_text_len = 0
         js_dependent = False
 
         # Adaptive JS render check (Req 3):
@@ -503,20 +684,26 @@ def fetch_page(url: str, session: requests.Session, use_js: bool) -> tuple:
                 '__NEXT_DATA__' in raw_html or
                 '__nuxt' in raw_html
             )
-            raw_h1_count = len(BeautifulSoup(raw_html, "html.parser").find_all("h1"))
-            # Render if text is suspiciously low (< 1000) with SPA root or missing H1
-            if (raw_text_len < 1000 and (has_spa_root or raw_h1_count == 0)):
-                js_html = render_with_js(resp.url)
-                if js_html:
-                    html = js_html
-                    crawled_with_js = True
-                    rend_soup = BeautifulSoup(js_html, "html.parser")
-                    for tag in rend_soup(["script", "style", "noscript", "head"]):
-                        tag.decompose()
-                    rendered_text_len = len(rend_soup.get_text(separator=" ", strip=True))
-                    # Check if important content was only available after rendering (Req 3)
-                    if (rendered_text_len - raw_text_len > 300) or (raw_h1_count == 0 and len(rend_soup.find_all("h1")) > 0):
-                        js_dependent = True
+            # Only parse if suspected SPA or small HTML (<2000 chars)
+            if has_spa_root or raw_html_len < 2000:
+                raw_soup = BeautifulSoup(raw_html, "html.parser")
+                for tag in raw_soup(["script", "style", "noscript", "head"]):
+                    tag.decompose()
+                raw_text_len = len(raw_soup.get_text(separator=" ", strip=True))
+                rendered_text_len = raw_text_len
+                raw_h1_count = len(raw_soup.find_all("h1"))
+                if (raw_text_len < 1000 and (has_spa_root or raw_h1_count == 0)):
+                    js_html = render_with_js(resp.url)
+                    if js_html:
+                        html = js_html
+                        crawled_with_js = True
+                        rend_soup = BeautifulSoup(js_html, "html.parser")
+                        for tag in rend_soup(["script", "style", "noscript", "head"]):
+                            tag.decompose()
+                        rendered_text_len = len(rend_soup.get_text(separator=" ", strip=True))
+                        # Check if important content was only available after rendering (Req 3)
+                        if (rendered_text_len - raw_text_len > 300) or (raw_h1_count == 0 and len(rend_soup.find_all("h1")) > 0):
+                            js_dependent = True
 
         return html, status, redirect_chain, headers, crawled_with_js, raw_html_len, raw_text_len, rendered_text_len, js_dependent
 
@@ -538,6 +725,71 @@ def fetch_page(url: str, session: requests.Session, use_js: bool) -> tuple:
         print(f"[WARN] Unexpected error fetching {url}: {e}", file=sys.stderr)
         return "", 0, [url], {}, False, 0, 0, 0, False
 
+
+
+def compute_page_importance_scores(pages: list) -> list:
+    """
+    Compute generic importance score (0-100) for each crawled page based on
+    internal-link relationships, structural depth, and navigation presence.
+    Additive: modifies each page dict in-place and returns pages.
+    """
+    if not pages:
+        return pages
+
+    valid_pages = [p for p in pages if isinstance(p, dict)]
+    if not valid_pages:
+        return pages
+
+    norm_to_page = {}
+    for p in valid_pages:
+        u = normalise_url(p.get("url", ""))
+        norm_to_page[u] = p
+        p.setdefault("incoming_link_count", 0)
+        p.setdefault("page_importance_score", 0)
+
+    incoming_counts = {u: 0 for u in norm_to_page}
+    nav_linked_urls = set()
+
+    for p in valid_pages:
+        page_links = p.get("links") or []
+        nav_texts = set(t.lower() for t in (p.get("nav_link_texts") or []) if isinstance(t, str))
+        seen_targets_on_page = set()
+        for link in page_links:
+            if not isinstance(link, dict) or not link.get("is_internal"):
+                continue
+            target_norm = normalise_url(link.get("href") or "")
+            if target_norm in incoming_counts and target_norm not in seen_targets_on_page:
+                seen_targets_on_page.add(target_norm)
+                incoming_counts[target_norm] += 1
+                if (link.get("text") or "").strip().lower() in nav_texts:
+                    nav_linked_urls.add(target_norm)
+
+    max_incoming = max(incoming_counts.values()) if incoming_counts else 0
+
+    for u, p in norm_to_page.items():
+        in_count = incoming_counts.get(u, 0)
+        p["incoming_link_count"] = in_count
+
+        # Base score from incoming link frequency (0 to 50)
+        link_ratio = (in_count / max_incoming) if max_incoming > 0 else 0.0
+        score = link_ratio * 50.0
+
+        # Nav boost: linked from nav menus (+25)
+        if u in nav_linked_urls:
+            score += 25.0
+
+        # Page type structural boost (+25 for Homepage, +15 for core conversion/info, +10 for docs/careers)
+        ptype = p.get("page_type", "")
+        if ptype == "Homepage":
+            score += 25.0
+        elif ptype in ("About", "Contact", "Pricing", "Product", "Service"):
+            score += 15.0
+        elif ptype in ("Documentation", "Careers"):
+            score += 10.0
+
+        p["page_importance_score"] = int(min(100, max(0, round(score))))
+
+    return pages
 
 
 def main():
@@ -580,6 +832,7 @@ def main():
 
     timeout_hit = False
     last_request_time = 0.0
+    queue_needs_sort = True
 
     while queue and len(visited) < args.max_pages:
         # Check total timeout
@@ -590,9 +843,11 @@ def main():
             break
 
         # Deterministic priority ordering: highest priority first (-priority), lowest depth first (depth), earliest discovery order (order)
-        queue.sort(key=lambda item: (-item["priority"], item["depth"], item["order"]))
+        if queue_needs_sort:
+            queue.sort(key=lambda item: (-item["priority"], item["depth"], item["order"]))
+            queue_needs_sort = False
         current_item = queue.pop(0)
-        url = current_item["url"]
+        url = current_item.get("url") or current_item.get("final_url") or ""
         current_depth = current_item["depth"]
 
         if url in visited:
@@ -615,6 +870,11 @@ def main():
             url, session, args.use_js_render
         )
         visited.add(url)
+        if redirect_chain:
+            for red_u in redirect_chain:
+                norm_red = normalise_url(red_u)
+                visited.add(norm_red)
+                queued_urls.add(norm_red)
 
         # Track failed pages
         if status >= 400 or status == 0:
@@ -693,9 +953,11 @@ def main():
                             "order": discovery_counter
                         })
                         queued_urls.add(href)
+                        queue_needs_sort = True
 
     crawl_end = datetime.now(timezone.utc)
     crawl_duration = round((crawl_end - crawl_start).total_seconds(), 2)
+    pages = compute_page_importance_scores(pages)
 
     # Crawl coverage metrics (Req 20)
     js_status = "adaptive_rendered" if any(p.get("crawled_with_js") for p in pages) else ("not_needed" if args.use_js_render else "disabled")

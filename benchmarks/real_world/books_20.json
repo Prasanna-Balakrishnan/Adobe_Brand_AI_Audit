@@ -1,0 +1,158 @@
+{
+  "site": "books.toscrape.com",
+  "audited_at": "2026-09-08T19:02:51.663502Z",
+  "run_info": {
+    "marketplace_version": "1.0.0",
+    "query_input": "https://books.toscrape.com",
+    "target_url": "https://books.toscrape.com",
+    "skills_invoked": [
+      "crawlability-render-audit",
+      "structured-data-content-audit",
+      "entity-identity-audit",
+      "freshness-corroboration-audit",
+      "engagement-audit",
+      "agent-discoverability-audit",
+      "proactive-opportunities-audit"
+    ],
+    "failed_skills": [],
+    "pages_crawled": 0,
+    "max_pages": 20,
+    "crawl_duration_seconds": 3.8,
+    "robots_txt_respected": true,
+    "crawl_coverage": {
+      "pages_discovered": 1,
+      "pages_crawled": 0,
+      "pages_skipped": 0,
+      "failed_pages": [],
+      "crawl_duration_seconds": 3.8,
+      "robots_status": 404,
+      "js_rendering_status": "disabled"
+    }
+  },
+  "summary": {
+    "total_findings": 1,
+    "critical": 1,
+    "high": 0,
+    "medium": 0,
+    "low": 0,
+    "ai_readiness_score": 75,
+    "overall_score": 100,
+    "by_category": {
+      "discoverability": 1,
+      "engagement": 0
+    },
+    "agent_journey_scores": {
+      "reach": 75,
+      "read": 100,
+      "understand": 100,
+      "trust": 100,
+      "navigate": 100,
+      "act": 100,
+      "overall_journey_score": 96
+    }
+  },
+  "agent_journey_scores": {
+    "reach": 75,
+    "read": 100,
+    "understand": 100,
+    "trust": 100,
+    "navigate": 100,
+    "act": 100,
+    "overall_journey_score": 96
+  },
+  "agent_answerability": [
+    {
+      "question": "What does this company do?",
+      "category": "identity",
+      "status": "Not found",
+      "confidence": "low",
+      "evidence": "No clear company summary or description found across crawled pages.",
+      "sources": [],
+      "recommendation": "Consider providing an executive summary or meta description clarifying the organization's purpose."
+    },
+    {
+      "question": "What products/services does it offer?",
+      "category": "offerings",
+      "status": "Not found",
+      "confidence": "low",
+      "evidence": "No dedicated Product or Service pages discovered in snapshot.",
+      "sources": [],
+      "recommendation": "Consider publishing dedicated pages detailing your core products, services, or solutions."
+    },
+    {
+      "question": "Where is it located?",
+      "category": "location",
+      "status": "Not found",
+      "confidence": "low",
+      "evidence": "No physical address or geographic location declared in JSON-LD or contact text.",
+      "sources": [],
+      "recommendation": "Consider adding physical address or service area in structured data and contact pages."
+    },
+    {
+      "question": "What does the product cost?",
+      "category": "pricing",
+      "status": "Not found",
+      "confidence": "low",
+      "evidence": "No clear pricing, price tiers, or pricing model mentioned in crawled pages.",
+      "sources": [],
+      "recommendation": "Consider providing transparent baseline pricing, tiers, or a pricing calculator to assist AI and user evaluation."
+    },
+    {
+      "question": "How can users contact it?",
+      "category": "contact",
+      "status": "Not found",
+      "confidence": "low",
+      "evidence": "No email, telephone number, or dedicated contact page discovered.",
+      "sources": [],
+      "recommendation": "Consider publishing direct contact information such as email or telephone on a dedicated contact page."
+    }
+  ],
+  "top_priorities": [
+    {
+      "id": "F-001",
+      "title": "Homepage failed to load — no pages crawled",
+      "category": "discoverability",
+      "severity": "critical",
+      "confidence": "high",
+      "affected_pages_count": 1,
+      "suggested_action": "Verify the site is accessible and the URL is correct.",
+      "priority_score": 44.0,
+      "priority_rank": 1
+    }
+  ],
+  "findings": [
+    {
+      "id": "F-001",
+      "title": "Homepage failed to load — no pages crawled",
+      "category": "discoverability",
+      "severity": "critical",
+      "confidence": "high",
+      "source_skill": "crawlability-render-audit",
+      "tags": [
+        "crawlability"
+      ],
+      "affected_urls": [
+        "https://books.toscrape.com/"
+      ],
+      "evidence": "The crawler returned 0 pages. The start URL may be unreachable.",
+      "root_cause_group": "RC-001",
+      "suggested_action": {
+        "summary": "Verify the site is accessible and the URL is correct.",
+        "priority": "critical",
+        "effort": "low"
+      }
+    }
+  ],
+  "proactive_recommendations": [],
+  "strengths": [],
+  "methodology_and_limitations": {
+    "audit_scope": "Evaluates technical AI discoverability, content extractability, structured data completeness, and citation readiness based on an observable crawl snapshot.",
+    "deterministic_scoring": "All scoring formulas and journey deductions are 100% deterministic and rule-grounded, measuring concrete technical readiness rather than subjective or volatile LLM search rankings.",
+    "read_only_guarantee": "This audit operates purely in read-only analysis mode without modifying site infrastructure, publishing changes, or executing non-idempotent operations.",
+    "limitations": [
+      "Crawl depth is capped at 20 pages per run under standard execution parameters.",
+      "Dynamic Single-Page Application (SPA) content requires headless rendering with Playwright fallback when JavaScript rendering is enabled.",
+      "Content behind authentication, paywalls, or strict CAPTCHA barriers is outside audit scope."
+    ]
+  }
+}

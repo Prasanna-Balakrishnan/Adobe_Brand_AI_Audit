@@ -64,8 +64,10 @@ def has_cta(link_texts: list) -> bool:
 
 
 def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
-    meta = snapshot.get("crawl_meta", {})
-    pages = snapshot.get("pages", [])
+    if not isinstance(snapshot, dict):
+        return [], []
+    meta = snapshot.get("crawl_meta") or {}
+    pages = [p for p in (snapshot.get("pages") or []) if isinstance(p, dict)]
     findings = []
     strengths = []
     total = len(pages)
@@ -75,15 +77,15 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
 
     start_url = meta.get("start_url", "")
     homepage = next(
-        (p for p in pages if p["url"] == start_url or p.get("final_url") == start_url),
+        (p for p in pages if p.get("url") == start_url or p.get("final_url") == start_url),
         pages[0] if pages else None
     )
 
     # --- ENG-001: No primary CTA on homepage ---
     if homepage:
-        hp_link_texts = [lnk.get("text", "") for lnk in homepage.get("links", [])
+        hp_link_texts = [lnk.get("text", "") for lnk in (homepage.get("links") or [])
                          if lnk.get("is_internal")]
-        hp_all_texts = [lnk.get("text", "") for lnk in homepage.get("links", [])]
+        hp_all_texts = [lnk.get("text", "") for lnk in (homepage.get("links") or [])]
         all_texts_sample = [t for t in hp_all_texts if t.strip()][:20]
 
         if not has_cta(hp_all_texts):
@@ -93,9 +95,9 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
                 "category": "engagement",
                 "severity": "high",
                 "confidence": "medium",
-                "affected_urls": [homepage["url"]],
+                "affected_urls": [homepage.get("url") or homepage.get("final_url") or ""],
                 "evidence": (
-                    f"Homepage ({homepage['url']}) has no link text matching CTA patterns. "
+                    f"Homepage ({homepage.get('url', '')}) has no link text matching CTA patterns. "
                     f"Actual link texts found: {all_texts_sample[:10]}."
                 ),
                 "tags": ["cta", "value-proposition"],
@@ -129,7 +131,7 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
                 "category": "engagement",
                 "severity": "high",
                 "confidence": "medium",
-                "affected_urls": [homepage["url"]],
+                "affected_urls": [homepage.get("url") or homepage.get("final_url") or ""],
                 "evidence": (
                     f"Homepage heading text: '{hp_h1_h2_texts[:200] or 'none'}'. "
                     f"Visible text sample: '{hp_sample[:200] or 'empty'}'. "
@@ -147,7 +149,7 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
     if homepage:
         internal_link_texts = [
             lnk.get("text", "").strip()
-            for lnk in homepage.get("links", [])
+            for lnk in (homepage.get("links") or [])
             if lnk.get("is_internal") and lnk.get("text", "").strip()
         ]
         meaningful_nav_texts = [
@@ -161,7 +163,7 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
                 "category": "engagement",
                 "severity": "high",
                 "confidence": "medium",
-                "affected_urls": [homepage["url"]],
+                "affected_urls": [homepage.get("url") or homepage.get("final_url") or ""],
                 "evidence": (
                     f"Homepage has only {len(meaningful_nav_texts)} meaningful internal link "
                     f"text(s): {meaningful_nav_texts}. Navigation may be icon-only or unlabelled."
@@ -185,7 +187,7 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
     ok_pages = [p for p in pages if p.get("status_code", 200) == 200]
     dead_end_pages = [
         p for p in ok_pages
-        if not any(lnk.get("is_internal") for lnk in p.get("links", []))
+        if not any(lnk.get("is_internal") for lnk in (p.get("links") or []))
         and p.get("page_type") not in terminal_types
         and not any(term in p.get("url", "").lower() for term in ("/docs", "/careers", "/privacy", "/terms", "/support"))
     ]
@@ -197,7 +199,7 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
             "category": "engagement",
             "severity": "medium",
             "confidence": "high",
-            "affected_urls": [p["url"] for p in dead_end_pages[:5]],
+            "affected_urls": [p.get("url") or p.get("final_url") or "" for p in dead_end_pages[:5]],
             "evidence": (
                 f"{len(dead_end_pages)} of {len(ok_pages)} non-terminal pages ({dead_end_ratio*100:.0f}%) "
                 "have no outbound internal links. Visitors arriving at these pages have no "
@@ -217,14 +219,14 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
         })
 
     # --- ENG-005: No About/orientation page ---
-    all_urls_lower = [p["url"].lower() for p in pages]
+    all_urls_lower = [urlparse(p.get("url", "")).path.lower() for p in pages]
     all_titles_lower = [p.get("title", "").lower() for p in pages]
     has_about = (
         any(p.get("page_type") == "About" for p in pages) or
         any(any(pat in u for pat in ABOUT_URL_PATTERNS) for u in all_urls_lower) or
         any(any(pat in t for pat in ABOUT_TITLE_PATTERNS) for t in all_titles_lower)
     )
-    is_doc_site = any(p.get("page_type") == "Documentation" or "/docs" in p.get("url", "").lower() for p in pages)
+    is_doc_site = any(p.get("page_type") == "Documentation" or "/docs" in urlparse(p.get("url", "")).path.lower() for p in pages)
     if not has_about and not is_doc_site:
         findings.append({
             "check_id": "ENG-005",
@@ -247,7 +249,7 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
         })
 
     # --- ENG-006: Navigation depth > 4 ---
-    deep_pages = [p for p in pages if url_depth(p["url"]) > 4]
+    deep_pages = [p for p in pages if url_depth(p.get("url", "")) > 4]
     deep_ratio = len(deep_pages) / total
     if deep_ratio > 0.25:
         findings.append({
@@ -256,10 +258,10 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
             "category": "engagement",
             "severity": "medium",
             "confidence": "medium",
-            "affected_urls": [p["url"] for p in deep_pages[:5]],
+            "affected_urls": [p.get("url") or p.get("final_url") or "" for p in deep_pages[:5]],
             "evidence": (
                 f"{len(deep_pages)} pages ({deep_ratio*100:.0f}%) have URL path depth > 4 "
-                f"(e.g. {deep_pages[0]['url'] if deep_pages else 'N/A'}). "
+                f"(e.g. {deep_pages[0].get('url', '') if deep_pages else 'N/A'}). "
                 "Deep structures make content hard to discover."
             ),
             "tags": ["navigation"],
@@ -274,7 +276,7 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
     stub_pages = [
         p for p in pages
         if (p.get("visible_text_length", 9999) < 150 and
-            not any(lnk.get("is_internal") for lnk in p.get("links", [])) and
+            not any(lnk.get("is_internal") for lnk in (p.get("links") or [])) and
             not p.get("images") and
             p.get("status_code", 200) == 200)
     ]
@@ -285,7 +287,7 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
             "category": "engagement",
             "severity": "medium",
             "confidence": "medium",
-            "affected_urls": [p["url"] for p in stub_pages[:5]],
+            "affected_urls": [p.get("url") or p.get("final_url") or "" for p in stub_pages[:5]],
             "evidence": (
                 f"{len(stub_pages)} page(s) have <150 visible characters, zero internal links, "
                 "and zero images. These appear to be placeholders served to live users."
@@ -301,7 +303,7 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
     # --- ENG-008: No contact/support link ---
     all_link_texts = []
     for p in pages:
-        for lnk in p.get("links", []):
+        for lnk in (p.get("links") or []):
             all_link_texts.append(lnk.get("text", "").lower())
     has_contact_link = any(
         any(kw in t for kw in CONTACT_LINK_KEYWORDS)
@@ -335,13 +337,13 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
     vague_on_homepage = 0
 
     for p in pages:
-        is_home = (p["url"] == start_url or p.get("final_url") == start_url or p == homepage)
-        for l in p.get("links", []):
+        is_home = (p.get("url") == start_url or p.get("final_url") == start_url or p == homepage)
+        for l in (p.get("links") or []):
             if l.get("is_internal"):
                 total_internal_links += 1
                 txt = (l.get("text") or "").strip().lower()
                 if txt in vague_anchors:
-                    vague_links_found.append((p["url"], l.get("href"), txt))
+                    vague_links_found.append((p.get("url") or p.get("final_url") or "", l.get("href"), txt))
                     if is_home:
                         vague_on_homepage += 1
 
@@ -373,23 +375,23 @@ def run_checks(snapshot: dict) -> tuple[list[dict], list[dict]]:
     # --- ENG-010: Core orientation page isolated from primary navigation ---
     if homepage:
         homepage_hrefs = set()
-        for l in homepage.get("links", []):
+        for l in (homepage.get("links") or []):
             if l.get("is_internal") and l.get("href"):
                 h_clean = l["href"].rstrip("/").lower()
                 homepage_hrefs.add(h_clean)
 
         isolated_pages = []
         for p in pages:
-            if p["url"] == start_url or p.get("final_url") == start_url or p == homepage:
+            if p.get("url") == start_url or p.get("final_url") == start_url or p == homepage:
                 continue
             pt = p.get("page_type")
             if pt in ("About", "Contact", "Pricing"):
-                p_norm = p["url"].rstrip("/").lower()
+                p_norm = (p.get("url") or p.get("final_url") or "").rstrip("/").lower()
                 fu_norm = (p.get("final_url") or "").rstrip("/").lower()
                 if p_norm not in homepage_hrefs and fu_norm not in homepage_hrefs:
-                    isolated_pages.append((p["url"], pt))
+                    isolated_pages.append((p.get("url") or p.get("final_url") or "", pt))
 
-        if isolated_pages and len(homepage.get("links", [])) >= 2:
+        if isolated_pages and len((homepage.get("links") or [])) >= 2:
             findings.append({
                 "check_id": "ENG-010",
                 "title": f"Core orientation page(s) isolated from homepage navigation ({len(isolated_pages)} page(s))",
